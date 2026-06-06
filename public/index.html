@@ -17,6 +17,8 @@
     --gray5: #888888;
     --border: #2a2a2a;
     --accent: #ffffff;
+    --green: #44ff88;
+    --red: #ff4444;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -28,7 +30,6 @@
     overflow-x: hidden;
   }
 
-  /* ── NOISE OVERLAY ── */
   body::before {
     content: '';
     position: fixed; inset: 0;
@@ -38,7 +39,6 @@
     z-index: 1000;
   }
 
-  /* ── HEADER ── */
   header {
     position: sticky; top: 0; z-index: 100;
     background: rgba(0,0,0,0.92);
@@ -47,6 +47,7 @@
     padding: 0 2rem;
     display: flex; align-items: center; justify-content: space-between;
     height: 64px;
+    flex-wrap: wrap;
   }
   .header-brand {
     display: flex; align-items: center; gap: 12px;
@@ -64,7 +65,8 @@
     color: var(--white);
   }
   .header-title span { color: var(--gray5); font-size: 1rem; letter-spacing: 0.3em; }
-  nav { display: flex; gap: 4px; }
+  
+  nav { display: flex; gap: 4px; flex-wrap: wrap; }
   nav button {
     background: none; border: none; cursor: pointer;
     color: var(--gray5); font-family: 'Space Mono', monospace;
@@ -75,14 +77,27 @@
   nav button.active, nav button:hover {
     color: var(--white); background: var(--gray3);
   }
-  nav button.active {
-    border: 1px solid var(--border);
-  }
+  nav button.active { border: 1px solid var(--border); }
 
-  /* ── MAIN ── */
+  .user-area {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .user-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gray5);
+  }
+  .login-btn, .logout-btn, .register-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--white); font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; padding: 6px 12px;
+    border-radius: 4px; cursor: pointer; transition: all 0.2s;
+  }
+  .login-btn:hover, .register-btn:hover { border-color: var(--white); background: var(--gray3); }
+  .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
   main { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
 
-  /* ── TABS ── */
   .tab { display: none; }
   .tab.active { display: block; animation: fadeUp 0.3s ease; }
   @keyframes fadeUp {
@@ -90,7 +105,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── SECTION HEADING ── */
   .section-head {
     margin-bottom: 2.5rem;
     border-bottom: 1px solid var(--border);
@@ -103,7 +117,6 @@
   }
   .section-head p { color: var(--gray5); font-size: 0.85rem; font-family: 'Space Mono', monospace; }
 
-  /* ── APK CARD ── */
   .apk-card {
     background: var(--gray2);
     border: 1px solid var(--border);
@@ -145,7 +158,6 @@
   .btn-download:hover { background: #e0e0e0; transform: translateY(-1px); }
   .btn-download svg { width: 14px; height: 14px; }
 
-  /* ── PLANS GRID ── */
   .plans-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -189,7 +201,6 @@
   .plan-card.selected .check-icon { opacity: 1; }
   .plan-card .check-icon svg { width: 10px; height: 10px; }
 
-  /* ── BUY FORM ── */
   .buy-form-wrap {
     margin-top: 2rem;
     background: var(--gray2); border: 1px solid var(--border);
@@ -217,7 +228,6 @@
     padding: 10px 14px; transition: border-color 0.2s; outline: none;
   }
   .form-group input:focus { border-color: var(--white); }
-  .form-group input::placeholder { color: var(--gray4); }
   .order-summary {
     background: var(--gray3); border-radius: 8px;
     padding: 1rem 1.2rem; margin-bottom: 1.5rem;
@@ -248,7 +258,54 @@
   .btn-pay.loading .spinner { display: block; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── ORDER STATUS MODAL ── */
+  /* ── KEYS TABLE ── */
+  .keys-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--gray2); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .keys-table th, .keys-table td {
+    padding: 12px 16px; text-align: left;
+    font-family: 'Space Mono', monospace; font-size: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .keys-table th {
+    color: var(--gray5); text-transform: uppercase;
+    letter-spacing: 0.1em; background: var(--gray3);
+  }
+  .keys-table td { color: var(--white); word-break: break-all; }
+  .key-badge {
+    background: var(--gray3); padding: 4px 10px;
+    border-radius: 4px; font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; border-left: 2px solid var(--green);
+  }
+  .expired { opacity: 0.5; }
+  .expired .key-badge { border-left-color: var(--red); }
+
+  /* ── CONTACTS ── */
+  .contacts-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .contact-card {
+    background: var(--gray2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.8rem; text-align: center;
+    transition: all 0.2s;
+    text-decoration: none; display: block;
+  }
+  .contact-card:hover { border-color: var(--white); transform: translateY(-2px); }
+  .contact-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  .contact-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem; letter-spacing: 0.08em;
+    color: var(--white); margin-bottom: 0.5rem;
+  }
+  .contact-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; color: var(--gray5);
+    word-break: break-all;
+  }
+
   .modal-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
@@ -273,13 +330,6 @@
     word-break: break-all; letter-spacing: 0.05em;
     color: var(--white);
   }
-  .modal .ref-box {
-    background: var(--gray3); border: 1px solid var(--border);
-    border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;
-    font-family: 'Space Mono', monospace; font-size: 0.75rem;
-    color: var(--gray5); line-height: 1.8;
-  }
-  .modal .ref-box b { color: var(--white); }
   .btn-modal-close {
     background: none; border: 1px solid var(--border); color: var(--gray5);
     font-family: 'Space Mono', monospace; font-size: 0.7rem;
@@ -288,30 +338,28 @@
   }
   .btn-modal-close:hover { border-color: var(--white); color: var(--white); }
 
-  /* ── HISTORY TAB ── */
-  /* (buyer lookup only — for privacy) */
-  .lookup-wrap {
-    background: var(--gray2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 2rem; max-width: 480px;
+  /* ── AUTH MODAL ── */
+  .auth-modal .modal { max-width: 380px; }
+  .auth-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .auth-tab {
+    flex: 1; background: none; border: none;
+    color: var(--gray5); font-family: 'Space Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 10px; cursor: pointer; transition: all 0.2s;
   }
-  .lookup-wrap p { color: var(--gray5); font-size: 0.8rem; font-family: 'Space Mono', monospace; margin-bottom: 1.5rem; line-height: 1.6; }
-  .history-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
-  .history-table th, .history-table td {
-    text-align: left; padding: 10px 12px;
-    font-size: 0.75rem; font-family: 'Space Mono', monospace;
-    border-bottom: 1px solid var(--border);
+  .auth-tab.active { color: var(--white); border-bottom: 2px solid var(--white); }
+  .auth-form { display: none; text-align: left; }
+  .auth-form.active { display: block; }
+  .auth-form .form-group { margin-bottom: 1rem; }
+  .btn-auth {
+    width: 100%; background: var(--white); color: var(--black);
+    font-family: 'Space Mono', monospace; font-size: 0.75rem;
+    font-weight: 700; letter-spacing: 0.15em; padding: 12px;
+    border-radius: 6px; border: none; cursor: pointer;
+    margin-top: 0.5rem;
   }
-  .history-table th { color: var(--gray5); text-transform: uppercase; letter-spacing: 0.1em; }
-  .history-table td { color: var(--white); }
-  .badge {
-    display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-size: 0.65rem; font-family: 'Space Mono', monospace;
-    text-transform: uppercase; letter-spacing: 0.1em;
-  }
-  .badge.fulfilled { background: rgba(255,255,255,0.1); color: var(--white); }
-  .badge.pending { background: rgba(255,255,255,0.05); color: var(--gray5); }
+  .auth-error { color: var(--red); font-size: 0.7rem; margin-top: 0.5rem; text-align: center; }
 
-  /* ── TOAST ── */
   .toast {
     position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
     background: var(--white); color: var(--black);
@@ -322,7 +370,6 @@
   }
   .toast.show { opacity: 1; }
 
-  /* ── FOOTER ── */
   footer {
     text-align: center; padding: 2rem;
     color: var(--gray4); font-size: 0.7rem;
@@ -334,6 +381,8 @@
     .apk-card { flex-direction: column; text-align: center; }
     .plans-grid { grid-template-columns: repeat(2, 1fr); }
     .header-title { font-size: 1.4rem; }
+    header { padding: 0 1rem; gap: 10px; }
+    .user-area { margin-left: auto; }
   }
 </style>
 </head>
@@ -347,11 +396,18 @@
   <nav>
     <button class="active" onclick="switchTab('apk', this)">APK</button>
     <button onclick="switchTab('buy', this)">Buy Key</button>
+    <button onclick="switchTab('mykeys', this)">My Keys</button>
+    <button onclick="switchTab('contacts', this)">Contacts</button>
   </nav>
+  <div class="user-area" id="userArea">
+    <span class="user-name" id="userName"></span>
+    <button class="login-btn" id="loginBtn" onclick="openAuthModal()">Login</button>
+    <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display:none;">Logout</button>
+  </div>
 </header>
 
 <main>
-  <!-- ── APK TAB ── -->
+  <!-- APK TAB -->
   <div class="tab active" id="tab-apk">
     <div class="section-head">
       <h2>Download APK</h2>
@@ -379,16 +435,14 @@
     </div>
   </div>
 
-  <!-- ── BUY KEY TAB ── -->
+  <!-- BUY KEY TAB -->
   <div class="tab" id="tab-buy">
     <div class="section-head">
       <h2>Buy Key</h2>
-      <p>// select a plan and complete payment via gcash / card</p>
+      <p>// select a plan and complete payment</p>
     </div>
 
-    <div class="plans-grid" id="plansGrid">
-      <!-- Plans loaded via JS -->
-    </div>
+    <div class="plans-grid" id="plansGrid"></div>
 
     <div class="buy-form-wrap" id="buyFormWrap">
       <div class="form-title">Complete your order — <span id="selectedPlanLabel">—</span></div>
@@ -397,17 +451,10 @@
         <input type="text" id="telegramInput" placeholder="@yourusername" autocomplete="off"/>
       </div>
       <div class="order-summary">
-        <div class="order-summary-row">
-          <span>Plan</span>
-          <span id="sumPlan">—</span>
-        </div>
-        <div class="order-summary-row">
-          <span>Duration</span>
-          <span id="sumDays">—</span>
-        </div>
+        <div class="order-summary-row"><span>Plan</span><span id="sumPlan">—</span></div>
+        <div class="order-summary-row"><span>Duration</span><span id="sumDays">—</span></div>
         <div class="order-summary-row total" style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;">
-          <span>Total</span>
-          <span id="sumPrice">₱ —</span>
+          <span>Total</span><span id="sumPrice">₱ —</span>
         </div>
       </div>
       <button class="btn-pay" id="payBtn" onclick="proceedToPayment()">
@@ -416,17 +463,88 @@
       </button>
     </div>
   </div>
+
+  <!-- MY KEYS TAB -->
+  <div class="tab" id="tab-mykeys">
+    <div class="section-head">
+      <h2>My Keys</h2>
+      <p>// your purchased activation keys</p>
+    </div>
+    <div id="myKeysContainer"></div>
+  </div>
+
+  <!-- CONTACTS TAB -->
+  <div class="tab" id="tab-contacts">
+    <div class="section-head">
+      <h2>Contacts</h2>
+      <p>// reach us through telegram</p>
+    </div>
+    <div class="contacts-grid">
+      <a href="https://t.me/JEPFX" target="_blank" class="contact-card">
+        <div class="contact-icon">📱</div>
+        <div class="contact-title">JEPFX SERVICES</div>
+        <div class="contact-link">@JEPFX</div>
+      </a>
+      <a href="https://t.me/n4xcoall" target="_blank" class="contact-card">
+        <div class="contact-icon">📢</div>
+        <div class="contact-title">N4XCO CHANNEL</div>
+        <div class="contact-link">@n4xcoall</div>
+      </a>
+      <a href="https://t.me/zekielsZ" target="_blank" class="contact-card">
+        <div class="contact-icon">👤</div>
+        <div class="contact-title">N4XCO ACCOUNT</div>
+        <div class="contact-link">@zekielsZ</div>
+      </a>
+    </div>
+  </div>
 </main>
 
-<!-- ── ORDER STATUS MODAL ── -->
+<!-- ORDER STATUS MODAL -->
 <div class="modal-overlay" id="orderModal">
   <div class="modal">
     <div class="modal-icon" id="modalIcon">⏳</div>
     <h3 id="modalTitle">Processing</h3>
     <p id="modalDesc">Waiting for payment confirmation...</p>
-    <div class="ref-box" id="modalRef" style="display:none;"></div>
     <div class="key-box" id="modalKey" style="display:none;"></div>
     <button class="btn-modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<!-- AUTH MODAL (Login/Register) -->
+<div class="modal-overlay auth-modal" id="authModal">
+  <div class="modal">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+    </div>
+    <div id="loginForm" class="auth-form active">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="loginUsername" placeholder="Enter username"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••"/>
+      </div>
+      <button class="btn-auth" onclick="doLogin()">Login</button>
+      <div id="loginError" class="auth-error"></div>
+    </div>
+    <div id="registerForm" class="auth-form">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="regUsername" placeholder="Choose username"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="••••••••"/>
+      </div>
+      <div class="form-group">
+        <label>Telegram (optional)</label>
+        <input type="text" id="regTelegram" placeholder="@username"/>
+      </div>
+      <button class="btn-auth" onclick="doRegister()">Register</button>
+      <div id="regError" class="auth-error"></div>
+    </div>
   </div>
 </div>
 
@@ -437,9 +555,183 @@
 <script>
 let selectedPlan = null;
 let storeData = {};
+let currentUser = null;
+let orderPollInterval = null;
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
+// ─── AUTH FUNCTIONS ──────────────────────────────────────────────────────────
+async function checkAuth() {
+  const res = await fetch('/api/me');
+  const data = await res.json();
+  if (data.success && data.user) {
+    currentUser = data.user;
+    document.getElementById('userName').textContent = currentUser.username;
+    document.getElementById('loginBtn').style.display = 'none';
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+  } else {
+    currentUser = null;
+    document.getElementById('userName').textContent = '';
+    document.getElementById('loginBtn').style.display = 'inline-block';
+    document.getElementById('logoutBtn').style.display = 'none';
+  }
+}
+
+function openAuthModal() {
+  document.getElementById('authModal').classList.add('open');
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('regUsername').value = '';
+  document.getElementById('regPassword').value = '';
+  document.getElementById('regTelegram').value = '';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('regError').textContent = '';
+}
+
+function closeAuthModal() {
+  document.getElementById('authModal').classList.remove('open');
+}
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+  if (tab === 'login') {
+    document.querySelector('.auth-tab:first-child').classList.add('active');
+    document.getElementById('loginForm').classList.add('active');
+  } else {
+    document.querySelector('.auth-tab:last-child').classList.add('active');
+    document.getElementById('registerForm').classList.add('active');
+  }
+}
+
+async function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  
+  if (!username || !password) {
+    document.getElementById('loginError').textContent = 'Please fill all fields';
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeAuthModal();
+      await checkAuth();
+      showToast(`Welcome back, ${username}!`);
+      // Refresh keys if on mykeys tab
+      if (document.getElementById('tab-mykeys').classList.contains('active')) {
+        loadMyKeys();
+      }
+    } else {
+      document.getElementById('loginError').textContent = data.message;
+    }
+  } catch (err) {
+    document.getElementById('loginError').textContent = 'Network error';
+  }
+}
+
+async function doRegister() {
+  const username = document.getElementById('regUsername').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const telegram = document.getElementById('regTelegram').value.trim();
+  
+  if (!username || !password) {
+    document.getElementById('regError').textContent = 'Username and password required';
+    return;
+  }
+  if (password.length < 4) {
+    document.getElementById('regError').textContent = 'Password must be at least 4 characters';
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, telegram })
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeAuthModal();
+      await checkAuth();
+      showToast(`Welcome, ${username}! You can now purchase keys.`);
+    } else {
+      document.getElementById('regError').textContent = data.message;
+    }
+  } catch (err) {
+    document.getElementById('regError').textContent = 'Network error';
+  }
+}
+
+async function logout() {
+  await fetch('/api/logout', { method: 'POST' });
+  currentUser = null;
+  await checkAuth();
+  showToast('Logged out successfully');
+  // Clear buy form
+  document.getElementById('buyFormWrap').classList.remove('visible');
+  selectedPlan = null;
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+}
+
+// ─── LOAD MY KEYS ────────────────────────────────────────────────────────────
+async function loadMyKeys() {
+  if (!currentUser) {
+    document.getElementById('myKeysContainer').innerHTML = `
+      <div style="background: var(--gray2); border: 1px solid var(--border); border-radius: 12px; padding: 3rem; text-align: center;">
+        <p style="color: var(--gray5);">Please login to view your purchased keys.</p>
+        <button class="btn-download" style="margin-top: 1rem;" onclick="openAuthModal()">Login / Register</button>
+      </div>
+    `;
+    return;
+  }
+  
+  const res = await fetch('/api/mykeys');
+  const data = await res.json();
+  const keys = data.keys || [];
+  
+  if (keys.length === 0) {
+    document.getElementById('myKeysContainer').innerHTML = `
+      <div style="background: var(--gray2); border: 1px solid var(--border); border-radius: 12px; padding: 3rem; text-align: center;">
+        <p style="color: var(--gray5);">You haven't purchased any keys yet.</p>
+        <button class="btn-download" style="margin-top: 1rem;" onclick="switchTab('buy', document.querySelector('nav button:nth-child(2)'))">Buy Now</button>
+      </div>
+    `;
+    return;
+  }
+  
+  const html = `
+    <table class="keys-table">
+      <thead>
+        <tr>
+          <th>Activation Key</th>
+          <th>Plan</th>
+          <th>Purchased Date</th>
+          <th>Expires</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${keys.map(k => `
+          <tr>
+            <td><span class="key-badge">${k.key}</span></td>
+            <td>${k.plan}</td>
+            <td>${new Date(k.purchasedAt).toLocaleDateString()}</td>
+            <td>${new Date(k.expiresAt).toLocaleDateString()}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  document.getElementById('myKeysContainer').innerHTML = html;
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────────
 async function init() {
+  await checkAuth();
   const res = await fetch('/api/store');
   storeData = await res.json();
   loadAPK(storeData.apk);
@@ -482,6 +774,11 @@ function loadPlans(plans) {
 }
 
 function selectPlan(plan, card) {
+  if (!currentUser) {
+    showToast('Please login first to purchase');
+    openAuthModal();
+    return;
+  }
   document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
   card.classList.add('selected');
   selectedPlan = plan;
@@ -494,18 +791,27 @@ function selectPlan(plan, card) {
   document.getElementById('buyFormWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// ── TABS ─────────────────────────────────────────────────────────────────────
+// ─── TABS ─────────────────────────────────────────────────────────────────────
 function switchTab(id, btn) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + id).classList.add('active');
   btn.classList.add('active');
+  
+  if (id === 'mykeys') {
+    loadMyKeys();
+  }
 }
 
-// ── PAYMENT ───────────────────────────────────────────────────────────────────
+// ─── PAYMENT ───────────────────────────────────────────────────────────────────
 async function proceedToPayment() {
+  if (!currentUser) {
+    showToast('Please login first');
+    openAuthModal();
+    return;
+  }
+  
   const telegram = document.getElementById('telegramInput').value.trim();
-  if (!telegram) { showToast('Enter your Telegram username'); return; }
   if (!selectedPlan) { showToast('Select a plan first'); return; }
 
   const btn = document.getElementById('payBtn');
@@ -519,15 +825,14 @@ async function proceedToPayment() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         planId: selectedPlan.id,
-        telegram,
+        telegram: telegram || currentUser.telegram,
         days: selectedPlan.days
       })
     });
     const data = await res.json();
     if (data.success) {
-      // Open PayMongo checkout
       window.open(data.checkoutUrl, '_blank');
-      showOrderWaiting(data.orderId, data.referenceNum);
+      showOrderWaiting(data.orderId);
     } else {
       showToast('Error: ' + data.message);
     }
@@ -540,27 +845,25 @@ async function proceedToPayment() {
   }
 }
 
-function showOrderWaiting(orderId, refNum) {
+function showOrderWaiting(orderId) {
   const modal = document.getElementById('orderModal');
   document.getElementById('modalIcon').textContent = '⏳';
   document.getElementById('modalTitle').textContent = 'Payment Sent?';
   document.getElementById('modalDesc').textContent = 'Complete your payment in the tab that opened. Once confirmed, your key will appear here.';
-  document.getElementById('modalRef').style.display = 'block';
-  document.getElementById('modalRef').innerHTML = `<b>Reference #</b> ${refNum}<br><b>Order ID</b> ${orderId}<br><br>Keep this page open or screenshot this info.`;
   document.getElementById('modalKey').style.display = 'none';
   modal.classList.add('open');
 
   // Poll for order status
-  const poll = setInterval(async () => {
+  if (orderPollInterval) clearInterval(orderPollInterval);
+  orderPollInterval = setInterval(async () => {
     const res = await fetch('/api/order/' + orderId);
     const data = await res.json();
     if (data.status === 'fulfilled') {
-      clearInterval(poll);
+      clearInterval(orderPollInterval);
       showOrderFulfilled(data.key, data.plan);
-    } else if (data.status === 'paid') {
-      document.getElementById('modalDesc').textContent = 'Payment received! Key is being assigned...';
+      loadMyKeys(); // Refresh keys in My Keys tab
     }
-  }, 4000);
+  }, 3000);
 }
 
 function showOrderFulfilled(key, plan) {
@@ -573,9 +876,13 @@ function showOrderFulfilled(key, plan) {
 
 function closeModal() {
   document.getElementById('orderModal').classList.remove('open');
+  if (orderPollInterval) {
+    clearInterval(orderPollInterval);
+    orderPollInterval = null;
+  }
 }
 
-// ── UTILS ─────────────────────────────────────────────────────────────────────
+// ─── UTILS ─────────────────────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
