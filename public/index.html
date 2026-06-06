@@ -30,6 +30,7 @@
     overflow-x: hidden;
   }
 
+  /* NOISE OVERLAY */
   body::before {
     content: '';
     position: fixed; inset: 0;
@@ -39,6 +40,7 @@
     z-index: 1000;
   }
 
+  /* HEADER */
   header {
     position: sticky; top: 0; z-index: 100;
     background: rgba(0,0,0,0.92);
@@ -258,7 +260,7 @@
   .btn-pay.loading .spinner { display: block; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── KEYS TABLE ── */
+  /* KEYS TABLE */
   .keys-table {
     width: 100%; border-collapse: collapse;
     background: var(--gray2); border: 1px solid var(--border);
@@ -279,33 +281,50 @@
     border-radius: 4px; font-family: 'Space Mono', monospace;
     font-size: 0.7rem; border-left: 2px solid var(--green);
   }
-  .expired { opacity: 0.5; }
-  .expired .key-badge { border-left-color: var(--red); }
 
-  /* ── CONTACTS ── */
+  /* CONTACTS GRID */
   .contacts-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
   }
   .contact-card {
-    background: var(--gray2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 1.8rem; text-align: center;
+    background: var(--gray2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    text-decoration: none;
     transition: all 0.2s;
-    text-decoration: none; display: block;
+    display: block;
   }
-  .contact-card:hover { border-color: var(--white); transform: translateY(-2px); }
-  .contact-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  .contact-card:hover {
+    border-color: var(--white);
+    transform: translateY(-3px);
+    background: var(--gray3);
+  }
+  .contact-icon { font-size: 3rem; margin-bottom: 1rem; }
   .contact-title {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem; letter-spacing: 0.08em;
-    color: var(--white); margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+    letter-spacing: 0.08em;
+    color: var(--white);
+    margin-bottom: 0.5rem;
   }
   .contact-link {
     font-family: 'Space Mono', monospace;
-    font-size: 0.7rem; color: var(--gray5);
+    font-size: 0.8rem;
+    color: var(--gray5);
     word-break: break-all;
   }
+  .contact-desc {
+    font-size: 0.7rem;
+    color: var(--gray4);
+    margin-top: 0.5rem;
+  }
 
+  /* MODAL */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
@@ -338,7 +357,7 @@
   }
   .btn-modal-close:hover { border-color: var(--white); color: var(--white); }
 
-  /* ── AUTH MODAL ── */
+  /* AUTH MODAL */
   .auth-modal .modal { max-width: 380px; }
   .auth-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
   .auth-tab {
@@ -360,6 +379,7 @@
   }
   .auth-error { color: var(--red); font-size: 0.7rem; margin-top: 0.5rem; text-align: center; }
 
+  /* TOAST */
   .toast {
     position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
     background: var(--white); color: var(--black);
@@ -383,6 +403,7 @@
     .header-title { font-size: 1.4rem; }
     header { padding: 0 1rem; gap: 10px; }
     .user-area { margin-left: auto; }
+    .contacts-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -395,9 +416,9 @@
   </div>
   <nav>
     <button class="active" onclick="switchTab('apk', this)">APK</button>
-    <button onclick="switchTab('buy', this)">Buy Key</button>
-    <button onclick="switchTab('mykeys', this)">My Keys</button>
-    <button onclick="switchTab('contacts', this)">Contacts</button>
+    <button onclick="switchTab('buy', this)">BUY KEY</button>
+    <button onclick="switchTab('mykeys', this)">MY KEYS</button>
+    <button onclick="switchTab('contacts', this)">CONTACTS</button>
   </nav>
   <div class="user-area" id="userArea">
     <span class="user-name" id="userName"></span>
@@ -439,7 +460,7 @@
   <div class="tab" id="tab-buy">
     <div class="section-head">
       <h2>Buy Key</h2>
-      <p>// select a plan and complete payment</p>
+      <p>// select a plan and complete payment via gcash / card</p>
     </div>
 
     <div class="plans-grid" id="plansGrid"></div>
@@ -477,23 +498,26 @@
   <div class="tab" id="tab-contacts">
     <div class="section-head">
       <h2>Contacts</h2>
-      <p>// reach us through telegram</p>
+      <p>// reach us via telegram</p>
     </div>
     <div class="contacts-grid">
       <a href="https://t.me/JEPFX" target="_blank" class="contact-card">
-        <div class="contact-icon">📱</div>
+        <div class="contact-icon">💼</div>
         <div class="contact-title">JEPFX SERVICES</div>
         <div class="contact-link">@JEPFX</div>
+        <div class="contact-desc">Official support & services</div>
       </a>
       <a href="https://t.me/n4xcoall" target="_blank" class="contact-card">
         <div class="contact-icon">📢</div>
         <div class="contact-title">N4XCO CHANNEL</div>
         <div class="contact-link">@n4xcoall</div>
+        <div class="contact-desc">Updates & announcements</div>
       </a>
       <a href="https://t.me/zekielsZ" target="_blank" class="contact-card">
         <div class="contact-icon">👤</div>
         <div class="contact-title">N4XCO ACCOUNT</div>
         <div class="contact-link">@zekielsZ</div>
+        <div class="contact-desc">Direct contact</div>
       </a>
     </div>
   </div>
@@ -557,22 +581,27 @@ let selectedPlan = null;
 let storeData = {};
 let currentUser = null;
 let orderPollInterval = null;
+let authToken = localStorage.getItem('n4xco_token') || null;
 
 // ─── AUTH FUNCTIONS ──────────────────────────────────────────────────────────
 async function checkAuth() {
-  const res = await fetch('/api/me');
-  const data = await res.json();
-  if (data.success && data.user) {
-    currentUser = data.user;
-    document.getElementById('userName').textContent = currentUser.username;
-    document.getElementById('loginBtn').style.display = 'none';
-    document.getElementById('logoutBtn').style.display = 'inline-block';
-  } else {
-    currentUser = null;
-    document.getElementById('userName').textContent = '';
-    document.getElementById('loginBtn').style.display = 'inline-block';
-    document.getElementById('logoutBtn').style.display = 'none';
+  if (authToken) {
+    const res = await fetch('/api/me', {
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    });
+    const data = await res.json();
+    if (data.success && data.user) {
+      currentUser = data.user;
+      document.getElementById('userName').textContent = currentUser.username;
+      document.getElementById('loginBtn').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'inline-block';
+      return;
+    }
   }
+  currentUser = null;
+  document.getElementById('userName').textContent = '';
+  document.getElementById('loginBtn').style.display = 'inline-block';
+  document.getElementById('logoutBtn').style.display = 'none';
 }
 
 function openAuthModal() {
@@ -619,13 +648,12 @@ async function doLogin() {
     });
     const data = await res.json();
     if (data.success) {
+      authToken = data.token;
+      localStorage.setItem('n4xco_token', authToken);
       closeAuthModal();
       await checkAuth();
       showToast(`Welcome back, ${username}!`);
-      // Refresh keys if on mykeys tab
-      if (document.getElementById('tab-mykeys').classList.contains('active')) {
-        loadMyKeys();
-      }
+      loadMyKeys();
     } else {
       document.getElementById('loginError').textContent = data.message;
     }
@@ -656,9 +684,12 @@ async function doRegister() {
     });
     const data = await res.json();
     if (data.success) {
+      authToken = data.token;
+      localStorage.setItem('n4xco_token', authToken);
       closeAuthModal();
       await checkAuth();
       showToast(`Welcome, ${username}! You can now purchase keys.`);
+      loadMyKeys();
     } else {
       document.getElementById('regError').textContent = data.message;
     }
@@ -669,13 +700,15 @@ async function doRegister() {
 
 async function logout() {
   await fetch('/api/logout', { method: 'POST' });
+  authToken = null;
+  localStorage.removeItem('n4xco_token');
   currentUser = null;
   await checkAuth();
   showToast('Logged out successfully');
-  // Clear buy form
   document.getElementById('buyFormWrap').classList.remove('visible');
   selectedPlan = null;
   document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  loadMyKeys();
 }
 
 // ─── LOAD MY KEYS ────────────────────────────────────────────────────────────
@@ -690,7 +723,9 @@ async function loadMyKeys() {
     return;
   }
   
-  const res = await fetch('/api/mykeys');
+  const res = await fetch('/api/shop/mykeys', {
+    headers: { 'Authorization': 'Bearer ' + authToken }
+  });
   const data = await res.json();
   const keys = data.keys || [];
   
@@ -717,8 +752,8 @@ async function loadMyKeys() {
       <tbody>
         ${keys.map(k => `
           <tr>
-            <td><span class="key-badge">${k.key}</span></td>
-            <td>${k.plan}</td>
+            <td><span class="key-badge">${escapeHtml(k.key)}</span></td>
+            <td>${escapeHtml(k.plan)}</td>
             <td>${new Date(k.purchasedAt).toLocaleDateString()}</td>
             <td>${new Date(k.expiresAt).toLocaleDateString()}</td>
           </tr>
@@ -727,6 +762,16 @@ async function loadMyKeys() {
     </table>
   `;
   document.getElementById('myKeysContainer').innerHTML = html;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
 }
 
 // ─── INIT ──────────────────────────────────────────────────────────────────────
@@ -820,13 +865,12 @@ async function proceedToPayment() {
   btn.querySelector('.pay-text').textContent = 'Creating payment...';
 
   try {
-    const res = await fetch('/api/checkout', {
+    const res = await fetch('/api/shop/checkout', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
       body: JSON.stringify({
         planId: selectedPlan.id,
-        telegram: telegram || currentUser.telegram,
-        days: selectedPlan.days
+        telegram: telegram || currentUser.telegram
       })
     });
     const data = await res.json();
@@ -853,15 +897,14 @@ function showOrderWaiting(orderId) {
   document.getElementById('modalKey').style.display = 'none';
   modal.classList.add('open');
 
-  // Poll for order status
   if (orderPollInterval) clearInterval(orderPollInterval);
   orderPollInterval = setInterval(async () => {
-    const res = await fetch('/api/order/' + orderId);
+    const res = await fetch('/api/shop/order/' + orderId);
     const data = await res.json();
     if (data.status === 'fulfilled') {
       clearInterval(orderPollInterval);
       showOrderFulfilled(data.key, data.plan);
-      loadMyKeys(); // Refresh keys in My Keys tab
+      loadMyKeys();
     }
   }, 3000);
 }

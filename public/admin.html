@@ -16,7 +16,7 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--black); color: var(--white); font-family: 'Inter', sans-serif; min-height: 100vh; }
 
-  /* ── LOGIN ── */
+  /* LOGIN */
   #loginScreen {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
     background: var(--black);
@@ -47,7 +47,7 @@
   .btn-login:hover { background: #e0e0e0; }
   .login-err { color: var(--red); font-size: 0.75rem; font-family: 'Space Mono', monospace; margin-top: 0.8rem; display: none; }
 
-  /* ── ADMIN LAYOUT ── */
+  /* ADMIN LAYOUT */
   #adminScreen { display: none; }
   .admin-header {
     position: sticky; top: 0; z-index: 100;
@@ -76,14 +76,14 @@
     padding: 12px 16px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
   }
   .admin-nav button.active, .admin-nav button:hover { color: var(--white); border-bottom-color: var(--white); }
-  .admin-body { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+  .admin-body { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.5rem; }
 
-  /* ── ADMIN TABS ── */
+  /* ADMIN TABS */
   .atab { display: none; }
   .atab.active { display: block; animation: fadeUp 0.25s ease; }
-  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* ── SECTION ── */
+  /* SECTIONS */
   .a-section {
     background: var(--gray2); border: 1px solid var(--border);
     border-radius: 12px; padding: 1.8rem; margin-bottom: 1.5rem;
@@ -97,7 +97,10 @@
   .row { display: flex; gap: 1rem; flex-wrap: wrap; }
   .col { flex: 1; min-width: 200px; }
   .fg { margin-bottom: 1rem; }
-  .fg label { display: block; font-size: 0.65rem; font-family: 'Space Mono', monospace; color: var(--gray5); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .fg label {
+    display: block; font-size: 0.65rem; font-family: 'Space Mono', monospace;
+    color: var(--gray5); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.4rem;
+  }
   .fg input, .fg textarea, .fg select {
     width: 100%; background: var(--gray3); border: 1px solid var(--border);
     border-radius: 6px; color: var(--white); font-family: 'Space Mono', monospace;
@@ -121,13 +124,19 @@
   .btn.danger:hover { background: #cc2222; }
   .btn.sm { padding: 5px 12px; font-size: 0.62rem; }
 
-  /* ── PLANS TABLE ── */
-  .plans-table { width: 100%; border-collapse: collapse; }
-  .plans-table th, .plans-table td {
+  /* TABLES */
+  .plans-table, .orders-table, .users-table {
+    width: 100%; border-collapse: collapse;
+  }
+  .plans-table th, .plans-table td,
+  .orders-table th, .orders-table td,
+  .users-table th, .users-table td {
     padding: 10px 12px; font-size: 0.75rem; font-family: 'Space Mono', monospace;
     border-bottom: 1px solid var(--border); text-align: left;
   }
-  .plans-table th { color: var(--gray5); text-transform: uppercase; letter-spacing: 0.1em; }
+  .plans-table th, .orders-table th, .users-table th {
+    color: var(--gray5); text-transform: uppercase; letter-spacing: 0.1em;
+  }
   .plans-table td input[type="number"] {
     width: 90px; background: var(--gray3); border: 1px solid var(--border);
     border-radius: 4px; color: var(--white); font-family: 'Space Mono', monospace;
@@ -147,7 +156,7 @@
   .toggle input:checked + .toggle-slider { background: var(--gray5); }
   .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
 
-  /* ── KEYS MANAGER ── */
+  /* KEY MANAGER */
   .key-plan-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.2rem; }
   .key-plan-tab {
     background: var(--gray3); border: 1px solid var(--border); border-radius: 6px;
@@ -172,23 +181,11 @@
     font-size: 0.72rem; color: var(--gray5);
     border-bottom: 1px solid var(--border);
   }
-  .key-item:last-child { border-bottom: none; }
   .key-item .key-val { flex: 1; word-break: break-all; margin-right: 8px; }
   .key-item button { background: none; border: none; color: var(--gray4); cursor: pointer; font-size: 0.8rem; }
   .key-item button:hover { color: var(--red); }
-  .keys-list.empty-state {
-    display: flex; align-items: center; justify-content: center;
-    color: var(--gray5); font-family: 'Space Mono', monospace; font-size: 0.75rem;
-    min-height: 80px;
-  }
 
-  /* ── ORDERS TABLE ── */
-  .orders-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
-  .orders-table th, .orders-table td {
-    padding: 9px 10px; font-family: 'Space Mono', monospace;
-    border-bottom: 1px solid var(--border); text-align: left; vertical-align: top;
-  }
-  .orders-table th { color: var(--gray5); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.65rem; }
+  /* BADGES */
   .badge {
     display: inline-block; padding: 2px 7px; border-radius: 4px;
     font-size: 0.62rem; font-family: 'Space Mono', monospace; text-transform: uppercase;
@@ -196,19 +193,14 @@
   .badge.fulfilled { background: rgba(68,255,136,0.12); color: var(--green); }
   .badge.paid { background: rgba(255,255,255,0.08); color: var(--white); }
   .badge.pending { background: rgba(255,255,255,0.04); color: var(--gray5); }
+  .badge.cancelled { background: rgba(255,68,68,0.12); color: var(--red); }
+  .badge.admin { background: rgba(255,68,68,0.12); color: var(--red); }
+  .badge.user { background: rgba(68,255,136,0.12); color: var(--green); }
+
   .key-inline { font-size: 0.65rem; color: var(--gray5); word-break: break-all; max-width: 160px; }
   .fulfill-input { width: 130px; background: var(--gray3); border: 1px solid var(--border); border-radius: 4px; color: var(--white); font-family: 'Space Mono', monospace; font-size: 0.7rem; padding: 4px 7px; outline: none; }
 
-  /* ── BUYERS TABLE ── */
-  .buyers-wrap { overflow-x: auto; }
-  .buyers-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-  .buyers-table th, .buyers-table td {
-    padding: 9px 10px; font-family: 'Space Mono', monospace; font-size: 0.72rem;
-    border-bottom: 1px solid var(--border); text-align: left;
-  }
-  .buyers-table th { color: var(--gray5); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.65rem; }
-
-  /* ── STAT CARDS ── */
+  /* STATS */
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
   .stat-card {
     background: var(--gray2); border: 1px solid var(--border); border-radius: 10px;
@@ -217,7 +209,22 @@
   .stat-card .val { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; line-height: 1; }
   .stat-card .lbl { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--gray5); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
 
-  /* ── TOAST ── */
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+    z-index: 1000; display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-content {
+    background: var(--gray2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 2rem; max-width: 480px; width: 90%;
+    max-height: 85vh; overflow-y: auto;
+  }
+  .modal-content h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; margin-bottom: 1rem; }
+  .modal-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end; }
+
+  /* TOAST */
   .toast {
     position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
     background: var(--white); color: var(--black); font-family: 'Space Mono', monospace;
@@ -231,7 +238,7 @@
 </head>
 <body>
 
-<!-- ── LOGIN ── -->
+<!-- LOGIN SCREEN -->
 <div id="loginScreen">
   <div class="login-box">
     <h1>N4XCO</h1>
@@ -249,7 +256,7 @@
   </div>
 </div>
 
-<!-- ── ADMIN PANEL ── -->
+<!-- ADMIN PANEL -->
 <div id="adminScreen">
   <div class="admin-header">
     <div class="admin-header-title">N4XCO <span>// ADMIN</span></div>
@@ -261,6 +268,8 @@
     <button onclick="switchATab('plans', this)">Plans & Prices</button>
     <button onclick="switchATab('keys', this)">Key Manager</button>
     <button onclick="switchATab('orders', this)">Orders</button>
+    <button onclick="switchATab('users', this)">Users</button>
+    <button onclick="switchATab('paymongo', this)">PayMongo</button>
     <button onclick="switchATab('buyers', this)">Buyer History</button>
   </div>
 
@@ -272,8 +281,10 @@
         <div class="stat-card"><div class="val" id="st-orders">—</div><div class="lbl">Total Orders</div></div>
         <div class="stat-card"><div class="val" id="st-fulfilled">—</div><div class="lbl">Fulfilled</div></div>
         <div class="stat-card"><div class="val" id="st-pending">—</div><div class="lbl">Pending</div></div>
+        <div class="stat-card"><div class="val" id="st-cancelled">—</div><div class="lbl">Cancelled</div></div>
         <div class="stat-card"><div class="val" id="st-revenue">—</div><div class="lbl">Total Revenue ₱</div></div>
         <div class="stat-card"><div class="val" id="st-keys">—</div><div class="lbl">Keys Available</div></div>
+        <div class="stat-card"><div class="val" id="st-users">—</div><div class="lbl">Registered Users</div></div>
       </div>
       <div class="a-section">
         <h3><span>Recent Orders</span></h3>
@@ -314,14 +325,7 @@
       <div class="a-section">
         <h3><span>Plans</span> & Prices</h3>
         <table class="plans-table" id="plansTable">
-          <thead>
-            <tr>
-              <th>Plan</th>
-              <th>Days</th>
-              <th>Price (₱)</th>
-              <th>Enabled</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Plan</th><th>Days</th><th>Price (₱)</th><th>Enabled</th></tr></thead>
           <tbody id="plansTbody"></tbody>
         </table>
         <br/>
@@ -359,18 +363,63 @@
         <div style="overflow-x:auto;" id="ordersTableWrap">
           <table class="orders-table">
             <thead>
-              <tr>
-                <th>Date</th>
-                <th>Telegram</th>
-                <th>Plan</th>
-                <th>Price</th>
-                <th>Status</th>
-                <th>Key Given</th>
-                <th>Action</th>
-              </tr>
+              <tr><th>Date</th><th>User</th><th>Telegram</th><th>Plan</th><th>Price</th><th>Status</th><th>Key Given</th><th>Action</th></tr>
             </thead>
             <tbody id="ordersTbody"></tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS MANAGEMENT -->
+    <div class="atab" id="atab-users">
+      <div class="a-section">
+        <h3><span>Registered</span> Users</h3>
+        <button class="btn" onclick="openAddUserModal()" style="margin-bottom:1rem;">+ Add User / Admin</button>
+        <div style="overflow-x:auto;">
+          <table class="users-table">
+            <thead>
+              <tr><th>Username</th><th>Role</th><th>Telegram</th><th>Registered</th><th>Keys</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="usersTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMONGO SETUP -->
+    <div class="atab" id="atab-paymongo">
+      <div class="a-section">
+        <h3><span>💳</span> PayMongo Setup</h3>
+        <div class="fg">
+          <label>Secret Key (sk_live_...)</label>
+          <input type="password" id="pmSecret" placeholder="Enter PayMongo secret key">
+        </div>
+        <div class="fg">
+          <label>Public Key (pk_live_...)</label>
+          <input type="text" id="pmPublic" placeholder="Enter PayMongo public key">
+        </div>
+        <div class="fg">
+          <label>Price per Key (PHP) - minimum ₱20</label>
+          <input type="number" id="pmPrice" placeholder="100" min="20">
+        </div>
+        <div class="fg">
+          <label>Webhook URL (register in PayMongo Dashboard)</label>
+          <input type="text" id="webhookUrl" readonly style="background:var(--gray4); cursor:pointer;" onclick="this.select()">
+        </div>
+        <button class="btn" onclick="savePaymongo()">Save PayMongo Settings</button>
+        <div id="pmStatus" style="margin-top:1rem;"></div>
+      </div>
+      <div class="a-section">
+        <h3><span>📋</span> Setup Instructions</h3>
+        <div style="font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--gray5); line-height:1.8;">
+          1. Go to <a href="https://dashboard.paymongo.com/developers" target="_blank" style="color:var(--green);">PayMongo Developers</a><br>
+          2. Copy your Live Secret Key and Live Public Key<br>
+          3. Paste them above and set your desired price<br>
+          4. Register the webhook URL above in PayMongo Dashboard → Webhooks<br>
+          5. Enable event: <strong style="color:var(--white);">link.payment.paid</strong><br>
+          <br>
+          ✅ After setup, users can pay via GCash and keys will be auto-assigned!
         </div>
       </div>
     </div>
@@ -379,16 +428,10 @@
     <div class="atab" id="atab-buyers">
       <div class="a-section">
         <h3><span>Buyer</span> History</h3>
-        <div class="buyers-wrap">
-          <table class="buyers-table">
+        <div style="overflow-x:auto;">
+          <table class="orders-table">
             <thead>
-              <tr>
-                <th>Date</th>
-                <th>Telegram</th>
-                <th>Plan</th>
-                <th>Price</th>
-                <th>Key</th>
-              </tr>
+              <tr><th>Date</th><th>User</th><th>Telegram</th><th>Plan</th><th>Price</th><th>Key</th><th>Status</th></tr>
             </thead>
             <tbody id="buyersTbody"></tbody>
           </table>
@@ -396,36 +439,72 @@
       </div>
     </div>
 
-  </div><!-- /admin-body -->
-</div><!-- /adminScreen -->
+  </div>
+</div>
+
+<!-- MODAL for Add/Edit User -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal-content">
+    <h3 id="userModalTitle">Add User</h3>
+    <div class="fg">
+      <label>Username</label>
+      <input type="text" id="userUsername">
+    </div>
+    <div class="fg">
+      <label>Password</label>
+      <input type="password" id="userPassword" placeholder="Leave blank to keep current">
+    </div>
+    <div class="fg">
+      <label>Role</label>
+      <select id="userRole">
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Telegram</label>
+      <input type="text" id="userTelegram">
+    </div>
+    <div class="modal-buttons">
+      <button class="btn outline" onclick="closeUserModal()">Cancel</button>
+      <button class="btn" onclick="saveUser()">Save</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-let adminData = {};
+let adminToken = null;
+let currentUserId = null;
 let activePlanTab = null;
 
-// ── AUTH ──────────────────────────────────────────────────────────────────────
-async function checkAuth() {
-  const res = await fetch('/api/admin/check');
-  const d = await res.json();
-  if (d.admin) showAdmin();
-}
-
+// ─── AUTH ──────────────────────────────────────────────────────────────────────
 async function doLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
-  const res = await fetch('/api/admin/login', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: u, password: p })
-  });
-  const d = await res.json();
-  if (d.success) { showAdmin(); }
-  else { document.getElementById('loginErr').style.display = 'block'; }
+  const errEl = document.getElementById('loginErr');
+  errEl.style.display = 'none';
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    });
+    const data = await res.json();
+    if (data.success) {
+      adminToken = 'admin_' + Date.now();
+      sessionStorage.setItem('n4xco_admin', adminToken);
+      showAdmin();
+    } else {
+      errEl.textContent = data.message || 'Invalid credentials.';
+      errEl.style.display = 'block';
+    }
+  } catch(e) { errEl.textContent = 'Connection error.'; errEl.style.display = 'block'; }
 }
 
-async function doLogout() {
-  await fetch('/api/admin/logout', { method: 'POST' });
+function doLogout() {
+  adminToken = null;
+  sessionStorage.removeItem('n4xco_admin');
   document.getElementById('adminScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
 }
@@ -436,9 +515,19 @@ function showAdmin() {
   loadAdminData();
 }
 
-// ── DATA ─────────────────────────────────────────────────────────────────────
+function authHdr() { return { 'Content-Type': 'application/json' }; }
+
+// Check existing session
+if (sessionStorage.getItem('n4xco_admin')) {
+  adminToken = sessionStorage.getItem('n4xco_admin');
+  showAdmin();
+}
+
+// ─── DATA LOADING ──────────────────────────────────────────────────────────────
+let adminData = {};
+
 async function loadAdminData() {
-  const res = await fetch('/api/admin/data');
+  const res = await fetch('/api/admin/data', { headers: authHdr() });
   adminData = await res.json();
   renderOverview();
   renderAPKForm();
@@ -447,38 +536,45 @@ async function loadAdminData() {
   renderKeyPlanTabs();
   renderOrders();
   renderBuyers();
+  renderUsers();
+  renderPaymongoForm();
 }
 
-// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+// ─── OVERVIEW ─────────────────────────────────────────────────────────────────
 function renderOverview() {
   const orders = adminData.orders || [];
   const fulfilled = orders.filter(o => o.status === 'fulfilled').length;
   const pending = orders.filter(o => o.status === 'pending').length;
-  const revenue = orders.filter(o => o.status !== 'pending').reduce((s, o) => s + o.price, 0);
+  const cancelled = orders.filter(o => o.status === 'cancelled').length;
+  const revenue = orders.filter(o => o.status === 'fulfilled').reduce((s, o) => s + o.price, 0);
   const totalKeys = Object.values(adminData.keys || {}).reduce((s, arr) => s + arr.length, 0);
+  const totalUsers = (adminData.users || []).length;
 
   document.getElementById('st-orders').textContent = orders.length;
   document.getElementById('st-fulfilled').textContent = fulfilled;
   document.getElementById('st-pending').textContent = pending;
+  document.getElementById('st-cancelled').textContent = cancelled;
   document.getElementById('st-revenue').textContent = '₱' + revenue.toLocaleString();
   document.getElementById('st-keys').textContent = totalKeys;
+  document.getElementById('st-users').textContent = totalUsers;
 
-  const recent = [...orders].reverse().slice(0, 8);
+  const recent = [...orders].reverse().slice(0, 10);
   const wrap = document.getElementById('recentOrdersTable');
   if (!recent.length) { wrap.innerHTML = '<p style="color:var(--gray5);font-family:Space Mono,monospace;font-size:0.75rem;">No orders yet.</p>'; return; }
   wrap.innerHTML = `<div style="overflow-x:auto;"><table class="orders-table">
-    <thead><tr><th>Date</th><th>Telegram</th><th>Plan</th><th>Price</th><th>Status</th></tr></thead>
-    <tbody>${recent.map(o => `<tr>
-      <td>${new Date(o.createdAt).toLocaleDateString()}</td>
-      <td>${o.telegram}</td>
-      <td>${o.label}</td>
-      <td>₱${o.price}</td>
-      <td><span class="badge ${o.status}">${o.status}</span></td>
-    </tr>`).join('')}</tbody>
+    <thead><tr><th>Date</th><th>User</th><th>Plan</th><th>Price</th><th>Status</th></tr></thead>
+    <tbody>${recent.map(o => `
+      <tr>
+        <td>${new Date(o.createdAt).toLocaleDateString()}</td>
+        <td>${escapeHtml(o.username || o.userId?.slice(0,8))}</td>
+        <td>${escapeHtml(o.label)}</span></td>
+        <td>₱${o.price}</td>
+        <td><span class="badge ${o.status}">${o.status}</span></td>
+      </tr>`).join('')}</tbody>
   </table></div>`;
 }
 
-// ── APK ───────────────────────────────────────────────────────────────────────
+// ─── APK ───────────────────────────────────────────────────────────────────────
 function renderAPKForm() {
   const apk = adminData.apk || {};
   document.getElementById('apkNameInput').value = apk.name || '';
@@ -492,7 +588,7 @@ async function saveAPK() {
   const name = document.getElementById('apkNameInput').value.trim();
   const link = document.getElementById('apkLinkInput').value.trim();
   const res = await fetch('/api/admin/apk', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: authHdr(),
     body: JSON.stringify({ name, link })
   });
   const d = await res.json();
@@ -509,21 +605,23 @@ async function uploadLogo() {
   else { showToast('Upload failed'); }
 }
 
-// ── PLANS ─────────────────────────────────────────────────────────────────────
+// ─── PLANS ─────────────────────────────────────────────────────────────────────
 function renderPlansTable() {
   const plans = adminData.plans || [];
   const tbody = document.getElementById('plansTbody');
-  tbody.innerHTML = plans.map(p => `<tr>
-    <td style="font-family:'Space Mono',monospace;">${p.label}</td>
-    <td style="font-family:'Space Mono',monospace;">${p.days}</td>
-    <td><input type="number" id="price-${p.id}" value="${p.price}" min="1"/></td>
-    <td>
-      <label class="toggle">
-        <input type="checkbox" id="en-${p.id}" ${p.enabled ? 'checked' : ''}/>
-        <span class="toggle-slider"></span>
-      </label>
-    </td>
-  </tr>`).join('');
+  tbody.innerHTML = plans.map(p => `
+    <tr>
+      <td style="font-family:'Space Mono',monospace;">${escapeHtml(p.label)}</td>
+      <td style="font-family:'Space Mono',monospace;">${p.days}</td>
+      <td><input type="number" id="price-${p.id}" value="${p.price}" min="1"/></td>
+      <td>
+        <label class="toggle">
+          <input type="checkbox" id="en-${p.id}" ${p.enabled ? 'checked' : ''}/>
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+    </tr>
+  `).join('');
 }
 
 async function savePlans() {
@@ -533,17 +631,17 @@ async function savePlans() {
     enabled: document.getElementById('en-' + p.id)?.checked
   }));
   const res = await fetch('/api/admin/plans', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: authHdr(),
     body: JSON.stringify({ plans })
   });
   const d = await res.json();
   if (d.success) { showToast('Plans saved!'); loadAdminData(); }
 }
 
-// ── KEYS ─────────────────────────────────────────────────────────────────────
+// ─── KEYS ─────────────────────────────────────────────────────────────────────
 function renderKeyPlanSelect() {
   const sel = document.getElementById('keyPlanSelect');
-  sel.innerHTML = (adminData.plans || []).map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+  sel.innerHTML = (adminData.plans || []).map(p => `<option value="${p.id}">${escapeHtml(p.label)}</option>`).join('');
 }
 
 function renderKeyPlanTabs() {
@@ -552,10 +650,9 @@ function renderKeyPlanTabs() {
   tabs.innerHTML = (adminData.plans || []).map(p => {
     const count = (keys[p.id] || []).length;
     return `<button class="key-plan-tab ${activePlanTab === p.id ? 'active' : ''}" onclick="viewKeyPlan('${p.id}', this)">
-      ${p.label} <span class="count ${count < 3 ? 'low' : ''}">${count}</span>
+      ${escapeHtml(p.label)} <span class="count ${count < 3 ? 'low' : ''}">${count}</span>
     </button>`;
   }).join('');
-
   if (activePlanTab) viewKeyPlanById(activePlanTab);
 }
 
@@ -575,7 +672,7 @@ function viewKeyPlanById(planId) {
   }
   wrap.innerHTML = `<div class="keys-list">${keys.map((k, i) => `
     <div class="key-item">
-      <span class="key-val">${k}</span>
+      <span class="key-val">${escapeHtml(k)}</span>
       <button onclick="deleteKey('${planId}', ${i})" title="Delete">✕</button>
     </div>`).join('')}</div>`;
 }
@@ -585,7 +682,7 @@ async function addKeys() {
   const keys = document.getElementById('keysInput').value.trim();
   if (!keys) { showToast('Paste some keys first'); return; }
   const res = await fetch('/api/admin/keys', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: authHdr(),
     body: JSON.stringify({ planId, keys })
   });
   const d = await res.json();
@@ -599,78 +696,244 @@ async function addKeys() {
 
 async function deleteKey(planId, index) {
   if (!confirm('Delete this key?')) return;
-  const res = await fetch(`/api/admin/keys/${planId}/${index}`, { method: 'DELETE' });
+  const res = await fetch(`/api/admin/keys/${planId}/${index}`, { method: 'DELETE', headers: authHdr() });
   const d = await res.json();
   if (d.success) { showToast('Key removed'); loadAdminData(); }
 }
 
-// ── ORDERS ────────────────────────────────────────────────────────────────────
+// ─── ORDERS ────────────────────────────────────────────────────────────────────
 function renderOrders() {
   const orders = [...(adminData.orders || [])].reverse();
   const tbody = document.getElementById('ordersTbody');
   if (!orders.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--gray5);font-family:Space Mono,monospace;">No orders yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="color:var(--gray5);font-family:Space Mono,monospace;">No orders yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = orders.map(o => `<tr>
-    <td>${new Date(o.createdAt).toLocaleDateString()}</td>
-    <td>${o.telegram}</td>
-    <td>${o.label}</td>
-    <td>₱${o.price}</td>
-    <td><span class="badge ${o.status}">${o.status}</span></td>
-    <td class="key-inline">${o.keyGiven || '—'}</td>
-    <td>${o.status !== 'fulfilled' ? `
-      <input class="fulfill-input" id="fkey-${o.id}" placeholder="Paste key"/>
-      <button class="btn sm" onclick="fulfillOrder('${o.id}')" style="margin-top:4px;">Give Key</button>
-    ` : '✓'}</td>
-  </tr>`).join('');
+  tbody.innerHTML = orders.map(o => `
+    <tr>
+      <td>${new Date(o.createdAt).toLocaleDateString()}</td>
+      <td>${escapeHtml(o.username || o.userId?.slice(0,8))}</td>
+      <td>${escapeHtml(o.telegram || '-')}</td>
+      <td>${escapeHtml(o.label)}</td>
+      <td>₱${o.price}</td>
+      <td><span class="badge ${o.status}">${o.status}</span></td>
+      <td class="key-inline">${o.keyGiven || '—'}</td>
+      <td>
+        ${o.status !== 'fulfilled' && o.status !== 'cancelled' ? `
+          <input class="fulfill-input" id="fkey-${o.id}" placeholder="Paste key"/>
+          <button class="btn sm" onclick="fulfillOrder('${o.id}')" style="margin-top:4px;">Give Key</button>
+          <button class="btn danger sm" onclick="cancelOrder('${o.id}')" style="margin-top:4px;">Cancel</button>
+        ` : o.status === 'fulfilled' ? '✓' : '✗'}
+      </td>
+    </tr>
+  `).join('');
 }
 
 async function fulfillOrder(orderId) {
   const key = document.getElementById('fkey-' + orderId)?.value.trim();
   if (!key) { showToast('Enter a key first'); return; }
   const res = await fetch(`/api/admin/fulfill/${orderId}`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: authHdr(),
     body: JSON.stringify({ key })
   });
   const d = await res.json();
   if (d.success) { showToast('Order fulfilled!'); loadAdminData(); }
 }
 
-// ── BUYERS ────────────────────────────────────────────────────────────────────
+async function cancelOrder(orderId) {
+  if (!confirm('Cancel this order? The user will not receive a key.')) return;
+  const res = await fetch(`/api/admin/order/${orderId}/cancel`, {
+    method: 'POST', headers: authHdr()
+  });
+  const d = await res.json();
+  if (d.success) { showToast('Order cancelled'); loadAdminData(); }
+}
+
+// ─── USERS ────────────────────────────────────────────────────────────────────
+function renderUsers() {
+  const users = adminData.users || [];
+  const tbody = document.getElementById('usersTbody');
+  if (!users.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--gray5);">No registered users</td></tr>';
+    return;
+  }
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td>${escapeHtml(u.username)}</td>
+      <td><span class="badge ${u.role}">${escapeHtml(u.role)}</span></td>
+      <td>${escapeHtml(u.telegram || '-')}</td>
+      <td>${new Date(u.createdAt).toLocaleDateString()}</td>
+      <td>${u.keysCount || 0}</td>
+      <td>
+        <button class="btn sm" onclick="editUser('${u.id}')">Edit</button>
+        ${u.username !== 'N4XCO' ? `<button class="btn danger sm" onclick="deleteUser('${u.id}')">Del</button>` : '<span style="color:var(--gray5);">protected</span>'}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openAddUserModal() {
+  currentUserId = null;
+  document.getElementById('userModalTitle').textContent = 'Add User';
+  document.getElementById('userUsername').value = '';
+  document.getElementById('userPassword').value = '';
+  document.getElementById('userRole').value = 'user';
+  document.getElementById('userTelegram').value = '';
+  document.getElementById('userModal').classList.add('open');
+}
+
+function editUser(id) {
+  const user = adminData.users?.find(u => u.id === id);
+  if (!user) return;
+  currentUserId = id;
+  document.getElementById('userModalTitle').textContent = 'Edit User';
+  document.getElementById('userUsername').value = user.username;
+  document.getElementById('userPassword').value = '';
+  document.getElementById('userRole').value = user.role;
+  document.getElementById('userTelegram').value = user.telegram || '';
+  document.getElementById('userModal').classList.add('open');
+}
+
+function closeUserModal() {
+  document.getElementById('userModal').classList.remove('open');
+  currentUserId = null;
+}
+
+async function saveUser() {
+  const username = document.getElementById('userUsername').value.trim();
+  const password = document.getElementById('userPassword').value;
+  const role = document.getElementById('userRole').value;
+  const telegram = document.getElementById('userTelegram').value.trim();
+  
+  if (!username) {
+    showToast('Username required');
+    return;
+  }
+  
+  const url = currentUserId ? `/api/admin/users/${currentUserId}` : '/api/admin/users';
+  const method = currentUserId ? 'PUT' : 'POST';
+  const body = { username, role, telegram };
+  if (password) body.password = password;
+  
+  try {
+    const res = await fetch(url, { method, headers: authHdr(), body: JSON.stringify(body) });
+    const data = await res.json();
+    if (data.success) {
+      closeUserModal();
+      loadAdminData();
+      showToast('User saved!');
+    } else {
+      showToast(data.message || 'Error', true);
+    }
+  } catch (e) {
+    showToast('Network error', true);
+  }
+}
+
+async function deleteUser(id) {
+  const user = adminData.users?.find(u => u.id === id);
+  if (!confirm(`Delete user "${user?.username}"?`)) return;
+  try {
+    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: authHdr() });
+    const data = await res.json();
+    if (data.success) {
+      loadAdminData();
+      showToast('User deleted');
+    } else {
+      showToast(data.message || 'Cannot delete this user', true);
+    }
+  } catch (e) {
+    showToast('Error', true);
+  }
+}
+
+// ─── PAYMONGO ─────────────────────────────────────────────────────────────────
+function renderPaymongoForm() {
+  const pm = adminData.paymongo || {};
+  document.getElementById('pmPublic').value = pm.public_key || '';
+  document.getElementById('pmPrice').value = pm.price_cents ? (pm.price_cents / 100).toFixed(0) : '';
+  // Set webhook URL
+  const webhookUrl = `${window.location.origin}/api/webhook/paymongo`;
+  document.getElementById('webhookUrl').value = webhookUrl;
+}
+
+async function savePaymongo() {
+  const secret = document.getElementById('pmSecret').value;
+  const publicKey = document.getElementById('pmPublic').value;
+  const price = parseInt(document.getElementById('pmPrice').value) || 0;
+  
+  const res = await fetch('/api/admin/paymongo', {
+    method: 'PUT',
+    headers: authHdr(),
+    body: JSON.stringify({ secret_key: secret, public_key: publicKey, price_cents: price * 100 })
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('pmStatus').innerHTML = '<span style="color:var(--green);">✅ Settings saved!</span>';
+    setTimeout(() => document.getElementById('pmStatus').innerHTML = '', 3000);
+    showToast('PayMongo settings saved');
+  } else {
+    showToast('Save failed', true);
+  }
+}
+
+// ─── BUYERS ────────────────────────────────────────────────────────────────────
 function renderBuyers() {
   const buyers = [...(adminData.buyers || [])].reverse();
   const tbody = document.getElementById('buyersTbody');
   if (!buyers.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--gray5);font-family:Space Mono,monospace;">No buyers yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--gray5);">No buyers yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = buyers.map(b => `<tr>
-    <td>${new Date(b.date).toLocaleDateString()}</td>
-    <td>${b.telegram}</td>
-    <td>${b.plan}</td>
-    <td>₱${b.price}</td>
-    <td style="word-break:break-all;max-width:180px;font-size:0.65rem;">${b.key}</td>
-  </tr>`).join('');
+  tbody.innerHTML = buyers.map(b => `
+    <tr>
+      <td>${new Date(b.date).toLocaleDateString()}</td>
+      <td>${escapeHtml(b.username || b.userId?.slice(0,8))}</td>
+      <td>${escapeHtml(b.telegram || '-')}</td>
+      <td>${escapeHtml(b.plan)}</td>
+      <td>₱${b.price}</td>
+      <td class="key-inline">${b.key || '—'}</td>
+      <td><span class="badge ${b.status || 'fulfilled'}">${b.status || 'fulfilled'}</span></td>
+    </tr>
+  `).join('');
 }
 
-// ── TABS ─────────────────────────────────────────────────────────────────────
+// ─── TABS ─────────────────────────────────────────────────────────────────────
 function switchATab(id, btn) {
   document.querySelectorAll('.atab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('atab-' + id).classList.add('active');
   btn.classList.add('active');
-  loadAdminData(); // refresh data on tab switch
+  loadAdminData();
 }
 
-// ── TOAST ─────────────────────────────────────────────────────────────────────
-function showToast(msg) {
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
+  t.textContent = (isError ? '⚠️ ' : '✓ ') + msg;
+  t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-checkAuth();
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
+
+// Close modal on outside click
+document.getElementById('userModal').addEventListener('click', function(e) {
+  if (e.target === this) closeUserModal();
+});
+
+// Enter key on login
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
 </script>
 </body>
 </html>
