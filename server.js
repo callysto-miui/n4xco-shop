@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,7 +34,14 @@ function readData() {
   try {
     return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
   } catch {
-    return { apk: {}, plans: [], keys: {}, orders: [], buyers: [] };
+    return { 
+      apk: {}, 
+      plans: [], 
+      keys: {}, 
+      orders: [], 
+      buyers: [],
+      users: [] 
+    };
   }
 }
 function writeData(data) {
@@ -46,6 +54,11 @@ function requireAdmin(req, res, next) {
   res.status(401).json({ success: false, message: 'Unauthorized' });
 }
 
+function requireUser(req, res, next) {
+  if (req.session && req.session.userId) return next();
+  res.status(401).json({ success: false, message: 'Please login first' });
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 //  PUBLIC ROUTES
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -55,6 +68,102 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html'
 
 // Admin page
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public/admin.html')));
+
+// ─── User Registration ────────────────────────────────────────────────────────
+app.post('/api/register', async (req, res) => {
+  const { username, password, telegram } = req.body;
+  
+  if (!username || !password) {
+    return res.status(400).json({ success: false, message: 'Username and password required' });
+  }
+  
+  const data = readData();
+  
+  // Check if user exists
+  if (data.users.find(u => u.username === username)) {
+    return res.status(400).json({ success: false, message: 'Username already exists' });
+  }
+  
+  // Hash password
+  const hashedPassword = await bcrypt.hash(password, 10);
+  
+  const newUser = {
+    id: uuidv4(),
+    username,
+    password: hashedPassword,
+    telegram: telegram || '',
+    createdAt: new Date().toISOString(),
+    keys: [] // Store user's purchased keys
+  };
+  
+  data.users.push(newUser);
+  writeData(data);
+  
+  // Auto login after registration
+  req.session.userId = newUser.id;
+  req.session.username = newUser.username;
+  
+  res.json({ success: true, user: { id: newUser.id, username: newUser.username, telegram: newUser.telegram } });
+});
+
+// ─── User Login ───────────────────────────────────────────────────────────────
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  const data = readData();
+  const user = data.users.find(u => u.username === username);
+  
+  if (!user) {
+    return res.status(401).json({ success: false, message: 'Invalid credentials' });
+  }
+  
+  const validPassword = await bcrypt.compare(password, user.password);
+  if (!validPassword) {
+    return res.status(401).json({ success: false, message: 'Invalid credentials' });
+  }
+  
+  req.session.userId = user.id;
+  req.session.username = user.username;
+  
+  res.json({ success: true, user: { id: user.id, username: user.username, telegram: user.telegram } });
+});
+
+// ─── User Logout ──────────────────────────────────────────────────────────────
+app.post('/api/logout', (req, res) => {
+  req.session.destroy();
+  res.json({ success: true });
+});
+
+// ─── Get Current User ─────────────────────────────────────────────────────────
+app.get('/api/me', (req, res) => {
+  if (!req.session.userId) {
+    return res.json({ success: false, user: null });
+  }
+  
+  const data = readData();
+  const user = data.users.find(u => u.id === req.session.userId);
+  
+  if (!user) {
+    return res.json({ success: false, user: null });
+  }
+  
+  res.json({ 
+    success: true, 
+    user: { 
+      id: user.id, 
+      username: user.username, 
+      telegram: user.telegram,
+      keys: user.keys || []
+    } 
+  });
+});
+
+// ─── Get User's Purchased Keys ────────────────────────────────────────────────
+app.get('/api/mykeys', requireUser, (req, res) => {
+  const data = readData();
+  const user = data.users.find(u => u.id === req.session.userId);
+  res.json({ success: true, keys: user?.keys || [] });
+});
 
 // ─── API: Get store data (public) ─────────────────────────────────────────────
 app.get('/api/store', (req, res) => {
@@ -66,16 +175,19 @@ app.get('/api/store', (req, res) => {
 });
 
 // ─── API: Create PayMongo payment link ────────────────────────────────────────
-app.post('/api/checkout', async (req, res) => {
+app.post('/api/checkout', requireUser, async (req, res) => {
   const { planId, telegram, days } = req.body;
-  if (!planId || !telegram) return res.status(400).json({ success: false, message: 'Missing fields' });
+  if (!planId) return res.status(400).json({ success: false, message: 'Missing plan' });
 
   const data = readData();
   const plan = data.plans.find(p => p.id === planId);
   if (!plan) return res.status(404).json({ success: false, message: 'Plan not found' });
+  
+  const user = data.users.find(u => u.id === req.session.userId);
+  const userTelegram = telegram || user?.telegram || '';
 
   const PAYMONGO_SECRET = process.env.PAYMONGO_SECRET_KEY || '';
-  if (!PAYMONGO_SECRET) return res.status(500).json({ success: false, message: 'PayMongo not configured. Set PAYMONGO_SECRET_KEY env variable.' });
+  if (!PAYMONGO_SECRET) return res.status(500).json({ success: false, message: 'PayMongo not configured.' });
 
   try {
     const orderId = uuidv4();
@@ -86,7 +198,7 @@ app.post('/api/checkout', async (req, res) => {
         attributes: {
           amount: amountInCentavos,
           description: `N4XCO Key - ${plan.label}`,
-          remarks: `Order:${orderId}|TG:${telegram}|Plan:${planId}`
+          remarks: `Order:${orderId}|UserId:${req.session.userId}|Plan:${planId}`
         }
       }
     }, {
@@ -103,11 +215,13 @@ app.post('/api/checkout', async (req, res) => {
     // Save pending order
     const order = {
       id: orderId,
+      userId: req.session.userId,
+      username: user.username,
       planId,
       label: plan.label,
       price: plan.price,
       days: plan.days,
-      telegram,
+      telegram: userTelegram,
       status: 'pending',
       referenceNum,
       paymongoLinkId: linkData.id,
@@ -130,23 +244,41 @@ app.post('/api/webhook/paymongo', express.raw({ type: 'application/json' }), (re
     const event = JSON.parse(req.body);
     if (event.data?.attributes?.type === 'link.payment.paid') {
       const remarks = event.data.attributes.data?.attributes?.remarks || '';
-      const match = remarks.match(/Order:([^|]+)\|TG:([^|]+)\|Plan:([^|]+)/);
+      const match = remarks.match(/Order:([^|]+)\|UserId:([^|]+)\|Plan:([^|]+)/);
       if (match) {
-        const [, orderId, telegram, planId] = match;
+        const [, orderId, userId, planId] = match;
         const data = readData();
         const order = data.orders.find(o => o.id === orderId);
+        const user = data.users.find(u => u.id === userId);
+        
         if (order && order.status === 'pending') {
           order.status = 'paid';
           order.paidAt = new Date().toISOString();
+          
           // Auto-assign key if available
           const keys = data.keys[planId] || [];
           if (keys.length > 0) {
-            order.keyGiven = keys.shift();
+            const assignedKey = keys.shift();
+            order.keyGiven = assignedKey;
             order.status = 'fulfilled';
             data.keys[planId] = keys;
+            
+            // Add key to user's account
+            if (user) {
+              if (!user.keys) user.keys = [];
+              user.keys.push({
+                key: assignedKey,
+                plan: order.label,
+                purchasedAt: new Date().toISOString(),
+                expiresAt: new Date(Date.now() + order.days * 24 * 60 * 60 * 1000).toISOString()
+              });
+            }
           }
+          
           // Add to buyers
           data.buyers.push({
+            userId: userId,
+            username: user?.username || order.username,
             telegram: order.telegram,
             plan: order.label,
             price: order.price,
@@ -174,10 +306,9 @@ app.get('/api/order/:id', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  ADMIN ROUTES
+//  ADMIN ROUTES (same as before)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Admin login
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
   const ADMIN_USER = process.env.ADMIN_USER || 'N4XCO';
@@ -199,13 +330,11 @@ app.get('/api/admin/check', (req, res) => {
   res.json({ admin: !!req.session?.admin });
 });
 
-// Get full admin data
 app.get('/api/admin/data', requireAdmin, (req, res) => {
   const data = readData();
   res.json(data);
 });
 
-// Update APK info
 app.post('/api/admin/apk', requireAdmin, (req, res) => {
   const { name, link } = req.body;
   const data = readData();
@@ -215,7 +344,6 @@ app.post('/api/admin/apk', requireAdmin, (req, res) => {
   res.json({ success: true });
 });
 
-// Upload logo
 app.post('/api/admin/logo', requireAdmin, upload.single('logo'), (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
   const data = readData();
@@ -224,7 +352,6 @@ app.post('/api/admin/logo', requireAdmin, upload.single('logo'), (req, res) => {
   res.json({ success: true, logo: data.apk.logo });
 });
 
-// Update plan prices
 app.post('/api/admin/plans', requireAdmin, (req, res) => {
   const { plans } = req.body;
   const data = readData();
@@ -239,7 +366,6 @@ app.post('/api/admin/plans', requireAdmin, (req, res) => {
   res.json({ success: true });
 });
 
-// Add keys
 app.post('/api/admin/keys', requireAdmin, (req, res) => {
   const { planId, keys } = req.body;
   const data = readData();
@@ -250,7 +376,6 @@ app.post('/api/admin/keys', requireAdmin, (req, res) => {
   res.json({ success: true, added: newKeys.length, total: data.keys[planId].length });
 });
 
-// Get keys count per plan
 app.get('/api/admin/keys', requireAdmin, (req, res) => {
   const data = readData();
   const counts = {};
@@ -258,23 +383,36 @@ app.get('/api/admin/keys', requireAdmin, (req, res) => {
   res.json({ success: true, counts, keys: data.keys });
 });
 
-// Manually fulfill an order
 app.post('/api/admin/fulfill/:orderId', requireAdmin, (req, res) => {
   const { key } = req.body;
   const data = readData();
   const order = data.orders.find(o => o.id === req.params.orderId);
   if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+  
   order.keyGiven = key;
   order.status = 'fulfilled';
   order.fulfilledAt = new Date().toISOString();
+  
+  // Add key to user's account
+  const user = data.users.find(u => u.id === order.userId);
+  if (user) {
+    if (!user.keys) user.keys = [];
+    user.keys.push({
+      key: key,
+      plan: order.label,
+      purchasedAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + order.days * 24 * 60 * 60 * 1000).toISOString()
+    });
+  }
+  
   // Update buyer record
   const buyer = data.buyers.find(b => b.orderId === order.id);
   if (buyer) buyer.key = key;
+  
   writeData(data);
   res.json({ success: true });
 });
 
-// Delete key from pool
 app.delete('/api/admin/keys/:planId/:index', requireAdmin, (req, res) => {
   const data = readData();
   const { planId, index } = req.params;
