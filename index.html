@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>N4XCO SHOP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --black: #000000;
+    --white: #ffffff;
+    --gray: #111111;
+    --gray2: #1a1a1a;
+    --gray3: #2a2a2a;
+    --gray4: #444444;
+    --gray5: #888888;
+    --border: #2a2a2a;
+    --accent: #ffffff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .header-brand {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .header-logo {
+    width: 36px; height: 36px; border-radius: 6px;
+    object-fit: cover; border: 1px solid var(--border);
+    display: none;
+  }
+  .header-logo.loaded { display: block; }
+  .header-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.15em;
+    color: var(--white);
+  }
+  .header-title span { color: var(--gray5); font-size: 1rem; letter-spacing: 0.3em; }
+  nav { display: flex; gap: 4px; }
+  nav button {
+    background: none; border: none; cursor: pointer;
+    color: var(--gray5); font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 8px 16px; border-radius: 4px;
+    transition: all 0.2s;
+  }
+  nav button.active, nav button:hover {
+    color: var(--white); background: var(--gray3);
+  }
+  nav button.active {
+    border: 1px solid var(--border);
+  }
+
+  /* ── MAIN ── */
+  main { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+
+  /* ── TABS ── */
+  .tab { display: none; }
+  .tab.active { display: block; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── SECTION HEADING ── */
+  .section-head {
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+  }
+  .section-head h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem; letter-spacing: 0.1em;
+    margin-bottom: 0.3rem;
+  }
+  .section-head p { color: var(--gray5); font-size: 0.85rem; font-family: 'Space Mono', monospace; }
+
+  /* ── APK CARD ── */
+  .apk-card {
+    background: var(--gray2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2.5rem;
+    display: flex; align-items: center; gap: 2rem;
+    margin-bottom: 2rem;
+    position: relative; overflow: hidden;
+  }
+  .apk-card::before {
+    content: '';
+    position: absolute; top: -50%; right: -50%;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .apk-logo-wrap {
+    width: 90px; height: 90px; flex-shrink: 0;
+    background: var(--gray3); border: 1px solid var(--border);
+    border-radius: 18px; display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .apk-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .apk-logo-wrap .placeholder-icon { font-size: 2.5rem; opacity: 0.2; }
+  .apk-info { flex: 1; }
+  .apk-info h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem; letter-spacing: 0.08em; margin-bottom: 0.5rem;
+  }
+  .apk-info p { color: var(--gray5); font-size: 0.8rem; font-family: 'Space Mono', monospace; margin-bottom: 1.2rem; }
+  .btn-download {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--white); color: var(--black);
+    font-family: 'Space Mono', monospace; font-size: 0.75rem;
+    font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+    text-decoration: none; padding: 10px 24px; border-radius: 6px;
+    transition: all 0.2s; border: none; cursor: pointer;
+  }
+  .btn-download:hover { background: #e0e0e0; transform: translateY(-1px); }
+  .btn-download svg { width: 14px; height: 14px; }
+
+  /* ── PLANS GRID ── */
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .plan-card {
+    background: var(--gray2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.5rem;
+    cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .plan-card:hover { border-color: var(--white); transform: translateY(-2px); }
+  .plan-card.selected {
+    border-color: var(--white);
+    background: var(--gray3);
+    box-shadow: 0 0 0 1px var(--white);
+  }
+  .plan-card .plan-days {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem; line-height: 1; margin-bottom: 0.2rem;
+  }
+  .plan-card .plan-label {
+    color: var(--gray5); font-size: 0.7rem;
+    font-family: 'Space Mono', monospace; letter-spacing: 0.15em;
+    text-transform: uppercase; margin-bottom: 1rem;
+  }
+  .plan-card .plan-price {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem; color: var(--white);
+  }
+  .plan-card .plan-price span {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem; color: var(--gray5); letter-spacing: 0.1em;
+  }
+  .plan-card .check-icon {
+    position: absolute; top: 1rem; right: 1rem;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--white); display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .plan-card.selected .check-icon { opacity: 1; }
+  .plan-card .check-icon svg { width: 10px; height: 10px; }
+
+  /* ── BUY FORM ── */
+  .buy-form-wrap {
+    margin-top: 2rem;
+    background: var(--gray2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2rem;
+    display: none;
+    animation: fadeUp 0.3s ease;
+  }
+  .buy-form-wrap.visible { display: block; }
+  .form-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem; letter-spacing: 0.08em; margin-bottom: 1.5rem;
+    color: var(--gray5);
+  }
+  .form-title span { color: var(--white); }
+  .form-group { margin-bottom: 1.2rem; }
+  .form-group label {
+    display: block; font-size: 0.7rem;
+    font-family: 'Space Mono', monospace; letter-spacing: 0.15em;
+    color: var(--gray5); margin-bottom: 0.5rem; text-transform: uppercase;
+  }
+  .form-group input {
+    width: 100%; background: var(--gray3);
+    border: 1px solid var(--border); border-radius: 6px;
+    color: var(--white); font-family: 'Space Mono', monospace; font-size: 0.85rem;
+    padding: 10px 14px; transition: border-color 0.2s; outline: none;
+  }
+  .form-group input:focus { border-color: var(--white); }
+  .form-group input::placeholder { color: var(--gray4); }
+  .order-summary {
+    background: var(--gray3); border-radius: 8px;
+    padding: 1rem 1.2rem; margin-bottom: 1.5rem;
+    font-family: 'Space Mono', monospace; font-size: 0.8rem;
+  }
+  .order-summary-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0;
+  }
+  .order-summary-row span:first-child { color: var(--gray5); }
+  .order-summary-row.total span:last-child {
+    font-size: 1.1rem; font-weight: 700;
+  }
+  .btn-pay {
+    width: 100%; background: var(--white); color: var(--black);
+    font-family: 'Space Mono', monospace; font-size: 0.8rem;
+    font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 14px; border-radius: 8px; border: none; cursor: pointer;
+    transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-pay:hover:not(:disabled) { background: #e0e0e0; transform: translateY(-1px); }
+  .btn-pay:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-pay .spinner {
+    width: 14px; height: 14px; border: 2px solid var(--gray4);
+    border-top-color: var(--black); border-radius: 50%;
+    animation: spin 0.7s linear infinite; display: none;
+  }
+  .btn-pay.loading .spinner { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── ORDER STATUS MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+    z-index: 500; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--gray2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 2.5rem; max-width: 420px; width: 90%;
+    text-align: center; animation: fadeUp 0.3s ease;
+  }
+  .modal-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .modal h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem; letter-spacing: 0.08em; margin-bottom: 0.5rem;
+  }
+  .modal p { color: var(--gray5); font-size: 0.85rem; margin-bottom: 1.5rem; line-height: 1.6; }
+  .modal .key-box {
+    background: var(--gray3); border: 1px solid var(--white);
+    border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;
+    font-family: 'Space Mono', monospace; font-size: 0.9rem;
+    word-break: break-all; letter-spacing: 0.05em;
+    color: var(--white);
+  }
+  .modal .ref-box {
+    background: var(--gray3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;
+    font-family: 'Space Mono', monospace; font-size: 0.75rem;
+    color: var(--gray5); line-height: 1.8;
+  }
+  .modal .ref-box b { color: var(--white); }
+  .btn-modal-close {
+    background: none; border: 1px solid var(--border); color: var(--gray5);
+    font-family: 'Space Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.15em; padding: 10px 24px; border-radius: 6px;
+    cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+  }
+  .btn-modal-close:hover { border-color: var(--white); color: var(--white); }
+
+  /* ── HISTORY TAB ── */
+  /* (buyer lookup only — for privacy) */
+  .lookup-wrap {
+    background: var(--gray2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2rem; max-width: 480px;
+  }
+  .lookup-wrap p { color: var(--gray5); font-size: 0.8rem; font-family: 'Space Mono', monospace; margin-bottom: 1.5rem; line-height: 1.6; }
+  .history-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
+  .history-table th, .history-table td {
+    text-align: left; padding: 10px 12px;
+    font-size: 0.75rem; font-family: 'Space Mono', monospace;
+    border-bottom: 1px solid var(--border);
+  }
+  .history-table th { color: var(--gray5); text-transform: uppercase; letter-spacing: 0.1em; }
+  .history-table td { color: var(--white); }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 0.65rem; font-family: 'Space Mono', monospace;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .badge.fulfilled { background: rgba(255,255,255,0.1); color: var(--white); }
+  .badge.pending { background: rgba(255,255,255,0.05); color: var(--gray5); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    background: var(--white); color: var(--black);
+    font-family: 'Space Mono', monospace; font-size: 0.75rem;
+    padding: 10px 20px; border-radius: 6px; z-index: 9999;
+    opacity: 0; transition: opacity 0.3s;
+    pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; padding: 2rem;
+    color: var(--gray4); font-size: 0.7rem;
+    font-family: 'Space Mono', monospace; letter-spacing: 0.1em;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 600px) {
+    .apk-card { flex-direction: column; text-align: center; }
+    .plans-grid { grid-template-columns: repeat(2, 1fr); }
+    .header-title { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <img class="header-logo" id="headerLogo" src="" alt="Logo"/>
+    <div class="header-title">N4XCO <span>SHOP</span></div>
+  </div>
+  <nav>
+    <button class="active" onclick="switchTab('apk', this)">APK</button>
+    <button onclick="switchTab('buy', this)">Buy Key</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ── APK TAB ── -->
+  <div class="tab active" id="tab-apk">
+    <div class="section-head">
+      <h2>Download APK</h2>
+      <p>// get the latest version below</p>
+    </div>
+    <div class="apk-card">
+      <div class="apk-logo-wrap" id="apkLogoWrap">
+        <span class="placeholder-icon">⬡</span>
+      </div>
+      <div class="apk-info">
+        <h3 id="apkName">N4XCO App</h3>
+        <p id="apkSub">Tap the button to download the latest APK</p>
+        <a class="btn-download" id="apkDownloadBtn" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm-.75 4.75h1.5v4.5l2.22-2.22 1.06 1.06L8 12.12l-4.03-4.03 1.06-1.06L7.25 9.25V4.75z"/></svg>
+          Download APK
+        </a>
+      </div>
+    </div>
+    <div style="padding: 1.5rem; background: var(--gray2); border: 1px solid var(--border); border-radius: 10px;">
+      <p style="font-size:0.75rem; font-family:'Space Mono',monospace; color:var(--gray5); line-height:1.8;">
+        ⚠ &nbsp;ENABLE "Install from Unknown Sources" before installing.<br>
+        📲 &nbsp;Download → Install → Purchase a key → Activate.<br>
+        💬 &nbsp;For support, contact us via Telegram after purchase.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── BUY KEY TAB ── -->
+  <div class="tab" id="tab-buy">
+    <div class="section-head">
+      <h2>Buy Key</h2>
+      <p>// select a plan and complete payment via gcash / card</p>
+    </div>
+
+    <div class="plans-grid" id="plansGrid">
+      <!-- Plans loaded via JS -->
+    </div>
+
+    <div class="buy-form-wrap" id="buyFormWrap">
+      <div class="form-title">Complete your order — <span id="selectedPlanLabel">—</span></div>
+      <div class="form-group">
+        <label>Your Telegram Username</label>
+        <input type="text" id="telegramInput" placeholder="@yourusername" autocomplete="off"/>
+      </div>
+      <div class="order-summary">
+        <div class="order-summary-row">
+          <span>Plan</span>
+          <span id="sumPlan">—</span>
+        </div>
+        <div class="order-summary-row">
+          <span>Duration</span>
+          <span id="sumDays">—</span>
+        </div>
+        <div class="order-summary-row total" style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;">
+          <span>Total</span>
+          <span id="sumPrice">₱ —</span>
+        </div>
+      </div>
+      <button class="btn-pay" id="payBtn" onclick="proceedToPayment()">
+        <div class="spinner"></div>
+        <span class="pay-text">Proceed to Payment</span>
+      </button>
+    </div>
+  </div>
+</main>
+
+<!-- ── ORDER STATUS MODAL ── -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <div class="modal-icon" id="modalIcon">⏳</div>
+    <h3 id="modalTitle">Processing</h3>
+    <p id="modalDesc">Waiting for payment confirmation...</p>
+    <div class="ref-box" id="modalRef" style="display:none;"></div>
+    <div class="key-box" id="modalKey" style="display:none;"></div>
+    <button class="btn-modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>N4XCO SHOP &nbsp;·&nbsp; All rights reserved &nbsp;·&nbsp; 2025</footer>
+
+<script>
+let selectedPlan = null;
+let storeData = {};
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+async function init() {
+  const res = await fetch('/api/store');
+  storeData = await res.json();
+  loadAPK(storeData.apk);
+  loadPlans(storeData.plans);
+}
+
+function loadAPK(apk) {
+  if (!apk) return;
+  document.getElementById('apkName').textContent = apk.name || 'N4XCO App';
+  document.getElementById('apkDownloadBtn').href = apk.link || '#';
+
+  const logo = document.getElementById('headerLogo');
+  const logoWrap = document.getElementById('apkLogoWrap');
+
+  if (apk.logo) {
+    logo.src = apk.logo;
+    logo.onload = () => logo.classList.add('loaded');
+    logoWrap.innerHTML = `<img src="${apk.logo}" alt="Logo" onerror="this.style.display='none'"/>`;
+  }
+}
+
+function loadPlans(plans) {
+  const grid = document.getElementById('plansGrid');
+  grid.innerHTML = '';
+  plans.forEach(plan => {
+    const card = document.createElement('div');
+    card.className = 'plan-card';
+    card.dataset.id = plan.id;
+    card.innerHTML = `
+      <div class="check-icon">
+        <svg viewBox="0 0 10 10" fill="none" stroke="#000" stroke-width="2"><polyline points="1,5 4,8 9,2"/></svg>
+      </div>
+      <div class="plan-days">${plan.days}</div>
+      <div class="plan-label">days access</div>
+      <div class="plan-price">₱ ${plan.price.toLocaleString()} <span>PHP</span></div>
+    `;
+    card.onclick = () => selectPlan(plan, card);
+    grid.appendChild(card);
+  });
+}
+
+function selectPlan(plan, card) {
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedPlan = plan;
+
+  document.getElementById('selectedPlanLabel').textContent = plan.label;
+  document.getElementById('sumPlan').textContent = plan.label;
+  document.getElementById('sumDays').textContent = plan.days + ' days';
+  document.getElementById('sumPrice').textContent = '₱ ' + plan.price.toLocaleString();
+  document.getElementById('buyFormWrap').classList.add('visible');
+  document.getElementById('buyFormWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── PAYMENT ───────────────────────────────────────────────────────────────────
+async function proceedToPayment() {
+  const telegram = document.getElementById('telegramInput').value.trim();
+  if (!telegram) { showToast('Enter your Telegram username'); return; }
+  if (!selectedPlan) { showToast('Select a plan first'); return; }
+
+  const btn = document.getElementById('payBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  btn.querySelector('.pay-text').textContent = 'Creating payment...';
+
+  try {
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        planId: selectedPlan.id,
+        telegram,
+        days: selectedPlan.days
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      // Open PayMongo checkout
+      window.open(data.checkoutUrl, '_blank');
+      showOrderWaiting(data.orderId, data.referenceNum);
+    } else {
+      showToast('Error: ' + data.message);
+    }
+  } catch (err) {
+    showToast('Network error. Try again.');
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.querySelector('.pay-text').textContent = 'Proceed to Payment';
+  }
+}
+
+function showOrderWaiting(orderId, refNum) {
+  const modal = document.getElementById('orderModal');
+  document.getElementById('modalIcon').textContent = '⏳';
+  document.getElementById('modalTitle').textContent = 'Payment Sent?';
+  document.getElementById('modalDesc').textContent = 'Complete your payment in the tab that opened. Once confirmed, your key will appear here.';
+  document.getElementById('modalRef').style.display = 'block';
+  document.getElementById('modalRef').innerHTML = `<b>Reference #</b> ${refNum}<br><b>Order ID</b> ${orderId}<br><br>Keep this page open or screenshot this info.`;
+  document.getElementById('modalKey').style.display = 'none';
+  modal.classList.add('open');
+
+  // Poll for order status
+  const poll = setInterval(async () => {
+    const res = await fetch('/api/order/' + orderId);
+    const data = await res.json();
+    if (data.status === 'fulfilled') {
+      clearInterval(poll);
+      showOrderFulfilled(data.key, data.plan);
+    } else if (data.status === 'paid') {
+      document.getElementById('modalDesc').textContent = 'Payment received! Key is being assigned...';
+    }
+  }, 4000);
+}
+
+function showOrderFulfilled(key, plan) {
+  document.getElementById('modalIcon').textContent = '✅';
+  document.getElementById('modalTitle').textContent = 'Key Ready!';
+  document.getElementById('modalDesc').textContent = `Your ${plan} key is below. Activate it in the app.`;
+  document.getElementById('modalKey').style.display = 'block';
+  document.getElementById('modalKey').textContent = key;
+}
+
+function closeModal() {
+  document.getElementById('orderModal').classList.remove('open');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>

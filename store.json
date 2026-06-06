@@ -1,0 +1,27 @@
+{
+  "apk": {
+    "name": "N4XCO App",
+    "logo": "",
+    "link": "https://example.com/download"
+  },
+  "plans": [
+    { "id": "03days", "label": "03 Days", "days": 3, "price": 120, "enabled": true },
+    { "id": "07days", "label": "07 Days", "days": 7, "price": 200, "enabled": true },
+    { "id": "15days", "label": "15 Days", "days": 15, "price": 250, "enabled": true },
+    { "id": "20days", "label": "20 Days", "days": 20, "price": 350, "enabled": true },
+    { "id": "30days", "label": "30 Days", "days": 30, "price": 600, "enabled": true },
+    { "id": "60days", "label": "60 Days", "days": 60, "price": 1000, "enabled": true },
+    { "id": "90days", "label": "90 Days", "days": 90, "price": 1300, "enabled": true }
+  ],
+  "keys": {
+    "03days": [],
+    "07days": [],
+    "15days": [],
+    "20days": [],
+    "30days": [],
+    "60days": [],
+    "90days": []
+  },
+  "orders": [],
+  "buyers": []
+}

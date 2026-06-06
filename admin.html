@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>N4XCO — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --black: #000; --white: #fff;
+    --gray: #111; --gray2: #1a1a1a; --gray3: #2a2a2a;
+    --gray4: #444; --gray5: #888; --border: #2a2a2a; --red: #ff4444;
+    --green: #44ff88;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--black); color: var(--white); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+  /* ── LOGIN ── */
+  #loginScreen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--black);
+  }
+  .login-box {
+    background: var(--gray2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 3rem 2.5rem; width: 360px; text-align: center;
+  }
+  .login-box h1 {
+    font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem;
+    letter-spacing: 0.15em; margin-bottom: 0.3rem;
+  }
+  .login-box p { color: var(--gray5); font-size: 0.75rem; font-family: 'Space Mono', monospace; margin-bottom: 2rem; letter-spacing: 0.1em; }
+  .l-group { margin-bottom: 1rem; }
+  .l-group label { display: block; font-size: 0.65rem; font-family: 'Space Mono', monospace; color: var(--gray5); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.4rem; text-align: left; }
+  .l-group input {
+    width: 100%; background: var(--gray3); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--white); font-family: 'Space Mono', monospace;
+    font-size: 0.85rem; padding: 10px 14px; outline: none; transition: border-color 0.2s;
+  }
+  .l-group input:focus { border-color: var(--white); }
+  .btn-login {
+    width: 100%; margin-top: 1rem; background: var(--white); color: var(--black);
+    font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase; padding: 12px;
+    border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-login:hover { background: #e0e0e0; }
+  .login-err { color: var(--red); font-size: 0.75rem; font-family: 'Space Mono', monospace; margin-top: 0.8rem; display: none; }
+
+  /* ── ADMIN LAYOUT ── */
+  #adminScreen { display: none; }
+  .admin-header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(0,0,0,0.95); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .admin-header-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.15em; }
+  .admin-header-title span { color: var(--gray5); font-size: 0.9rem; }
+  .btn-logout {
+    background: none; border: 1px solid var(--border); color: var(--gray5);
+    font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em;
+    padding: 6px 14px; border-radius: 4px; cursor: pointer; transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+  .admin-nav {
+    background: var(--gray); border-bottom: 1px solid var(--border);
+    padding: 0 2rem; display: flex; gap: 0; overflow-x: auto;
+  }
+  .admin-nav button {
+    background: none; border: none; border-bottom: 2px solid transparent;
+    color: var(--gray5); font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 12px 16px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .admin-nav button.active, .admin-nav button:hover { color: var(--white); border-bottom-color: var(--white); }
+  .admin-body { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+  /* ── ADMIN TABS ── */
+  .atab { display: none; }
+  .atab.active { display: block; animation: fadeUp 0.25s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── SECTION ── */
+  .a-section {
+    background: var(--gray2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.8rem; margin-bottom: 1.5rem;
+  }
+  .a-section h3 {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;
+    letter-spacing: 0.08em; margin-bottom: 1.2rem; color: var(--gray5);
+    border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;
+  }
+  .a-section h3 span { color: var(--white); }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .col { flex: 1; min-width: 200px; }
+  .fg { margin-bottom: 1rem; }
+  .fg label { display: block; font-size: 0.65rem; font-family: 'Space Mono', monospace; color: var(--gray5); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .fg input, .fg textarea, .fg select {
+    width: 100%; background: var(--gray3); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--white); font-family: 'Space Mono', monospace;
+    font-size: 0.8rem; padding: 8px 12px; outline: none; transition: border-color 0.2s;
+  }
+  .fg input:focus, .fg textarea:focus { border-color: var(--white); }
+  .fg textarea { min-height: 120px; resize: vertical; }
+  .fg input[type="file"] { padding: 6px; font-size: 0.75rem; }
+  .btn {
+    background: var(--white); color: var(--black);
+    font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase; padding: 9px 20px;
+    border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s;
+  }
+  .btn:hover { background: #e0e0e0; }
+  .btn.outline {
+    background: none; color: var(--white); border: 1px solid var(--border);
+  }
+  .btn.outline:hover { border-color: var(--white); background: var(--gray3); }
+  .btn.danger { background: var(--red); color: var(--white); }
+  .btn.danger:hover { background: #cc2222; }
+  .btn.sm { padding: 5px 12px; font-size: 0.62rem; }
+
+  /* ── PLANS TABLE ── */
+  .plans-table { width: 100%; border-collapse: collapse; }
+  .plans-table th, .plans-table td {
+    padding: 10px 12px; font-size: 0.75rem; font-family: 'Space Mono', monospace;
+    border-bottom: 1px solid var(--border); text-align: left;
+  }
+  .plans-table th { color: var(--gray5); text-transform: uppercase; letter-spacing: 0.1em; }
+  .plans-table td input[type="number"] {
+    width: 90px; background: var(--gray3); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--white); font-family: 'Space Mono', monospace;
+    font-size: 0.8rem; padding: 5px 8px; outline: none;
+  }
+  .toggle {
+    position: relative; display: inline-block; width: 36px; height: 20px;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: var(--gray4); border-radius: 20px; cursor: pointer; transition: 0.2s;
+  }
+  .toggle-slider:before {
+    content: ''; position: absolute; width: 14px; height: 14px;
+    left: 3px; bottom: 3px; background: var(--white); border-radius: 50%; transition: 0.2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--gray5); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+  /* ── KEYS MANAGER ── */
+  .key-plan-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.2rem; }
+  .key-plan-tab {
+    background: var(--gray3); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--gray5); font-family: 'Space Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.1em; padding: 6px 12px; cursor: pointer; transition: all 0.2s;
+    text-transform: uppercase; display: flex; align-items: center; gap: 6px;
+  }
+  .key-plan-tab.active, .key-plan-tab:hover { border-color: var(--white); color: var(--white); }
+  .key-plan-tab .count {
+    background: var(--gray4); border-radius: 3px; padding: 1px 5px;
+    font-size: 0.6rem; color: var(--white);
+  }
+  .key-plan-tab .count.low { background: var(--red); }
+  .keys-list {
+    max-height: 220px; overflow-y: auto; background: var(--gray3);
+    border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .key-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 5px 8px; border-radius: 4px; font-family: 'Space Mono', monospace;
+    font-size: 0.72rem; color: var(--gray5);
+    border-bottom: 1px solid var(--border);
+  }
+  .key-item:last-child { border-bottom: none; }
+  .key-item .key-val { flex: 1; word-break: break-all; margin-right: 8px; }
+  .key-item button { background: none; border: none; color: var(--gray4); cursor: pointer; font-size: 0.8rem; }
+  .key-item button:hover { color: var(--red); }
+  .keys-list.empty-state {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray5); font-family: 'Space Mono', monospace; font-size: 0.75rem;
+    min-height: 80px;
+  }
+
+  /* ── ORDERS TABLE ── */
+  .orders-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .orders-table th, .orders-table td {
+    padding: 9px 10px; font-family: 'Space Mono', monospace;
+    border-bottom: 1px solid var(--border); text-align: left; vertical-align: top;
+  }
+  .orders-table th { color: var(--gray5); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.65rem; }
+  .badge {
+    display: inline-block; padding: 2px 7px; border-radius: 4px;
+    font-size: 0.62rem; font-family: 'Space Mono', monospace; text-transform: uppercase;
+  }
+  .badge.fulfilled { background: rgba(68,255,136,0.12); color: var(--green); }
+  .badge.paid { background: rgba(255,255,255,0.08); color: var(--white); }
+  .badge.pending { background: rgba(255,255,255,0.04); color: var(--gray5); }
+  .key-inline { font-size: 0.65rem; color: var(--gray5); word-break: break-all; max-width: 160px; }
+  .fulfill-input { width: 130px; background: var(--gray3); border: 1px solid var(--border); border-radius: 4px; color: var(--white); font-family: 'Space Mono', monospace; font-size: 0.7rem; padding: 4px 7px; outline: none; }
+
+  /* ── BUYERS TABLE ── */
+  .buyers-wrap { overflow-x: auto; }
+  .buyers-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+  .buyers-table th, .buyers-table td {
+    padding: 9px 10px; font-family: 'Space Mono', monospace; font-size: 0.72rem;
+    border-bottom: 1px solid var(--border); text-align: left;
+  }
+  .buyers-table th { color: var(--gray5); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.65rem; }
+
+  /* ── STAT CARDS ── */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .stat-card {
+    background: var(--gray2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.2rem; text-align: center;
+  }
+  .stat-card .val { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; line-height: 1; }
+  .stat-card .lbl { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--gray5); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    background: var(--white); color: var(--black); font-family: 'Space Mono', monospace;
+    font-size: 0.75rem; padding: 10px 20px; border-radius: 6px; z-index: 9999;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  @media(max-width:600px) { .admin-body { padding: 1.5rem 1rem; } }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>N4XCO</h1>
+    <p>// ADMIN PANEL ACCESS</p>
+    <div class="l-group">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="N4XCO" autocomplete="off"/>
+    </div>
+    <div class="l-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="btn-login" onclick="doLogin()">Login</button>
+    <div class="login-err" id="loginErr">Invalid credentials</div>
+  </div>
+</div>
+
+<!-- ── ADMIN PANEL ── -->
+<div id="adminScreen">
+  <div class="admin-header">
+    <div class="admin-header-title">N4XCO <span>// ADMIN</span></div>
+    <button class="btn-logout" onclick="doLogout()">Logout</button>
+  </div>
+  <div class="admin-nav">
+    <button class="active" onclick="switchATab('overview', this)">Overview</button>
+    <button onclick="switchATab('apk', this)">APK Settings</button>
+    <button onclick="switchATab('plans', this)">Plans & Prices</button>
+    <button onclick="switchATab('keys', this)">Key Manager</button>
+    <button onclick="switchATab('orders', this)">Orders</button>
+    <button onclick="switchATab('buyers', this)">Buyer History</button>
+  </div>
+
+  <div class="admin-body">
+
+    <!-- OVERVIEW -->
+    <div class="atab active" id="atab-overview">
+      <div class="stats" id="statsRow">
+        <div class="stat-card"><div class="val" id="st-orders">—</div><div class="lbl">Total Orders</div></div>
+        <div class="stat-card"><div class="val" id="st-fulfilled">—</div><div class="lbl">Fulfilled</div></div>
+        <div class="stat-card"><div class="val" id="st-pending">—</div><div class="lbl">Pending</div></div>
+        <div class="stat-card"><div class="val" id="st-revenue">—</div><div class="lbl">Total Revenue ₱</div></div>
+        <div class="stat-card"><div class="val" id="st-keys">—</div><div class="lbl">Keys Available</div></div>
+      </div>
+      <div class="a-section">
+        <h3><span>Recent Orders</span></h3>
+        <div id="recentOrdersTable"></div>
+      </div>
+    </div>
+
+    <!-- APK SETTINGS -->
+    <div class="atab" id="atab-apk">
+      <div class="a-section">
+        <h3><span>APK</span> Settings</h3>
+        <div class="row">
+          <div class="col">
+            <div class="fg">
+              <label>App Name</label>
+              <input type="text" id="apkNameInput" placeholder="N4XCO App"/>
+            </div>
+            <div class="fg">
+              <label>Download Link</label>
+              <input type="text" id="apkLinkInput" placeholder="https://..."/>
+            </div>
+            <button class="btn" onclick="saveAPK()">Save APK Info</button>
+          </div>
+          <div class="col">
+            <div class="fg">
+              <label>Upload Logo (PNG/JPG, max 2MB)</label>
+              <input type="file" id="logoFile" accept="image/*"/>
+            </div>
+            <button class="btn" onclick="uploadLogo()">Upload Logo</button>
+            <div id="logoPreview" style="margin-top:1rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLANS & PRICES -->
+    <div class="atab" id="atab-plans">
+      <div class="a-section">
+        <h3><span>Plans</span> & Prices</h3>
+        <table class="plans-table" id="plansTable">
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Days</th>
+              <th>Price (₱)</th>
+              <th>Enabled</th>
+            </tr>
+          </thead>
+          <tbody id="plansTbody"></tbody>
+        </table>
+        <br/>
+        <button class="btn" onclick="savePlans()">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- KEY MANAGER -->
+    <div class="atab" id="atab-keys">
+      <div class="a-section">
+        <h3><span>Add</span> Keys</h3>
+        <div class="fg">
+          <label>Select Plan</label>
+          <select id="keyPlanSelect"></select>
+        </div>
+        <div class="fg">
+          <label>Paste Keys (one per line)</label>
+          <textarea id="keysInput" placeholder="KEY-XXXX-XXXX-XXXX&#10;KEY-YYYY-YYYY-YYYY&#10;..."></textarea>
+        </div>
+        <button class="btn" onclick="addKeys()">Add Keys</button>
+      </div>
+      <div class="a-section">
+        <h3><span>Key</span> Pool</h3>
+        <div class="key-plan-tabs" id="keyPlanTabs"></div>
+        <div id="keysListWrap">
+          <div class="keys-list empty-state">Select a plan to view keys</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="atab" id="atab-orders">
+      <div class="a-section">
+        <h3><span>All</span> Orders</h3>
+        <div style="overflow-x:auto;" id="ordersTableWrap">
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Telegram</th>
+                <th>Plan</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Key Given</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUYER HISTORY -->
+    <div class="atab" id="atab-buyers">
+      <div class="a-section">
+        <h3><span>Buyer</span> History</h3>
+        <div class="buyers-wrap">
+          <table class="buyers-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Telegram</th>
+                <th>Plan</th>
+                <th>Price</th>
+                <th>Key</th>
+              </tr>
+            </thead>
+            <tbody id="buyersTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /admin-body -->
+</div><!-- /adminScreen -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+let adminData = {};
+let activePlanTab = null;
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+async function checkAuth() {
+  const res = await fetch('/api/admin/check');
+  const d = await res.json();
+  if (d.admin) showAdmin();
+}
+
+async function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const res = await fetch('/api/admin/login', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: u, password: p })
+  });
+  const d = await res.json();
+  if (d.success) { showAdmin(); }
+  else { document.getElementById('loginErr').style.display = 'block'; }
+}
+
+async function doLogout() {
+  await fetch('/api/admin/logout', { method: 'POST' });
+  document.getElementById('adminScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function showAdmin() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminScreen').style.display = 'block';
+  loadAdminData();
+}
+
+// ── DATA ─────────────────────────────────────────────────────────────────────
+async function loadAdminData() {
+  const res = await fetch('/api/admin/data');
+  adminData = await res.json();
+  renderOverview();
+  renderAPKForm();
+  renderPlansTable();
+  renderKeyPlanSelect();
+  renderKeyPlanTabs();
+  renderOrders();
+  renderBuyers();
+}
+
+// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+function renderOverview() {
+  const orders = adminData.orders || [];
+  const fulfilled = orders.filter(o => o.status === 'fulfilled').length;
+  const pending = orders.filter(o => o.status === 'pending').length;
+  const revenue = orders.filter(o => o.status !== 'pending').reduce((s, o) => s + o.price, 0);
+  const totalKeys = Object.values(adminData.keys || {}).reduce((s, arr) => s + arr.length, 0);
+
+  document.getElementById('st-orders').textContent = orders.length;
+  document.getElementById('st-fulfilled').textContent = fulfilled;
+  document.getElementById('st-pending').textContent = pending;
+  document.getElementById('st-revenue').textContent = '₱' + revenue.toLocaleString();
+  document.getElementById('st-keys').textContent = totalKeys;
+
+  const recent = [...orders].reverse().slice(0, 8);
+  const wrap = document.getElementById('recentOrdersTable');
+  if (!recent.length) { wrap.innerHTML = '<p style="color:var(--gray5);font-family:Space Mono,monospace;font-size:0.75rem;">No orders yet.</p>'; return; }
+  wrap.innerHTML = `<div style="overflow-x:auto;"><table class="orders-table">
+    <thead><tr><th>Date</th><th>Telegram</th><th>Plan</th><th>Price</th><th>Status</th></tr></thead>
+    <tbody>${recent.map(o => `<tr>
+      <td>${new Date(o.createdAt).toLocaleDateString()}</td>
+      <td>${o.telegram}</td>
+      <td>${o.label}</td>
+      <td>₱${o.price}</td>
+      <td><span class="badge ${o.status}">${o.status}</span></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ── APK ───────────────────────────────────────────────────────────────────────
+function renderAPKForm() {
+  const apk = adminData.apk || {};
+  document.getElementById('apkNameInput').value = apk.name || '';
+  document.getElementById('apkLinkInput').value = apk.link || '';
+  if (apk.logo) {
+    document.getElementById('logoPreview').innerHTML = `<img src="${apk.logo}" style="max-width:80px;max-height:80px;border-radius:10px;border:1px solid var(--border);" alt="Logo"/>`;
+  }
+}
+
+async function saveAPK() {
+  const name = document.getElementById('apkNameInput').value.trim();
+  const link = document.getElementById('apkLinkInput').value.trim();
+  const res = await fetch('/api/admin/apk', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, link })
+  });
+  const d = await res.json();
+  if (d.success) { showToast('APK info saved!'); loadAdminData(); }
+}
+
+async function uploadLogo() {
+  const file = document.getElementById('logoFile').files[0];
+  if (!file) { showToast('Select a file first'); return; }
+  const fd = new FormData(); fd.append('logo', file);
+  const res = await fetch('/api/admin/logo', { method: 'POST', body: fd });
+  const d = await res.json();
+  if (d.success) { showToast('Logo uploaded!'); loadAdminData(); }
+  else { showToast('Upload failed'); }
+}
+
+// ── PLANS ─────────────────────────────────────────────────────────────────────
+function renderPlansTable() {
+  const plans = adminData.plans || [];
+  const tbody = document.getElementById('plansTbody');
+  tbody.innerHTML = plans.map(p => `<tr>
+    <td style="font-family:'Space Mono',monospace;">${p.label}</td>
+    <td style="font-family:'Space Mono',monospace;">${p.days}</td>
+    <td><input type="number" id="price-${p.id}" value="${p.price}" min="1"/></td>
+    <td>
+      <label class="toggle">
+        <input type="checkbox" id="en-${p.id}" ${p.enabled ? 'checked' : ''}/>
+        <span class="toggle-slider"></span>
+      </label>
+    </td>
+  </tr>`).join('');
+}
+
+async function savePlans() {
+  const plans = (adminData.plans || []).map(p => ({
+    id: p.id,
+    price: parseInt(document.getElementById('price-' + p.id)?.value) || p.price,
+    enabled: document.getElementById('en-' + p.id)?.checked
+  }));
+  const res = await fetch('/api/admin/plans', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plans })
+  });
+  const d = await res.json();
+  if (d.success) { showToast('Plans saved!'); loadAdminData(); }
+}
+
+// ── KEYS ─────────────────────────────────────────────────────────────────────
+function renderKeyPlanSelect() {
+  const sel = document.getElementById('keyPlanSelect');
+  sel.innerHTML = (adminData.plans || []).map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+}
+
+function renderKeyPlanTabs() {
+  const keys = adminData.keys || {};
+  const tabs = document.getElementById('keyPlanTabs');
+  tabs.innerHTML = (adminData.plans || []).map(p => {
+    const count = (keys[p.id] || []).length;
+    return `<button class="key-plan-tab ${activePlanTab === p.id ? 'active' : ''}" onclick="viewKeyPlan('${p.id}', this)">
+      ${p.label} <span class="count ${count < 3 ? 'low' : ''}">${count}</span>
+    </button>`;
+  }).join('');
+
+  if (activePlanTab) viewKeyPlanById(activePlanTab);
+}
+
+function viewKeyPlan(planId, btn) {
+  document.querySelectorAll('.key-plan-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activePlanTab = planId;
+  viewKeyPlanById(planId);
+}
+
+function viewKeyPlanById(planId) {
+  const keys = (adminData.keys || {})[planId] || [];
+  const wrap = document.getElementById('keysListWrap');
+  if (!keys.length) {
+    wrap.innerHTML = '<div class="keys-list empty-state">No keys in this pool</div>';
+    return;
+  }
+  wrap.innerHTML = `<div class="keys-list">${keys.map((k, i) => `
+    <div class="key-item">
+      <span class="key-val">${k}</span>
+      <button onclick="deleteKey('${planId}', ${i})" title="Delete">✕</button>
+    </div>`).join('')}</div>`;
+}
+
+async function addKeys() {
+  const planId = document.getElementById('keyPlanSelect').value;
+  const keys = document.getElementById('keysInput').value.trim();
+  if (!keys) { showToast('Paste some keys first'); return; }
+  const res = await fetch('/api/admin/keys', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ planId, keys })
+  });
+  const d = await res.json();
+  if (d.success) {
+    showToast(`Added ${d.added} key(s) — total: ${d.total}`);
+    document.getElementById('keysInput').value = '';
+    activePlanTab = planId;
+    loadAdminData();
+  }
+}
+
+async function deleteKey(planId, index) {
+  if (!confirm('Delete this key?')) return;
+  const res = await fetch(`/api/admin/keys/${planId}/${index}`, { method: 'DELETE' });
+  const d = await res.json();
+  if (d.success) { showToast('Key removed'); loadAdminData(); }
+}
+
+// ── ORDERS ────────────────────────────────────────────────────────────────────
+function renderOrders() {
+  const orders = [...(adminData.orders || [])].reverse();
+  const tbody = document.getElementById('ordersTbody');
+  if (!orders.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--gray5);font-family:Space Mono,monospace;">No orders yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = orders.map(o => `<tr>
+    <td>${new Date(o.createdAt).toLocaleDateString()}</td>
+    <td>${o.telegram}</td>
+    <td>${o.label}</td>
+    <td>₱${o.price}</td>
+    <td><span class="badge ${o.status}">${o.status}</span></td>
+    <td class="key-inline">${o.keyGiven || '—'}</td>
+    <td>${o.status !== 'fulfilled' ? `
+      <input class="fulfill-input" id="fkey-${o.id}" placeholder="Paste key"/>
+      <button class="btn sm" onclick="fulfillOrder('${o.id}')" style="margin-top:4px;">Give Key</button>
+    ` : '✓'}</td>
+  </tr>`).join('');
+}
+
+async function fulfillOrder(orderId) {
+  const key = document.getElementById('fkey-' + orderId)?.value.trim();
+  if (!key) { showToast('Enter a key first'); return; }
+  const res = await fetch(`/api/admin/fulfill/${orderId}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key })
+  });
+  const d = await res.json();
+  if (d.success) { showToast('Order fulfilled!'); loadAdminData(); }
+}
+
+// ── BUYERS ────────────────────────────────────────────────────────────────────
+function renderBuyers() {
+  const buyers = [...(adminData.buyers || [])].reverse();
+  const tbody = document.getElementById('buyersTbody');
+  if (!buyers.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--gray5);font-family:Space Mono,monospace;">No buyers yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = buyers.map(b => `<tr>
+    <td>${new Date(b.date).toLocaleDateString()}</td>
+    <td>${b.telegram}</td>
+    <td>${b.plan}</td>
+    <td>₱${b.price}</td>
+    <td style="word-break:break-all;max-width:180px;font-size:0.65rem;">${b.key}</td>
+  </tr>`).join('');
+}
+
+// ── TABS ─────────────────────────────────────────────────────────────────────
+function switchATab(id, btn) {
+  document.querySelectorAll('.atab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('atab-' + id).classList.add('active');
+  btn.classList.add('active');
+  loadAdminData(); // refresh data on tab switch
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+checkAuth();
+</script>
+</body>
+</html>

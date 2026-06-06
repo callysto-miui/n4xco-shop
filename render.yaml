@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: n4xco-shop
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: PAYMONGO_SECRET_KEY
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_USER
+        value: N4XCO
+      - key: ADMIN_PASS
+        value: N4XCO_0
+    disk:
+      name: shop-data
+      mountPath: /app/data
+      sizeGB: 1
