@@ -1,6 +1,6 @@
 {
   "name": "n4xco-shop",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "N4XCO Shop - APK & Key Store",
   "main": "server.js",
   "scripts": {
@@ -10,9 +10,12 @@
   "dependencies": {
     "express": "^4.18.2",
     "express-session": "^1.17.3",
-    "axios": "^1.6.0",
+    "sqlite3": "^5.1.7",
+    "bcryptjs": "^2.4.3",
     "multer": "^1.4.5-lts.1",
-    "uuid": "^9.0.0",
-    "bcrypt": "^5.1.1"
+    "uuid": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

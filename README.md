@@ -1,6 +1,6 @@
-# N4XCO SHOP
+# N4XCO SHOP v2
 
-Full-stack key shop with PayMongo integration.
+Full-stack key shop with user accounts, PayMongo GCash integration, and auto key delivery.
 
 ---
 
@@ -17,28 +17,28 @@ Upload this entire folder to a new GitHub repo.
    - **Start Command:** `node server.js`
    - **Runtime:** Node
 
-### Step 3 — Set Environment Variables
+### Step 3 — Add a Disk (for DB + images)
+Render → Your Service → Disks → Add Disk:
+- **Name:** shop-data
+- **Mount Path:** `/data`
+- **Size:** 1 GB
+
+> ⚠️ Without a disk, data resets on redeploy.
+
+### Step 4 — Set Environment Variables
 In Render → Environment, add:
 
 | Key | Value |
 |-----|-------|
-| `PAYMONGO_SECRET_KEY` | `sk_live_YOUR_KEY_HERE` |
+| `DB_PATH` | `/data/n4xco.db` |
 | `SESSION_SECRET` | any random string |
-| `ADMIN_USER` | `N4XCO` |
-| `ADMIN_PASS` | `N4XCO_0` |
 
-### Step 4 — Add a Disk (for data persistence)
-Render → Your Service → Disks → Add Disk:
-- **Name:** shop-data
-- **Mount Path:** `/opt/render/project/src/data`
-- **Size:** 1 GB
-
-> ⚠️ Without a disk, data resets on redeploy. The disk keeps your keys/orders persistent.
-
-### Step 5 — Set Up PayMongo Webhook
-1. Go to [PayMongo Dashboard](https://dashboard.paymongo.com) → Developers → Webhooks
-2. Add webhook URL: `https://your-app.onrender.com/api/webhook/paymongo`
-3. Select event: `link.payment.paid`
+### Step 5 — Set Up PayMongo
+1. Go to Admin Panel → PayMongo Setup
+2. Paste your Live Secret Key and Public Key
+3. Go to [PayMongo Dashboard](https://dashboard.paymongo.com) → Developers → Webhooks
+4. Add webhook URL: `https://your-app.onrender.com/api/webhook/paymongo`
+5. Select event: `link.payment.paid`
 
 ---
 
@@ -50,24 +50,43 @@ URL: `https://your-app.onrender.com/admin`
 ### Admin Features:
 - **Overview** — stats, recent orders
 - **APK Settings** — set app name, download link, upload logo
-- **Plans & Prices** — edit prices, enable/disable plans
+- **Plans & Prices** — edit prices, days, enable/disable plans
 - **Key Manager** — paste unused keys per plan, view/delete pool
-- **Orders** — view all orders, manually give keys
-- **Buyer History** — full history with keys given
+- **Orders** — view all orders, manually give keys to paid orders
+- **Users** — view all registered users, add/edit/delete accounts, set roles (user/admin)
+- **PayMongo** — set GCash keys, copy webhook URL
 
 ---
 
-## 💳 How Payment Flow Works
-1. Buyer selects plan → fills Telegram username → clicks Pay
-2. PayMongo payment link opens in new tab
-3. Buyer pays via GCash, card, etc.
-4. Webhook fires → key auto-assigned from pool
-5. Modal on shop page shows key when ready
-6. If no key in pool → order stays "paid" → admin manually gives key in Orders tab
+## 👤 User Flow
+1. User visits shop → sees plans
+2. Clicks **Buy Now** → prompted to **Login or Register** if not logged in
+3. After login → confirms plan → GCash payment link opens
+4. Buyer pays via GCash
+5. Webhook fires → key auto-assigned from pool → popup shows key instantly
+6. If no key in pool → order stays "Paid (Awaiting Key)" → admin manually gives key in Orders tab
+7. User can view order history in **MY ORDERS** tab
+8. Users can **cancel pending orders** from their history
 
 ---
 
-## 📦 Key Pricing
+## 📲 CONTACTS Tab
+Fixed Telegram links shown in the public UI:
+- **JEPFX SERVICES** — t.me/JEPFX
+- **N4XCO CHANNEL** — t.me/n4xcoall
+- **N4XCO ACCOUNT** — t.me/zekielsZ
+
+---
+
+## 💳 Payment Flow Details
+- Key auto-pops up in a modal immediately after payment detection
+- Client polls `/api/order/:id` every 5 seconds while waiting
+- PayMongo webhook also fires to confirm instantly
+- Both mechanisms ensure no missed deliveries
+
+---
+
+## 📦 Default Key Pricing
 | Plan | Price (₱) |
 |------|-----------|
 | 03 Days | 120 |

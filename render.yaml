@@ -7,15 +7,11 @@ services:
     envVars:
       - key: PORT
         value: 3000
-      - key: PAYMONGO_SECRET_KEY
-        sync: false
       - key: SESSION_SECRET
         generateValue: true
-      - key: ADMIN_USER
-        value: N4XCO
-      - key: ADMIN_PASS
-        value: N4XCO_0
+      - key: DB_PATH
+        value: /data/n4xco.db
     disk:
       name: shop-data
-      mountPath: /app/data
+      mountPath: /data
       sizeGB: 1
