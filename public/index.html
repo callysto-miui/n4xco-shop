@@ -1,938 +1,807 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>N4XCO SHOP</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
-  :root {
-    --black: #000000;
-    --white: #ffffff;
-    --gray: #111111;
-    --gray2: #1a1a1a;
-    --gray3: #2a2a2a;
-    --gray4: #444444;
-    --gray5: #888888;
-    --border: #2a2a2a;
-    --accent: #ffffff;
-    --green: #44ff88;
-    --red: #ff4444;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--black);
-    color: var(--white);
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: radial-gradient(circle at 20% 30%, #1a0b2e, #0a0515);
+  font-family: 'Inter', sans-serif; min-height:100vh; overflow-x:hidden;
+}
+.morph-bg {
+  position:fixed; top:-50%; left:-50%; width:200%; height:200%;
+  background: radial-gradient(circle at 30% 40%, rgba(168,85,247,0.35), rgba(139,92,246,0.15), rgba(76,29,149,0.1), transparent 70%);
+  filter:blur(70px); animation:morphShift 18s ease infinite alternate; z-index:0; pointer-events:none;
+}
+@keyframes morphShift {
+  0%{ transform:translate(0,0) scale(1); opacity:0.6; }
+  50%{ transform:translate(5%,3%) scale(1.15); opacity:0.8; }
+  100%{ transform:translate(-4%,-6%) scale(0.95); opacity:0.5; }
+}
+.morph-bg-2 {
+  position:fixed; bottom:-30%; right:-20%; width:150%; height:150%;
+  background:radial-gradient(circle, rgba(192,132,252,0.25), rgba(107,33,168,0.1), transparent 80%);
+  filter:blur(90px); animation:drift 25s infinite alternate; pointer-events:none;
+}
+@keyframes drift { 0%{ transform:translate(0,0); } 100%{ transform:translate(-8%,-10%); } }
 
-  /* NOISE OVERLAY */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-    opacity: 0.03;
-    pointer-events: none;
-    z-index: 1000;
-  }
+/* NAV */
+.nav-bar {
+  position:relative; z-index:10;
+  display:flex; justify-content:space-between; align-items:center; padding:0.7rem 1rem;
+  background:rgba(45,25,75,0.3); backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(168,85,247,0.3);
+}
+.nav-tabs { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.nav-btn {
+  background:rgba(55,35,85,0.55); border:1px solid rgba(168,85,247,0.3);
+  padding:0.45rem 1.1rem; border-radius:60px; font-weight:600;
+  cursor:pointer; color:#ddd6fe; transition:all 0.3s; font-size:0.82rem;
+}
+.nav-btn.active { background:linear-gradient(135deg,#a855f7,#7c3aed); color:white; border-color:#c084fc; }
+.nav-btn:hover { transform:translateY(-2px); background:rgba(168,85,247,0.4); }
 
-  /* HEADER */
-  header {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(0,0,0,0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    display: flex; align-items: center; justify-content: space-between;
-    height: 64px;
-    flex-wrap: wrap;
-  }
-  .header-brand {
-    display: flex; align-items: center; gap: 12px;
-  }
-  .header-logo {
-    width: 36px; height: 36px; border-radius: 6px;
-    object-fit: cover; border: 1px solid var(--border);
-    display: none;
-  }
-  .header-logo.loaded { display: block; }
-  .header-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
-    letter-spacing: 0.15em;
-    color: var(--white);
-  }
-  .header-title span { color: var(--gray5); font-size: 1rem; letter-spacing: 0.3em; }
-  
-  nav { display: flex; gap: 4px; flex-wrap: wrap; }
-  nav button {
-    background: none; border: none; cursor: pointer;
-    color: var(--gray5); font-family: 'Space Mono', monospace;
-    font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
-    padding: 8px 16px; border-radius: 4px;
-    transition: all 0.2s;
-  }
-  nav button.active, nav button:hover {
-    color: var(--white); background: var(--gray3);
-  }
-  nav button.active { border: 1px solid var(--border); }
+/* User pill in nav */
+.nav-user {
+  display:flex; align-items:center; gap:0.5rem; flex-shrink:0;
+}
+.user-pill {
+  background:rgba(55,35,85,0.7); border:1px solid rgba(168,85,247,0.4);
+  padding:0.35rem 0.9rem; border-radius:60px; font-size:0.75rem;
+  color:#ddd6fe; cursor:pointer; display:flex; align-items:center; gap:0.4rem; transition:all 0.2s;
+}
+.user-pill:hover { background:rgba(168,85,247,0.3); }
+.user-pill.logged-in { border-color:rgba(34,197,94,0.5); color:#86efac; }
 
-  .user-area {
-    display: flex; align-items: center; gap: 12px;
-  }
-  .user-name {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--gray5);
-  }
-  .login-btn, .logout-btn, .register-btn {
-    background: none; border: 1px solid var(--border);
-    color: var(--white); font-family: 'Space Mono', monospace;
-    font-size: 0.65rem; padding: 6px 12px;
-    border-radius: 4px; cursor: pointer; transition: all 0.2s;
-  }
-  .login-btn:hover, .register-btn:hover { border-color: var(--white); background: var(--gray3); }
-  .logout-btn:hover { border-color: var(--red); color: var(--red); }
+.app-container { position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:1.2rem; }
 
-  main { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+.tab-section { display:none; animation:fadeIn 0.35s ease; }
+.tab-section.active { display:block; }
+@keyframes fadeIn { from{ opacity:0; } to{ opacity:1; } }
+@keyframes fadeInUp { from{ opacity:0; transform:translateY(15px); } to{ opacity:1; transform:translateY(0); } }
 
-  .tab { display: none; }
-  .tab.active { display: block; animation: fadeUp 0.3s ease; }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+.glass-header {
+  text-align:center; margin-bottom:1.5rem; padding:1rem 1.5rem;
+  background:rgba(45,25,75,0.4); backdrop-filter:blur(20px);
+  border-radius:80px; border:1px solid rgba(168,85,247,0.3);
+}
+.header-logo {
+  font-size:1.9rem; font-weight:800;
+  background:linear-gradient(135deg,#f0e6ff,#c084fc,#a855f7);
+  background-clip:text; -webkit-background-clip:text; color:transparent;
+}
+.header-tagline { font-size:0.73rem; color:#b9a9e6; margin-top:4px; }
 
-  .section-head {
-    margin-bottom: 2.5rem;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 1.5rem;
-  }
-  .section-head h2 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.5rem; letter-spacing: 0.1em;
-    margin-bottom: 0.3rem;
-  }
-  .section-head p { color: var(--gray5); font-size: 0.85rem; font-family: 'Space Mono', monospace; }
+/* PLANS GRID */
+.plans-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem;
+  animation:fadeInUp 0.4s ease;
+}
+.plan-card {
+  background:rgba(35,25,65,0.55); backdrop-filter:blur(16px);
+  border-radius:24px; padding:1.3rem; border:1px solid rgba(168,85,247,0.35);
+  cursor:pointer; transition:all 0.3s; position:relative;
+}
+.plan-card:hover { transform:translateY(-4px); border-color:#c084fc; background:rgba(65,45,105,0.7); }
+.plan-label { font-size:1.1rem; font-weight:700; color:#f3e8ff; margin-bottom:0.3rem; }
+.plan-price { font-size:1.8rem; font-weight:800; color:#c084fc; }
+.plan-price span { font-size:0.9rem; font-weight:500; color:#b9a9e6; }
+.plan-days { font-size:0.72rem; color:#a78bfa; margin-top:0.2rem; }
+.plan-buy-btn {
+  width:100%; margin-top:1rem; background:linear-gradient(135deg,#a855f7,#7c3aed);
+  border:none; padding:0.65rem; border-radius:60px; color:white;
+  font-weight:700; font-size:0.88rem; cursor:pointer; transition:all 0.2s;
+}
+.plan-buy-btn:hover { opacity:0.9; transform:scale(1.02); }
 
-  .apk-card {
-    background: var(--gray2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 2.5rem;
-    display: flex; align-items: center; gap: 2rem;
-    margin-bottom: 2rem;
-    position: relative; overflow: hidden;
-  }
-  .apk-card::before {
-    content: '';
-    position: absolute; top: -50%; right: -50%;
-    width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
-    border-radius: 50%;
-  }
-  .apk-logo-wrap {
-    width: 90px; height: 90px; flex-shrink: 0;
-    background: var(--gray3); border: 1px solid var(--border);
-    border-radius: 18px; display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-  }
-  .apk-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
-  .apk-logo-wrap .placeholder-icon { font-size: 2.5rem; opacity: 0.2; }
-  .apk-info { flex: 1; }
-  .apk-info h3 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem; letter-spacing: 0.08em; margin-bottom: 0.5rem;
-  }
-  .apk-info p { color: var(--gray5); font-size: 0.8rem; font-family: 'Space Mono', monospace; margin-bottom: 1.2rem; }
-  .btn-download {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--white); color: var(--black);
-    font-family: 'Space Mono', monospace; font-size: 0.75rem;
-    font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
-    text-decoration: none; padding: 10px 24px; border-radius: 6px;
-    transition: all 0.2s; border: none; cursor: pointer;
-  }
-  .btn-download:hover { background: #e0e0e0; transform: translateY(-1px); }
-  .btn-download svg { width: 14px; height: 14px; }
+/* CONTACTS */
+.contacts-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem;
+  animation:fadeInUp 0.4s ease;
+}
+.contact-card {
+  background:rgba(35,25,65,0.55); backdrop-filter:blur(16px);
+  border-radius:24px; padding:1.3rem 1.5rem; border:1px solid rgba(168,85,247,0.35);
+  display:flex; align-items:center; gap:1rem; cursor:pointer; transition:all 0.3s;
+  text-decoration:none;
+}
+.contact-card:hover { transform:translateY(-4px); border-color:#c084fc; background:rgba(65,45,105,0.7); }
+.contact-icon {
+  width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:1.4rem; flex-shrink:0;
+}
+.contact-icon.tg { background:linear-gradient(135deg,#0088cc,#00aaff); color:white; }
+.contact-title { font-size:1rem; font-weight:700; color:#f3e8ff; }
+.contact-sub { font-size:0.72rem; color:#b9a9e6; margin-top:2px; }
 
-  .plans-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1rem;
-  }
-  .plan-card {
-    background: var(--gray2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 1.5rem;
-    cursor: pointer; transition: all 0.2s;
-    position: relative; overflow: hidden;
-  }
-  .plan-card:hover { border-color: var(--white); transform: translateY(-2px); }
-  .plan-card.selected {
-    border-color: var(--white);
-    background: var(--gray3);
-    box-shadow: 0 0 0 1px var(--white);
-  }
-  .plan-card .plan-days {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.8rem; line-height: 1; margin-bottom: 0.2rem;
-  }
-  .plan-card .plan-label {
-    color: var(--gray5); font-size: 0.7rem;
-    font-family: 'Space Mono', monospace; letter-spacing: 0.15em;
-    text-transform: uppercase; margin-bottom: 1rem;
-  }
-  .plan-card .plan-price {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.6rem; color: var(--white);
-  }
-  .plan-card .plan-price span {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem; color: var(--gray5); letter-spacing: 0.1em;
-  }
-  .plan-card .check-icon {
-    position: absolute; top: 1rem; right: 1rem;
-    width: 20px; height: 20px; border-radius: 50%;
-    background: var(--white); display: flex; align-items: center; justify-content: center;
-    opacity: 0; transition: opacity 0.2s;
-  }
-  .plan-card.selected .check-icon { opacity: 1; }
-  .plan-card .check-icon svg { width: 10px; height: 10px; }
+/* ORDERS HISTORY */
+.orders-wrap { display:flex; flex-direction:column; gap:0.8rem; }
+.order-card {
+  background:rgba(35,25,65,0.55); backdrop-filter:blur(16px);
+  border-radius:20px; padding:1.1rem 1.3rem; border:1px solid rgba(168,85,247,0.3);
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+}
+.order-info { flex:1; min-width:0; }
+.order-plan { font-weight:700; color:#f3e8ff; font-size:0.95rem; }
+.order-meta { font-size:0.7rem; color:#b9a9e6; margin-top:3px; }
+.order-key {
+  font-family:monospace; font-size:0.85rem; background:rgba(34,197,94,0.12);
+  border:1px solid rgba(34,197,94,0.3); border-radius:10px;
+  padding:0.3rem 0.8rem; color:#86efac; margin-top:0.4rem; word-break:break-all;
+}
+.order-status-badge {
+  font-size:0.65rem; font-weight:700; padding:0.25rem 0.75rem;
+  border-radius:60px; white-space:nowrap;
+}
+.badge-pending { background:rgba(234,179,8,0.15); color:#fbbf24; border:1px solid rgba(234,179,8,0.3); }
+.badge-paid { background:rgba(59,130,246,0.15); color:#93c5fd; border:1px solid rgba(59,130,246,0.3); }
+.badge-fulfilled { background:rgba(34,197,94,0.15); color:#86efac; border:1px solid rgba(34,197,94,0.3); }
+.badge-cancelled { background:rgba(239,68,68,0.1); color:#fca5a5; border:1px solid rgba(239,68,68,0.2); }
+.btn-cancel-order {
+  background:none; border:1px solid rgba(239,68,68,0.3); color:#fca5a5;
+  padding:0.3rem 0.8rem; border-radius:8px; cursor:pointer; font-size:0.7rem; transition:all 0.2s;
+  white-space:nowrap;
+}
+.btn-cancel-order:hover { background:rgba(239,68,68,0.1); }
+.btn-copy-key {
+  background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:#86efac;
+  padding:0.25rem 0.7rem; border-radius:8px; cursor:pointer; font-size:0.68rem; transition:all 0.2s;
+}
+.btn-copy-key:hover { background:rgba(34,197,94,0.2); }
+.empty-msg { text-align:center; color:#7c6a9e; padding:3rem 1rem; font-size:0.9rem; }
 
-  .buy-form-wrap {
-    margin-top: 2rem;
-    background: var(--gray2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 2rem;
-    display: none;
-    animation: fadeUp 0.3s ease;
-  }
-  .buy-form-wrap.visible { display: block; }
-  .form-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem; letter-spacing: 0.08em; margin-bottom: 1.5rem;
-    color: var(--gray5);
-  }
-  .form-title span { color: var(--white); }
-  .form-group { margin-bottom: 1.2rem; }
-  .form-group label {
-    display: block; font-size: 0.7rem;
-    font-family: 'Space Mono', monospace; letter-spacing: 0.15em;
-    color: var(--gray5); margin-bottom: 0.5rem; text-transform: uppercase;
-  }
-  .form-group input {
-    width: 100%; background: var(--gray3);
-    border: 1px solid var(--border); border-radius: 6px;
-    color: var(--white); font-family: 'Space Mono', monospace; font-size: 0.85rem;
-    padding: 10px 14px; transition: border-color 0.2s; outline: none;
-  }
-  .form-group input:focus { border-color: var(--white); }
-  .order-summary {
-    background: var(--gray3); border-radius: 8px;
-    padding: 1rem 1.2rem; margin-bottom: 1.5rem;
-    font-family: 'Space Mono', monospace; font-size: 0.8rem;
-  }
-  .order-summary-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 4px 0;
-  }
-  .order-summary-row span:first-child { color: var(--gray5); }
-  .order-summary-row.total span:last-child {
-    font-size: 1.1rem; font-weight: 700;
-  }
-  .btn-pay {
-    width: 100%; background: var(--white); color: var(--black);
-    font-family: 'Space Mono', monospace; font-size: 0.8rem;
-    font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
-    padding: 14px; border-radius: 8px; border: none; cursor: pointer;
-    transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
-  .btn-pay:hover:not(:disabled) { background: #e0e0e0; transform: translateY(-1px); }
-  .btn-pay:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-pay .spinner {
-    width: 14px; height: 14px; border: 2px solid var(--gray4);
-    border-top-color: var(--black); border-radius: 50%;
-    animation: spin 0.7s linear infinite; display: none;
-  }
-  .btn-pay.loading .spinner { display: block; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* MODALS */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);
+  z-index:1000; display:none; align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background:rgba(20,12,40,0.97); border:1px solid rgba(168,85,247,0.4);
+  border-radius:28px; padding:2rem; width:100%; max-width:420px; margin:1rem;
+  animation:modalIn 0.25s ease; max-height:90vh; overflow-y:auto;
+}
+@keyframes modalIn { from{ opacity:0; transform:scale(0.95) translateY(8px); } to{ opacity:1; transform:scale(1) translateY(0); } }
+.modal-title { font-size:1.15rem; font-weight:700; color:#f3e8ff; margin-bottom:0.3rem; }
+.modal-sub { font-size:0.75rem; color:#b9a9e6; margin-bottom:1.5rem; }
+.modal-tabs { display:flex; gap:0.5rem; margin-bottom:1.5rem; }
+.modal-tab {
+  flex:1; padding:0.55rem; border-radius:12px; cursor:pointer; text-align:center;
+  font-size:0.82rem; font-weight:600; border:1px solid rgba(168,85,247,0.3);
+  background:rgba(55,35,85,0.3); color:#b9a9e6; transition:all 0.2s;
+}
+.modal-tab.active { background:linear-gradient(135deg,#a855f7,#7c3aed); color:white; border-color:#c084fc; }
+.modal-input {
+  width:100%; background:rgba(30,20,50,0.8); border:1.5px solid rgba(168,85,247,0.35);
+  border-radius:60px; padding:0.7rem 1.2rem; color:#f0e6ff; font-size:0.9rem;
+  margin-bottom:0.85rem;
+}
+.modal-input:focus { outline:none; border-color:#c084fc; }
+.modal-btn {
+  width:100%; background:linear-gradient(135deg,#a855f7,#7c3aed);
+  border:none; padding:0.8rem; border-radius:60px;
+  color:white; font-weight:700; cursor:pointer; font-size:0.9rem; transition:all 0.2s;
+}
+.modal-btn:hover { opacity:0.9; }
+.modal-btn:disabled { opacity:0.5; cursor:not-allowed; }
+.modal-cancel {
+  width:100%; background:rgba(55,35,85,0.5); border:1px solid rgba(168,85,247,0.3);
+  padding:0.65rem; border-radius:60px; color:#b9a9e6; cursor:pointer; font-size:0.85rem;
+  margin-top:0.6rem;
+}
+.modal-error { color:#fca5a5; font-size:0.75rem; text-align:center; margin-bottom:0.8rem; display:none; }
+.modal-error.show { display:block; }
+.modal-success { color:#86efac; font-size:0.78rem; text-align:center; margin-bottom:0.8rem; display:none; }
+.modal-success.show { display:block; }
 
-  /* KEYS TABLE */
-  .keys-table {
-    width: 100%; border-collapse: collapse;
-    background: var(--gray2); border: 1px solid var(--border);
-    border-radius: 12px; overflow: hidden;
-  }
-  .keys-table th, .keys-table td {
-    padding: 12px 16px; text-align: left;
-    font-family: 'Space Mono', monospace; font-size: 0.75rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .keys-table th {
-    color: var(--gray5); text-transform: uppercase;
-    letter-spacing: 0.1em; background: var(--gray3);
-  }
-  .keys-table td { color: var(--white); word-break: break-all; }
-  .key-badge {
-    background: var(--gray3); padding: 4px 10px;
-    border-radius: 4px; font-family: 'Space Mono', monospace;
-    font-size: 0.7rem; border-left: 2px solid var(--green);
-  }
+/* Key reveal card */
+.key-reveal-card {
+  background:rgba(34,197,94,0.1); border:1.5px solid rgba(34,197,94,0.4);
+  border-radius:18px; padding:1.3rem; text-align:center; margin-bottom:1rem;
+}
+.key-reveal-label { font-size:0.68rem; color:#86efac; margin-bottom:0.5rem; letter-spacing:0.1em; }
+.key-reveal-value {
+  font-family:monospace; font-size:1.4rem; font-weight:800;
+  color:#4ade80; letter-spacing:0.1em; word-break:break-all; margin-bottom:0.6rem;
+}
+.btn-copy {
+  background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.4); color:#4ade80;
+  padding:0.4rem 1.2rem; border-radius:60px; cursor:pointer; font-size:0.78rem; transition:all 0.2s;
+}
+.btn-copy:hover { background:rgba(34,197,94,0.25); }
 
-  /* CONTACTS GRID */
-  .contacts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1rem;
-  }
-  .contact-card {
-    background: var(--gray2);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 2rem 1.5rem;
-    text-align: center;
-    text-decoration: none;
-    transition: all 0.2s;
-    display: block;
-  }
-  .contact-card:hover {
-    border-color: var(--white);
-    transform: translateY(-3px);
-    background: var(--gray3);
-  }
-  .contact-icon { font-size: 3rem; margin-bottom: 1rem; }
-  .contact-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.3rem;
-    letter-spacing: 0.08em;
-    color: var(--white);
-    margin-bottom: 0.5rem;
-  }
-  .contact-link {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--gray5);
-    word-break: break-all;
-  }
-  .contact-desc {
-    font-size: 0.7rem;
-    color: var(--gray4);
-    margin-top: 0.5rem;
-  }
+/* Payment waiting */
+.pay-info-card {
+  background:rgba(0,102,204,0.1); border:1px solid rgba(0,170,255,0.3);
+  border-radius:16px; padding:1rem; margin-bottom:1.2rem; text-align:center;
+}
+.pay-info-name { font-size:0.9rem; font-weight:700; color:#e0f7ff; }
+.pay-info-price { font-size:1.6rem; font-weight:800; color:#4ade80; margin-top:0.3rem; }
+.spinner {
+  width:36px; height:36px; border:3px solid rgba(168,85,247,0.3);
+  border-top-color:#a855f7; border-radius:50%; animation:spin 0.8s linear infinite; margin:1rem auto;
+}
+@keyframes spin { to{ transform:rotate(360deg); } }
 
-  /* MODAL */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
-    z-index: 500; align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--gray2); border: 1px solid var(--border);
-    border-radius: 16px; padding: 2.5rem; max-width: 420px; width: 90%;
-    text-align: center; animation: fadeUp 0.3s ease;
-  }
-  .modal-icon { font-size: 3rem; margin-bottom: 1rem; }
-  .modal h3 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem; letter-spacing: 0.08em; margin-bottom: 0.5rem;
-  }
-  .modal p { color: var(--gray5); font-size: 0.85rem; margin-bottom: 1.5rem; line-height: 1.6; }
-  .modal .key-box {
-    background: var(--gray3); border: 1px solid var(--white);
-    border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;
-    font-family: 'Space Mono', monospace; font-size: 0.9rem;
-    word-break: break-all; letter-spacing: 0.05em;
-    color: var(--white);
-  }
-  .btn-modal-close {
-    background: none; border: 1px solid var(--border); color: var(--gray5);
-    font-family: 'Space Mono', monospace; font-size: 0.7rem;
-    letter-spacing: 0.15em; padding: 10px 24px; border-radius: 6px;
-    cursor: pointer; transition: all 0.2s; text-transform: uppercase;
-  }
-  .btn-modal-close:hover { border-color: var(--white); color: var(--white); }
+/* Toast */
+.toast-msg {
+  position:fixed; bottom:25px; left:50%; transform:translateX(-50%);
+  background:rgba(45,25,75,0.95); backdrop-filter:blur(20px);
+  padding:10px 24px; border-radius:60px; color:#f0e6ff;
+  z-index:2000; opacity:0; transition:0.2s; pointer-events:none; font-size:0.85rem;
+  border:1px solid rgba(168,85,247,0.3);
+}
+.toast-msg.show { opacity:1; }
 
-  /* AUTH MODAL */
-  .auth-modal .modal { max-width: 380px; }
-  .auth-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
-  .auth-tab {
-    flex: 1; background: none; border: none;
-    color: var(--gray5); font-family: 'Space Mono', monospace;
-    font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase;
-    padding: 10px; cursor: pointer; transition: all 0.2s;
-  }
-  .auth-tab.active { color: var(--white); border-bottom: 2px solid var(--white); }
-  .auth-form { display: none; text-align: left; }
-  .auth-form.active { display: block; }
-  .auth-form .form-group { margin-bottom: 1rem; }
-  .btn-auth {
-    width: 100%; background: var(--white); color: var(--black);
-    font-family: 'Space Mono', monospace; font-size: 0.75rem;
-    font-weight: 700; letter-spacing: 0.15em; padding: 12px;
-    border-radius: 6px; border: none; cursor: pointer;
-    margin-top: 0.5rem;
-  }
-  .auth-error { color: var(--red); font-size: 0.7rem; margin-top: 0.5rem; text-align: center; }
+.glass-footer {
+  margin-top:2rem; text-align:center; padding:0.8rem;
+  background:rgba(35,20,55,0.3); backdrop-filter:blur(12px);
+  border-radius:60px; font-size:0.7rem; color:#a78bfa;
+}
 
-  /* TOAST */
-  .toast {
-    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
-    background: var(--white); color: var(--black);
-    font-family: 'Space Mono', monospace; font-size: 0.75rem;
-    padding: 10px 20px; border-radius: 6px; z-index: 9999;
-    opacity: 0; transition: opacity 0.3s;
-    pointer-events: none; white-space: nowrap;
-  }
-  .toast.show { opacity: 1; }
-
-  footer {
-    text-align: center; padding: 2rem;
-    color: var(--gray4); font-size: 0.7rem;
-    font-family: 'Space Mono', monospace; letter-spacing: 0.1em;
-    border-top: 1px solid var(--border);
-  }
-
-  @media (max-width: 600px) {
-    .apk-card { flex-direction: column; text-align: center; }
-    .plans-grid { grid-template-columns: repeat(2, 1fr); }
-    .header-title { font-size: 1.4rem; }
-    header { padding: 0 1rem; gap: 10px; }
-    .user-area { margin-left: auto; }
-    .contacts-grid { grid-template-columns: 1fr; }
-  }
+@media(max-width:640px) {
+  .plans-grid, .contacts-grid { grid-template-columns:1fr; }
+  .nav-tabs { gap:0.3rem; }
+  .nav-btn { padding:0.4rem 0.8rem; font-size:0.75rem; }
+}
 </style>
 </head>
 <body>
+<div class="morph-bg"></div>
+<div class="morph-bg-2"></div>
 
-<header>
-  <div class="header-brand">
-    <img class="header-logo" id="headerLogo" src="" alt="Logo"/>
-    <div class="header-title">N4XCO <span>SHOP</span></div>
+<!-- NAV -->
+<div class="nav-bar">
+  <div class="nav-tabs">
+    <button class="nav-btn active" data-tab="shop">🔑 SHOP</button>
+    <button class="nav-btn" data-tab="orders">📋 MY ORDERS</button>
+    <button class="nav-btn" data-tab="contacts">📲 CONTACTS</button>
   </div>
-  <nav>
-    <button class="active" onclick="switchTab('apk', this)">APK</button>
-    <button onclick="switchTab('buy', this)">BUY KEY</button>
-    <button onclick="switchTab('mykeys', this)">MY KEYS</button>
-    <button onclick="switchTab('contacts', this)">CONTACTS</button>
-  </nav>
-  <div class="user-area" id="userArea">
-    <span class="user-name" id="userName"></span>
-    <button class="login-btn" id="loginBtn" onclick="openAuthModal()">Login</button>
-    <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display:none;">Logout</button>
-  </div>
-</header>
-
-<main>
-  <!-- APK TAB -->
-  <div class="tab active" id="tab-apk">
-    <div class="section-head">
-      <h2>Download APK</h2>
-      <p>// get the latest version below</p>
-    </div>
-    <div class="apk-card">
-      <div class="apk-logo-wrap" id="apkLogoWrap">
-        <span class="placeholder-icon">⬡</span>
-      </div>
-      <div class="apk-info">
-        <h3 id="apkName">N4XCO App</h3>
-        <p id="apkSub">Tap the button to download the latest APK</p>
-        <a class="btn-download" id="apkDownloadBtn" href="#" target="_blank" rel="noopener">
-          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm-.75 4.75h1.5v4.5l2.22-2.22 1.06 1.06L8 12.12l-4.03-4.03 1.06-1.06L7.25 9.25V4.75z"/></svg>
-          Download APK
-        </a>
-      </div>
-    </div>
-    <div style="padding: 1.5rem; background: var(--gray2); border: 1px solid var(--border); border-radius: 10px;">
-      <p style="font-size:0.75rem; font-family:'Space Mono',monospace; color:var(--gray5); line-height:1.8;">
-        ⚠ &nbsp;ENABLE "Install from Unknown Sources" before installing.<br>
-        📲 &nbsp;Download → Install → Purchase a key → Activate.<br>
-        💬 &nbsp;For support, contact us via Telegram after purchase.
-      </p>
+  <div class="nav-user">
+    <div class="user-pill" id="userPill" onclick="openAuthModal()">
+      <i class="fas fa-user" id="userPillIcon"></i>
+      <span id="userPillText">Login</span>
     </div>
   </div>
+</div>
 
-  <!-- BUY KEY TAB -->
-  <div class="tab" id="tab-buy">
-    <div class="section-head">
-      <h2>Buy Key</h2>
-      <p>// select a plan and complete payment via gcash / card</p>
+<div class="app-container">
+
+  <!-- ===== SHOP TAB ===== -->
+  <div id="shopTab" class="tab-section active">
+    <div class="glass-header">
+      <div id="appLogo" style="display:flex;align-items:center;justify-content:center;gap:0.8rem;margin-bottom:0.4rem;">
+        <img id="shopLogoImg" src="" alt="" style="height:48px;border-radius:14px;display:none;">
+        <div class="header-logo" id="appName">N4XCO SHOP</div>
+      </div>
+      <div class="header-tagline">Buy activation keys securely · Powered by PayMongo GCash</div>
     </div>
 
-    <div class="plans-grid" id="plansGrid"></div>
-
-    <div class="buy-form-wrap" id="buyFormWrap">
-      <div class="form-title">Complete your order — <span id="selectedPlanLabel">—</span></div>
-      <div class="form-group">
-        <label>Your Telegram Username</label>
-        <input type="text" id="telegramInput" placeholder="@yourusername" autocomplete="off"/>
+    <!-- APK download -->
+    <div id="apkDownload" style="display:none;margin-bottom:1.2rem;background:rgba(35,25,65,0.5);border:1px solid rgba(168,85,247,0.3);border-radius:20px;padding:1rem 1.3rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+      <div>
+        <div style="font-weight:700;color:#f3e8ff;font-size:0.95rem;" id="apkName">N4XCO App</div>
+        <div style="font-size:0.7rem;color:#b9a9e6;">Click to download the APK</div>
       </div>
-      <div class="order-summary">
-        <div class="order-summary-row"><span>Plan</span><span id="sumPlan">—</span></div>
-        <div class="order-summary-row"><span>Duration</span><span id="sumDays">—</span></div>
-        <div class="order-summary-row total" style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;">
-          <span>Total</span><span id="sumPrice">₱ —</span>
-        </div>
-      </div>
-      <button class="btn-pay" id="payBtn" onclick="proceedToPayment()">
-        <div class="spinner"></div>
-        <span class="pay-text">Proceed to Payment</span>
+      <button onclick="downloadApk()" style="background:linear-gradient(135deg,#a855f7,#7c3aed);border:none;padding:0.55rem 1.3rem;border-radius:60px;color:white;font-weight:700;font-size:0.82rem;cursor:pointer;white-space:nowrap;">
+        <i class="fas fa-download"></i> Download APK
       </button>
     </div>
+
+    <div id="plansGrid" class="plans-grid"></div>
+    <div class="glass-footer">Secure checkout via GCash · PayMongo · Keys auto-delivered</div>
   </div>
 
-  <!-- MY KEYS TAB -->
-  <div class="tab" id="tab-mykeys">
-    <div class="section-head">
-      <h2>My Keys</h2>
-      <p>// your purchased activation keys</p>
+  <!-- ===== ORDERS TAB ===== -->
+  <div id="ordersTab" class="tab-section">
+    <div class="glass-header">
+      <div class="header-logo">📋 MY ORDERS</div>
+      <div class="header-tagline">Your purchase history · Manage your keys</div>
     </div>
-    <div id="myKeysContainer"></div>
+    <div id="ordersContainer"></div>
   </div>
 
-  <!-- CONTACTS TAB -->
-  <div class="tab" id="tab-contacts">
-    <div class="section-head">
-      <h2>Contacts</h2>
-      <p>// reach us via telegram</p>
+  <!-- ===== CONTACTS TAB ===== -->
+  <div id="contactsTab" class="tab-section">
+    <div class="glass-header">
+      <div class="header-logo">📲 CONTACTS</div>
+      <div class="header-tagline">Reach us on Telegram · Click any card to open</div>
     </div>
     <div class="contacts-grid">
-      <a href="https://t.me/JEPFX" target="_blank" class="contact-card">
-        <div class="contact-icon">💼</div>
-        <div class="contact-title">JEPFX SERVICES</div>
-        <div class="contact-link">@JEPFX</div>
-        <div class="contact-desc">Official support & services</div>
+      <a class="contact-card" href="https://t.me/JEPFX" target="_blank">
+        <div class="contact-icon tg"><i class="fab fa-telegram"></i></div>
+        <div>
+          <div class="contact-title">JEPFX SERVICES</div>
+          <div class="contact-sub">t.me/JEPFX</div>
+        </div>
       </a>
-      <a href="https://t.me/n4xcoall" target="_blank" class="contact-card">
-        <div class="contact-icon">📢</div>
-        <div class="contact-title">N4XCO CHANNEL</div>
-        <div class="contact-link">@n4xcoall</div>
-        <div class="contact-desc">Updates & announcements</div>
+      <a class="contact-card" href="https://t.me/n4xcoall" target="_blank">
+        <div class="contact-icon tg"><i class="fab fa-telegram"></i></div>
+        <div>
+          <div class="contact-title">N4XCO CHANNEL</div>
+          <div class="contact-sub">t.me/n4xcoall</div>
+        </div>
       </a>
-      <a href="https://t.me/zekielsZ" target="_blank" class="contact-card">
-        <div class="contact-icon">👤</div>
-        <div class="contact-title">N4XCO ACCOUNT</div>
-        <div class="contact-link">@zekielsZ</div>
-        <div class="contact-desc">Direct contact</div>
+      <a class="contact-card" href="https://t.me/zekielsZ" target="_blank">
+        <div class="contact-icon tg"><i class="fab fa-telegram"></i></div>
+        <div>
+          <div class="contact-title">N4XCO ACCOUNT</div>
+          <div class="contact-sub">t.me/zekielsZ</div>
+        </div>
       </a>
     </div>
   </div>
-</main>
 
-<!-- ORDER STATUS MODAL -->
-<div class="modal-overlay" id="orderModal">
-  <div class="modal">
-    <div class="modal-icon" id="modalIcon">⏳</div>
-    <h3 id="modalTitle">Processing</h3>
-    <p id="modalDesc">Waiting for payment confirmation...</p>
-    <div class="key-box" id="modalKey" style="display:none;"></div>
-    <button class="btn-modal-close" onclick="closeModal()">Close</button>
-  </div>
-</div>
+</div><!-- /app-container -->
 
-<!-- AUTH MODAL (Login/Register) -->
-<div class="modal-overlay auth-modal" id="authModal">
-  <div class="modal">
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
-      <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+<!-- ===== AUTH MODAL (Login / Register) ===== -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box">
+    <div class="modal-title" id="authModalTitle">Welcome to N4XCO</div>
+    <div class="modal-sub">Login or create an account to purchase keys</div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" id="tabLogin" onclick="switchAuthTab('login')">Login</div>
+      <div class="modal-tab" id="tabRegister" onclick="switchAuthTab('register')">Register</div>
     </div>
-    <div id="loginForm" class="auth-form active">
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="loginUsername" placeholder="Enter username"/>
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="loginPassword" placeholder="••••••••"/>
-      </div>
-      <button class="btn-auth" onclick="doLogin()">Login</button>
-      <div id="loginError" class="auth-error"></div>
+    <div id="authError" class="modal-error"></div>
+
+    <!-- Login form -->
+    <div id="loginForm">
+      <input type="text" id="loginUser" class="modal-input" placeholder="Username">
+      <input type="password" id="loginPass" class="modal-input" placeholder="Password">
+      <button class="modal-btn" id="loginBtn">🔐 Login</button>
     </div>
-    <div id="registerForm" class="auth-form">
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="regUsername" placeholder="Choose username"/>
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="regPassword" placeholder="••••••••"/>
-      </div>
-      <div class="form-group">
-        <label>Telegram (optional)</label>
-        <input type="text" id="regTelegram" placeholder="@username"/>
-      </div>
-      <button class="btn-auth" onclick="doRegister()">Register</button>
-      <div id="regError" class="auth-error"></div>
+
+    <!-- Register form -->
+    <div id="registerForm" style="display:none;">
+      <input type="text" id="regUser" class="modal-input" placeholder="Username (min 3 chars)">
+      <input type="password" id="regPass" class="modal-input" placeholder="Password (min 6 chars)">
+      <input type="text" id="regTelegram" class="modal-input" placeholder="Telegram username (optional)">
+      <button class="modal-btn" id="registerBtn">📝 Create Account</button>
     </div>
+
+    <button class="modal-cancel" onclick="closeModal('authModal')">Cancel</button>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- ===== CHECKOUT MODAL ===== -->
+<div class="modal-overlay" id="checkoutModal">
+  <div class="modal-box">
+    <!-- Step 1: Confirm plan -->
+    <div id="ckStep1">
+      <div class="modal-title">Confirm Purchase</div>
+      <div class="modal-sub" id="ckPlanName">Plan details</div>
+      <div id="ckError" class="modal-error"></div>
+      <div style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:16px;padding:1rem 1.2rem;margin-bottom:1.2rem;">
+        <div style="font-size:0.7rem;color:#a78bfa;">SELECTED PLAN</div>
+        <div id="ckPlanLabel" style="font-size:1.1rem;font-weight:700;color:#f3e8ff;margin-top:0.3rem;"></div>
+        <div id="ckPlanPrice" style="font-size:1.6rem;font-weight:800;color:#c084fc;"></div>
+      </div>
+      <div style="font-size:0.72rem;color:#b9a9e6;margin-bottom:1.2rem;">
+        Logged in as: <strong id="ckUsername" style="color:#f0e6ff;"></strong>
+      </div>
+      <button class="modal-btn" id="ckPayBtn">
+        <i class="fas fa-credit-card"></i> Pay via GCash
+      </button>
+      <button class="modal-cancel" onclick="closeModal('checkoutModal')">Cancel</button>
+    </div>
 
-<footer>N4XCO SHOP &nbsp;·&nbsp; All rights reserved &nbsp;·&nbsp; 2025</footer>
+    <!-- Step 2: Waiting for payment -->
+    <div id="ckStep2" style="display:none;text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:0.5rem;">💳</div>
+      <div class="modal-title">Complete GCash Payment</div>
+      <div style="font-size:0.78rem;color:#b9a9e6;margin:0.5rem 0 1.2rem;line-height:1.6;">
+        A GCash payment page has been opened.<br>
+        After paying, click <strong style="color:#c084fc;">Check Status</strong> below.
+      </div>
+      <div class="pay-info-card">
+        <div class="pay-info-name" id="ckPayPlan"></div>
+        <div class="pay-info-price" id="ckPayPrice"></div>
+      </div>
+      <button class="modal-btn" id="ckReopenBtn" style="background:linear-gradient(135deg,#0066cc,#00aaff);margin-bottom:0.6rem;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+        <i class="fas fa-external-link-alt"></i> Reopen Payment Page
+      </button>
+      <button class="modal-btn" id="ckCheckBtn" style="margin-bottom:0.6rem;">
+        🔄 Check Payment Status
+      </button>
+      <div id="ckCheckResult" style="display:none;border-radius:14px;padding:0.9rem;margin-bottom:0.8rem;font-size:0.82rem;"></div>
+      <!-- Key auto-reveal -->
+      <div id="ckKeyReveal" style="display:none;">
+        <div class="key-reveal-card">
+          <div class="key-reveal-label">✅ PAYMENT CONFIRMED — YOUR KEY</div>
+          <div class="key-reveal-value" id="ckRevealKey"></div>
+          <button class="btn-copy" onclick="copyText(document.getElementById('ckRevealKey').textContent)">📋 Copy Key</button>
+        </div>
+      </div>
+      <div style="font-size:0.63rem;color:#7c6aff;margin-bottom:0.6rem;">
+        Order: <span style="font-family:monospace;color:#a78bfa;" id="ckOrderIdDisplay"></span>
+      </div>
+      <button class="modal-cancel" id="ckCancelBtn">Cancel / Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastMsg" class="toast-msg"></div>
 
 <script>
-let selectedPlan = null;
-let storeData = {};
-let currentUser = null;
-let orderPollInterval = null;
-let authToken = localStorage.getItem('n4xco_token') || null;
+// ==================== STATE ====================
+let userToken = localStorage.getItem('n4xco_token') || null;
+let userName  = localStorage.getItem('n4xco_user') || null;
+let storeData = { plans: [], apk: {} };
+let activeCheckoutOrderId = null;
+let activeCheckoutUrl = null;
+let statusPollTimer = null;
 
-// ─── AUTH FUNCTIONS ──────────────────────────────────────────────────────────
-async function checkAuth() {
-  if (authToken) {
-    const res = await fetch('/api/me', {
-      headers: { 'Authorization': 'Bearer ' + authToken }
-    });
-    const data = await res.json();
-    if (data.success && data.user) {
-      currentUser = data.user;
-      document.getElementById('userName').textContent = currentUser.username;
-      document.getElementById('loginBtn').style.display = 'none';
-      document.getElementById('logoutBtn').style.display = 'inline-block';
-      return;
-    }
+// ==================== NAV ====================
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+    document.getElementById(tab + 'Tab').classList.add('active');
+    if (tab === 'orders') loadOrders();
+  });
+});
+
+// ==================== AUTH ====================
+function updateUserPill() {
+  const pill = document.getElementById('userPill');
+  const icon = document.getElementById('userPillIcon');
+  const text = document.getElementById('userPillText');
+  if (userToken && userName) {
+    text.textContent = userName;
+    icon.className = 'fas fa-user-check';
+    pill.classList.add('logged-in');
+    pill.onclick = () => { if(confirm('Log out as ' + userName + '?')) doLogout(); };
+  } else {
+    text.textContent = 'Login';
+    icon.className = 'fas fa-user';
+    pill.classList.remove('logged-in');
+    pill.onclick = openAuthModal;
   }
-  currentUser = null;
-  document.getElementById('userName').textContent = '';
-  document.getElementById('loginBtn').style.display = 'inline-block';
-  document.getElementById('logoutBtn').style.display = 'none';
+}
+
+function doLogout() {
+  userToken = null; userName = null;
+  localStorage.removeItem('n4xco_token'); localStorage.removeItem('n4xco_user');
+  updateUserPill(); toast('Logged out');
 }
 
 function openAuthModal() {
+  clearErr('authError'); switchAuthTab('login');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
   document.getElementById('authModal').classList.add('open');
-  document.getElementById('loginUsername').value = '';
-  document.getElementById('loginPassword').value = '';
-  document.getElementById('regUsername').value = '';
-  document.getElementById('regPassword').value = '';
-  document.getElementById('regTelegram').value = '';
-  document.getElementById('loginError').textContent = '';
-  document.getElementById('regError').textContent = '';
-}
-
-function closeAuthModal() {
-  document.getElementById('authModal').classList.remove('open');
 }
 
 function switchAuthTab(tab) {
-  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-  if (tab === 'login') {
-    document.querySelector('.auth-tab:first-child').classList.add('active');
-    document.getElementById('loginForm').classList.add('active');
-  } else {
-    document.querySelector('.auth-tab:last-child').classList.add('active');
-    document.getElementById('registerForm').classList.add('active');
-  }
+  const isLogin = tab === 'login';
+  document.getElementById('tabLogin').classList.toggle('active', isLogin);
+  document.getElementById('tabRegister').classList.toggle('active', !isLogin);
+  document.getElementById('loginForm').style.display = isLogin ? '' : 'none';
+  document.getElementById('registerForm').style.display = isLogin ? 'none' : '';
+  clearErr('authError');
 }
 
-async function doLogin() {
-  const username = document.getElementById('loginUsername').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  
-  if (!username || !password) {
-    document.getElementById('loginError').textContent = 'Please fill all fields';
-    return;
-  }
-  
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  if (!username || !password) return showErr('authError', 'Enter username and password');
+  document.getElementById('loginBtn').disabled = true;
+  document.getElementById('loginBtn').textContent = 'Logging in...';
   try {
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
+    const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password }) });
     const data = await res.json();
-    if (data.success) {
-      authToken = data.token;
-      localStorage.setItem('n4xco_token', authToken);
-      closeAuthModal();
-      await checkAuth();
-      showToast(`Welcome back, ${username}!`);
-      loadMyKeys();
-    } else {
-      document.getElementById('loginError').textContent = data.message;
-    }
-  } catch (err) {
-    document.getElementById('loginError').textContent = 'Network error';
-  }
-}
+    if (!res.ok) { showErr('authError', data.message || 'Invalid credentials'); return; }
+    userToken = data.token; userName = data.username;
+    localStorage.setItem('n4xco_token', userToken);
+    localStorage.setItem('n4xco_user', userName);
+    updateUserPill();
+    closeModal('authModal');
+    toast('Welcome back, ' + userName + '! 👋');
+    // If there was a pending checkout, resume it
+    if (pendingCheckoutPlanId) { const p = pendingCheckoutPlanId; pendingCheckoutPlanId = null; openCheckout(p); }
+  } catch(e) { showErr('authError', 'Network error'); }
+  finally { document.getElementById('loginBtn').disabled = false; document.getElementById('loginBtn').textContent = '🔐 Login'; }
+});
 
-async function doRegister() {
-  const username = document.getElementById('regUsername').value.trim();
-  const password = document.getElementById('regPassword').value;
+document.getElementById('registerBtn').addEventListener('click', async () => {
+  const username = document.getElementById('regUser').value.trim();
+  const password = document.getElementById('regPass').value;
   const telegram = document.getElementById('regTelegram').value.trim();
-  
-  if (!username || !password) {
-    document.getElementById('regError').textContent = 'Username and password required';
-    return;
-  }
-  if (password.length < 4) {
-    document.getElementById('regError').textContent = 'Password must be at least 4 characters';
-    return;
-  }
-  
+  if (!username || !password) return showErr('authError', 'Fill in username and password');
+  if (username.length < 3) return showErr('authError', 'Username must be at least 3 characters');
+  if (password.length < 6) return showErr('authError', 'Password must be at least 6 characters');
+  document.getElementById('registerBtn').disabled = true;
+  document.getElementById('registerBtn').textContent = 'Creating account...';
   try {
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, telegram })
-    });
+    const res = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password, telegram }) });
     const data = await res.json();
-    if (data.success) {
-      authToken = data.token;
-      localStorage.setItem('n4xco_token', authToken);
-      closeAuthModal();
-      await checkAuth();
-      showToast(`Welcome, ${username}! You can now purchase keys.`);
-      loadMyKeys();
-    } else {
-      document.getElementById('regError').textContent = data.message;
-    }
-  } catch (err) {
-    document.getElementById('regError').textContent = 'Network error';
-  }
+    if (!res.ok) { showErr('authError', data.message || 'Registration failed'); return; }
+    userToken = data.token; userName = data.username;
+    localStorage.setItem('n4xco_token', userToken);
+    localStorage.setItem('n4xco_user', userName);
+    updateUserPill();
+    closeModal('authModal');
+    toast('Account created! Welcome, ' + userName + '! 🎉');
+    if (pendingCheckoutPlanId) { const p = pendingCheckoutPlanId; pendingCheckoutPlanId = null; openCheckout(p); }
+  } catch(e) { showErr('authError', 'Network error'); }
+  finally { document.getElementById('registerBtn').disabled = false; document.getElementById('registerBtn').textContent = '📝 Create Account'; }
+});
+
+// Allow Enter key on login
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+
+// ==================== STORE LOAD ====================
+async function loadStore() {
+  try {
+    const res = await fetch('/api/store');
+    storeData = await res.json();
+    renderPlans();
+    renderApk();
+  } catch(e) { console.error('Store load error', e); }
 }
 
-async function logout() {
-  await fetch('/api/logout', { method: 'POST' });
-  authToken = null;
-  localStorage.removeItem('n4xco_token');
-  currentUser = null;
-  await checkAuth();
-  showToast('Logged out successfully');
-  document.getElementById('buyFormWrap').classList.remove('visible');
-  selectedPlan = null;
-  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-  loadMyKeys();
-}
-
-// ─── LOAD MY KEYS ────────────────────────────────────────────────────────────
-async function loadMyKeys() {
-  if (!currentUser) {
-    document.getElementById('myKeysContainer').innerHTML = `
-      <div style="background: var(--gray2); border: 1px solid var(--border); border-radius: 12px; padding: 3rem; text-align: center;">
-        <p style="color: var(--gray5);">Please login to view your purchased keys.</p>
-        <button class="btn-download" style="margin-top: 1rem;" onclick="openAuthModal()">Login / Register</button>
-      </div>
-    `;
-    return;
-  }
-  
-  const res = await fetch('/api/shop/mykeys', {
-    headers: { 'Authorization': 'Bearer ' + authToken }
-  });
-  const data = await res.json();
-  const keys = data.keys || [];
-  
-  if (keys.length === 0) {
-    document.getElementById('myKeysContainer').innerHTML = `
-      <div style="background: var(--gray2); border: 1px solid var(--border); border-radius: 12px; padding: 3rem; text-align: center;">
-        <p style="color: var(--gray5);">You haven't purchased any keys yet.</p>
-        <button class="btn-download" style="margin-top: 1rem;" onclick="switchTab('buy', document.querySelector('nav button:nth-child(2)'))">Buy Now</button>
-      </div>
-    `;
-    return;
-  }
-  
-  const html = `
-    <table class="keys-table">
-      <thead>
-        <tr>
-          <th>Activation Key</th>
-          <th>Plan</th>
-          <th>Purchased Date</th>
-          <th>Expires</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${keys.map(k => `
-          <tr>
-            <td><span class="key-badge">${escapeHtml(k.key)}</span></td>
-            <td>${escapeHtml(k.plan)}</td>
-            <td>${new Date(k.purchasedAt).toLocaleDateString()}</td>
-            <td>${new Date(k.expiresAt).toLocaleDateString()}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
-  document.getElementById('myKeysContainer').innerHTML = html;
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    return m;
-  });
-}
-
-// ─── INIT ──────────────────────────────────────────────────────────────────────
-async function init() {
-  await checkAuth();
-  const res = await fetch('/api/store');
-  storeData = await res.json();
-  loadAPK(storeData.apk);
-  loadPlans(storeData.plans);
-}
-
-function loadAPK(apk) {
+function renderApk() {
+  const apk = storeData.apk;
   if (!apk) return;
-  document.getElementById('apkName').textContent = apk.name || 'N4XCO App';
-  document.getElementById('apkDownloadBtn').href = apk.link || '#';
-
-  const logo = document.getElementById('headerLogo');
-  const logoWrap = document.getElementById('apkLogoWrap');
-
+  if (apk.name) document.getElementById('appName').textContent = apk.name;
   if (apk.logo) {
-    logo.src = apk.logo;
-    logo.onload = () => logo.classList.add('loaded');
-    logoWrap.innerHTML = `<img src="${apk.logo}" alt="Logo" onerror="this.style.display='none'"/>`;
+    const img = document.getElementById('shopLogoImg');
+    img.src = apk.logo; img.style.display = '';
+  }
+  const apkDiv = document.getElementById('apkDownload');
+  if (apk.link && apk.link !== 'https://example.com/download') {
+    document.getElementById('apkName').textContent = apk.name || 'N4XCO App';
+    apkDiv.style.display = 'flex';
   }
 }
 
-function loadPlans(plans) {
+function downloadApk() {
+  if (storeData.apk?.link) window.open(storeData.apk.link, '_blank');
+}
+
+function renderPlans() {
   const grid = document.getElementById('plansGrid');
-  grid.innerHTML = '';
-  plans.forEach(plan => {
-    const card = document.createElement('div');
-    card.className = 'plan-card';
-    card.dataset.id = plan.id;
-    card.innerHTML = `
-      <div class="check-icon">
-        <svg viewBox="0 0 10 10" fill="none" stroke="#000" stroke-width="2"><polyline points="1,5 4,8 9,2"/></svg>
-      </div>
-      <div class="plan-days">${plan.days}</div>
-      <div class="plan-label">days access</div>
-      <div class="plan-price">₱ ${plan.price.toLocaleString()} <span>PHP</span></div>
-    `;
-    card.onclick = () => selectPlan(plan, card);
-    grid.appendChild(card);
-  });
+  if (!storeData.plans?.length) { grid.innerHTML = '<div style="color:#7c6a9e;text-align:center;padding:3rem;">No plans available. Check back soon!</div>'; return; }
+  grid.innerHTML = storeData.plans.map(p => `
+    <div class="plan-card" onclick="handleBuyClick('${p.id}')">
+      <div class="plan-label">${esc(p.label)}</div>
+      <div class="plan-price">₱${p.price}<span> PHP</span></div>
+      <div class="plan-days"><i class="fas fa-calendar-alt"></i> ${p.days} days access</div>
+      <button class="plan-buy-btn">
+        <i class="fas fa-shopping-cart"></i> Buy Now
+      </button>
+    </div>
+  `).join('');
 }
 
-function selectPlan(plan, card) {
-  if (!currentUser) {
-    showToast('Please login first to purchase');
+// ==================== CHECKOUT ====================
+let pendingCheckoutPlanId = null;
+
+function handleBuyClick(planId) {
+  if (!userToken || !userName) {
+    pendingCheckoutPlanId = planId;
     openAuthModal();
+    toast('Please login or register to purchase', 'info');
     return;
   }
-  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-  card.classList.add('selected');
-  selectedPlan = plan;
-
-  document.getElementById('selectedPlanLabel').textContent = plan.label;
-  document.getElementById('sumPlan').textContent = plan.label;
-  document.getElementById('sumDays').textContent = plan.days + ' days';
-  document.getElementById('sumPrice').textContent = '₱ ' + plan.price.toLocaleString();
-  document.getElementById('buyFormWrap').classList.add('visible');
-  document.getElementById('buyFormWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  openCheckout(planId);
 }
 
-// ─── TABS ─────────────────────────────────────────────────────────────────────
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + id).classList.add('active');
-  btn.classList.add('active');
-  
-  if (id === 'mykeys') {
-    loadMyKeys();
-  }
+function openCheckout(planId) {
+  const plan = storeData.plans.find(p => p.id === planId);
+  if (!plan) return;
+  // Reset modal
+  document.getElementById('ckStep1').style.display = '';
+  document.getElementById('ckStep2').style.display = 'none';
+  document.getElementById('ckKeyReveal').style.display = 'none';
+  document.getElementById('ckCheckResult').style.display = 'none';
+  clearErr('ckError');
+  // Fill info
+  document.getElementById('ckPlanName').textContent = 'N4XCO ' + plan.label + ' Key';
+  document.getElementById('ckPlanLabel').textContent = plan.label;
+  document.getElementById('ckPlanPrice').textContent = '₱' + plan.price;
+  document.getElementById('ckUsername').textContent = userName;
+  // Store plan in pay button
+  document.getElementById('ckPayBtn').dataset.planId = planId;
+  document.getElementById('checkoutModal').classList.add('open');
 }
 
-// ─── PAYMENT ───────────────────────────────────────────────────────────────────
-async function proceedToPayment() {
-  if (!currentUser) {
-    showToast('Please login first');
-    openAuthModal();
-    return;
-  }
-  
-  const telegram = document.getElementById('telegramInput').value.trim();
-  if (!selectedPlan) { showToast('Select a plan first'); return; }
-
-  const btn = document.getElementById('payBtn');
-  btn.classList.add('loading');
-  btn.disabled = true;
-  btn.querySelector('.pay-text').textContent = 'Creating payment...';
-
+document.getElementById('ckPayBtn').addEventListener('click', async () => {
+  const planId = document.getElementById('ckPayBtn').dataset.planId;
+  document.getElementById('ckPayBtn').disabled = true;
+  document.getElementById('ckPayBtn').textContent = '⏳ Creating payment link...';
+  clearErr('ckError');
   try {
-    const res = await fetch('/api/shop/checkout', {
+    const res = await fetch('/api/checkout', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
-      body: JSON.stringify({
-        planId: selectedPlan.id,
-        telegram: telegram || currentUser.telegram
-      })
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + userToken },
+      body: JSON.stringify({ planId })
     });
     const data = await res.json();
-    if (data.success) {
-      window.open(data.checkoutUrl, '_blank');
-      showOrderWaiting(data.orderId);
-    } else {
-      showToast('Error: ' + data.message);
-    }
-  } catch (err) {
-    showToast('Network error. Try again.');
-  } finally {
-    btn.classList.remove('loading');
-    btn.disabled = false;
-    btn.querySelector('.pay-text').textContent = 'Proceed to Payment';
-  }
-}
+    if (!res.ok) { showErr('ckError', data.message || 'Checkout failed'); return; }
 
-function showOrderWaiting(orderId) {
-  const modal = document.getElementById('orderModal');
-  document.getElementById('modalIcon').textContent = '⏳';
-  document.getElementById('modalTitle').textContent = 'Payment Sent?';
-  document.getElementById('modalDesc').textContent = 'Complete your payment in the tab that opened. Once confirmed, your key will appear here.';
-  document.getElementById('modalKey').style.display = 'none';
-  modal.classList.add('open');
+    activeCheckoutOrderId = data.orderId;
+    activeCheckoutUrl = data.checkoutUrl;
 
-  if (orderPollInterval) clearInterval(orderPollInterval);
-  orderPollInterval = setInterval(async () => {
-    const res = await fetch('/api/shop/order/' + orderId);
+    // Show step 2
+    const plan = storeData.plans.find(p => p.id === planId);
+    document.getElementById('ckPayPlan').textContent = plan ? plan.label : '';
+    document.getElementById('ckPayPrice').textContent = plan ? '₱' + plan.price : '';
+    document.getElementById('ckOrderIdDisplay').textContent = data.orderId.split('-')[0];
+    document.getElementById('ckStep1').style.display = 'none';
+    document.getElementById('ckStep2').style.display = '';
+
+    // Open GCash page
+    window.open(activeCheckoutUrl, '_blank');
+
+    // Start auto-poll every 5 seconds
+    if (statusPollTimer) clearInterval(statusPollTimer);
+    statusPollTimer = setInterval(() => pollOrderStatus(activeCheckoutOrderId), 5000);
+  } catch(e) { showErr('ckError', 'Network error. Try again.'); }
+  finally { document.getElementById('ckPayBtn').disabled = false; document.getElementById('ckPayBtn').innerHTML = '<i class="fas fa-credit-card"></i> Pay via GCash'; }
+});
+
+document.getElementById('ckReopenBtn').addEventListener('click', () => {
+  if (activeCheckoutUrl) window.open(activeCheckoutUrl, '_blank');
+});
+
+document.getElementById('ckCheckBtn').addEventListener('click', async () => {
+  if (!activeCheckoutOrderId) return;
+  document.getElementById('ckCheckBtn').textContent = '⏳ Checking...';
+  document.getElementById('ckCheckBtn').disabled = true;
+  await pollOrderStatus(activeCheckoutOrderId);
+  document.getElementById('ckCheckBtn').textContent = '🔄 Check Payment Status';
+  document.getElementById('ckCheckBtn').disabled = false;
+});
+
+document.getElementById('ckCancelBtn').addEventListener('click', () => {
+  if (statusPollTimer) clearInterval(statusPollTimer);
+  statusPollTimer = null;
+  closeModal('checkoutModal');
+});
+
+async function pollOrderStatus(orderId) {
+  try {
+    const res = await fetch('/api/order/' + orderId);
     const data = await res.json();
-    if (data.status === 'fulfilled') {
-      clearInterval(orderPollInterval);
-      showOrderFulfilled(data.key, data.plan);
-      loadMyKeys();
+    if (!data.success) return;
+
+    const resultEl = document.getElementById('ckCheckResult');
+    resultEl.style.display = '';
+
+    if (data.status === 'fulfilled' && data.key) {
+      // SUCCESS — show key
+      if (statusPollTimer) { clearInterval(statusPollTimer); statusPollTimer = null; }
+      resultEl.style.background = 'rgba(34,197,94,0.1)';
+      resultEl.style.border = '1px solid rgba(34,197,94,0.3)';
+      resultEl.style.color = '#86efac';
+      resultEl.textContent = '✅ Payment confirmed!';
+
+      document.getElementById('ckRevealKey').textContent = data.key;
+      document.getElementById('ckKeyReveal').style.display = '';
+      document.getElementById('ckCheckBtn').style.display = 'none';
+      document.getElementById('ckReopenBtn').style.display = 'none';
+      toast('🎉 Key delivered! Check the modal.');
+    } else if (data.status === 'paid') {
+      resultEl.style.background = 'rgba(59,130,246,0.1)';
+      resultEl.style.border = '1px solid rgba(59,130,246,0.3)';
+      resultEl.style.color = '#93c5fd';
+      resultEl.textContent = '✅ Paid! Assigning key... please wait.';
+    } else if (data.status === 'pending') {
+      resultEl.style.background = 'rgba(234,179,8,0.1)';
+      resultEl.style.border = '1px solid rgba(234,179,8,0.25)';
+      resultEl.style.color = '#fbbf24';
+      resultEl.textContent = '⏳ Payment not detected yet. Make sure you completed payment.';
+    } else if (data.status === 'cancelled') {
+      resultEl.style.background = 'rgba(239,68,68,0.1)';
+      resultEl.style.border = '1px solid rgba(239,68,68,0.2)';
+      resultEl.style.color = '#fca5a5';
+      resultEl.textContent = '❌ Order was cancelled.';
+      if (statusPollTimer) { clearInterval(statusPollTimer); statusPollTimer = null; }
     }
-  }, 3000);
+  } catch(e) {}
 }
 
-function showOrderFulfilled(key, plan) {
-  document.getElementById('modalIcon').textContent = '✅';
-  document.getElementById('modalTitle').textContent = 'Key Ready!';
-  document.getElementById('modalDesc').textContent = `Your ${plan} key is below. Activate it in the app.`;
-  document.getElementById('modalKey').style.display = 'block';
-  document.getElementById('modalKey').textContent = key;
-}
-
-function closeModal() {
-  document.getElementById('orderModal').classList.remove('open');
-  if (orderPollInterval) {
-    clearInterval(orderPollInterval);
-    orderPollInterval = null;
+// ==================== ORDERS ====================
+async function loadOrders() {
+  const container = document.getElementById('ordersContainer');
+  if (!userToken) {
+    container.innerHTML = `<div class="empty-msg"><i class="fas fa-lock" style="font-size:2rem;display:block;margin-bottom:0.8rem;opacity:0.4;"></i>Login to see your orders</div>`;
+    return;
   }
+  container.innerHTML = `<div class="empty-msg"><div class="spinner"></div></div>`;
+  try {
+    const res = await fetch('/api/user/orders', { headers:{ Authorization:'Bearer ' + userToken } });
+    const data = await res.json();
+    if (!data.success || !data.orders.length) {
+      container.innerHTML = `<div class="empty-msg"><i class="fas fa-receipt" style="font-size:2rem;display:block;margin-bottom:0.8rem;opacity:0.4;"></i>No orders yet. Go buy a key!</div>`;
+      return;
+    }
+    container.innerHTML = '<div class="orders-wrap">' + data.orders.map(o => {
+      const badge = o.status === 'fulfilled' ? 'badge-fulfilled' :
+                    o.status === 'paid' ? 'badge-paid' :
+                    o.status === 'cancelled' ? 'badge-cancelled' : 'badge-pending';
+      const statusLabel = o.status === 'fulfilled' ? '✅ Key Delivered' :
+                          o.status === 'paid' ? '🔵 Awaiting Key' :
+                          o.status === 'cancelled' ? '❌ Cancelled' : '⏳ Pending Payment';
+      return `<div class="order-card">
+        <div class="order-info">
+          <div class="order-plan">${esc(o.plan_label)}</div>
+          <div class="order-meta">₱${o.price} · ${new Date(o.created_at).toLocaleString()} · #${o.id.split('-')[0]}</div>
+          ${o.key_given ? `<div class="order-key">${esc(o.key_given)}</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem;">
+          <span class="order-status-badge ${badge}">${statusLabel}</span>
+          ${o.key_given ? `<button class="btn-copy-key" onclick="copyText('${esc(o.key_given)}')">📋 Copy Key</button>` : ''}
+          ${o.status === 'pending' ? `<button class="btn-cancel-order" onclick="cancelOrder('${o.id}')">Cancel</button>` : ''}
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+  } catch(e) { container.innerHTML = `<div class="empty-msg">Failed to load orders. Try again.</div>`; }
 }
 
-// ─── UTILS ─────────────────────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+async function cancelOrder(orderId) {
+  if (!confirm('Cancel this order?')) return;
+  try {
+    const res = await fetch('/api/user/orders/' + orderId + '/cancel', {
+      method:'POST', headers:{ Authorization:'Bearer ' + userToken }
+    });
+    const data = await res.json();
+    if (data.success) { toast('Order cancelled'); loadOrders(); }
+    else toast(data.message || 'Cannot cancel', 'error');
+  } catch(e) { toast('Error', 'error'); }
 }
 
-init();
+// ==================== UTILS ====================
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toastMsg');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => toast('📋 Copied!')).catch(() => {});
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.classList.add('show');
+}
+function clearErr(id) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = ''; el.classList.remove('show'); }
+}
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', function(e) {
+    if (e.target === this) {
+      if (this.id === 'checkoutModal' && activeCheckoutOrderId) return; // don't close mid-payment
+      this.classList.remove('open');
+    }
+  });
+});
+
+// ==================== INIT ====================
+updateUserPill();
+loadStore();
 </script>
 </body>
 </html>

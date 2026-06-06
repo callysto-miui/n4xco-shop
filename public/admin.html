@@ -1,938 +1,829 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>N4XCO — Admin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N4XCO Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
-  :root {
-    --black: #000; --white: #fff;
-    --gray: #111; --gray2: #1a1a1a; --gray3: #2a2a2a;
-    --gray4: #444; --gray5: #888; --border: #2a2a2a; --red: #ff4444;
-    --green: #44ff88;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--black); color: var(--white); font-family: 'Inter', sans-serif; min-height: 100vh; }
+:root {
+  --bg:#0a0515; --surface:#0f0a20; --card:#140d28;
+  --border:rgba(168,85,247,0.2); --accent:#a855f7; --accent2:#7c3aed; --accent3:#c084fc;
+  --text:#f0e6ff; --muted:#7c6a9e; --danger:#ef4444; --success:#22c55e; --green:#86efac;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+body{ background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
 
-  /* LOGIN */
-  #loginScreen {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    background: var(--black);
-  }
-  .login-box {
-    background: var(--gray2); border: 1px solid var(--border);
-    border-radius: 16px; padding: 3rem 2.5rem; width: 360px; text-align: center;
-  }
-  .login-box h1 {
-    font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem;
-    letter-spacing: 0.15em; margin-bottom: 0.3rem;
-  }
-  .login-box p { color: var(--gray5); font-size: 0.75rem; font-family: 'Space Mono', monospace; margin-bottom: 2rem; letter-spacing: 0.1em; }
-  .l-group { margin-bottom: 1rem; }
-  .l-group label { display: block; font-size: 0.65rem; font-family: 'Space Mono', monospace; color: var(--gray5); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.4rem; text-align: left; }
-  .l-group input {
-    width: 100%; background: var(--gray3); border: 1px solid var(--border);
-    border-radius: 6px; color: var(--white); font-family: 'Space Mono', monospace;
-    font-size: 0.85rem; padding: 10px 14px; outline: none; transition: border-color 0.2s;
-  }
-  .l-group input:focus { border-color: var(--white); }
-  .btn-login {
-    width: 100%; margin-top: 1rem; background: var(--white); color: var(--black);
-    font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700;
-    letter-spacing: 0.15em; text-transform: uppercase; padding: 12px;
-    border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s;
-  }
-  .btn-login:hover { background: #e0e0e0; }
-  .login-err { color: var(--red); font-size: 0.75rem; font-family: 'Space Mono', monospace; margin-top: 0.8rem; display: none; }
+/* LOGIN */
+#login-screen{
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background:var(--bg);
+  background-image:radial-gradient(ellipse at 30% 20%,rgba(168,85,247,0.15) 0%,transparent 50%),
+                   radial-gradient(ellipse at 70% 80%,rgba(124,58,237,0.1) 0%,transparent 50%);
+}
+.login-box{
+  background:rgba(15,10,32,0.9); border:1px solid var(--border);
+  border-radius:24px; padding:2.5rem; width:100%; max-width:380px; backdrop-filter:blur(20px);
+}
+.login-logo{ font-size:1.8rem; font-weight:800; background:linear-gradient(135deg,#f0e6ff,#c084fc,#a855f7); background-clip:text; -webkit-background-clip:text; color:transparent; margin-bottom:0.2rem; }
+.login-sub{ color:var(--muted); font-size:0.75rem; margin-bottom:2rem; }
+.login-box label{ display:block; font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.4rem; }
+.login-box input{
+  width:100%; background:rgba(20,13,40,0.8); border:1.5px solid var(--border);
+  border-radius:60px; padding:0.75rem 1.2rem; color:var(--text); font-size:0.88rem; margin-bottom:1rem;
+}
+.login-box input:focus{ outline:none; border-color:var(--accent3); }
+.btn-login{ width:100%; background:linear-gradient(135deg,#a855f7,#7c3aed); border:none; color:white; padding:0.8rem; border-radius:60px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:opacity 0.2s; }
+.btn-login:hover{ opacity:0.88; }
+.login-error{ color:#fca5a5; font-size:0.73rem; margin-top:0.75rem; display:none; text-align:center; }
 
-  /* ADMIN LAYOUT */
-  #adminScreen { display: none; }
-  .admin-header {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(0,0,0,0.95); backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem; height: 60px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .admin-header-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.15em; }
-  .admin-header-title span { color: var(--gray5); font-size: 0.9rem; }
-  .btn-logout {
-    background: none; border: 1px solid var(--border); color: var(--gray5);
-    font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em;
-    padding: 6px 14px; border-radius: 4px; cursor: pointer; transition: all 0.2s;
-    text-transform: uppercase;
-  }
-  .btn-logout:hover { border-color: var(--red); color: var(--red); }
-  .admin-nav {
-    background: var(--gray); border-bottom: 1px solid var(--border);
-    padding: 0 2rem; display: flex; gap: 0; overflow-x: auto;
-  }
-  .admin-nav button {
-    background: none; border: none; border-bottom: 2px solid transparent;
-    color: var(--gray5); font-family: 'Space Mono', monospace;
-    font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
-    padding: 12px 16px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
-  }
-  .admin-nav button.active, .admin-nav button:hover { color: var(--white); border-bottom-color: var(--white); }
-  .admin-body { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+/* SHELL */
+#admin-shell{ display:none; min-height:100vh; }
+header{
+  border-bottom:1px solid var(--border); padding:0 1.5rem;
+  display:flex; align-items:center; justify-content:space-between; height:56px;
+  background:rgba(10,5,21,0.95); backdrop-filter:blur(12px); position:sticky; top:0; z-index:200;
+}
+.header-logo{ font-size:1.1rem; font-weight:800; background:linear-gradient(135deg,#f0e6ff,#c084fc); background-clip:text; -webkit-background-clip:text; color:transparent; }
+.admin-badge{ font-size:0.58rem; background:rgba(168,85,247,0.15); color:var(--accent3); border:1px solid rgba(168,85,247,0.3); padding:0.15rem 0.6rem; border-radius:99px; margin-left:0.6rem; }
+.btn-viewsite{ background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.3); color:var(--accent3); font-size:0.7rem; padding:0.35rem 0.8rem; border-radius:6px; cursor:pointer; text-decoration:none; transition:all 0.2s; }
+.btn-viewsite:hover{ background:rgba(168,85,247,0.2); }
+.btn-logout{ background:none; border:1px solid var(--border); color:var(--muted); font-size:0.7rem; padding:0.35rem 0.8rem; border-radius:6px; cursor:pointer; transition:all 0.2s; }
+.btn-logout:hover{ border-color:var(--danger); color:var(--danger); }
 
-  /* ADMIN TABS */
-  .atab { display: none; }
-  .atab.active { display: block; animation: fadeUp 0.25s ease; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.admin-layout{ display:flex; min-height:calc(100vh - 56px); }
+.sidebar{
+  width:200px; flex-shrink:0; border-right:1px solid var(--border);
+  padding:1.25rem 0.75rem; background:var(--surface);
+  position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto;
+}
+.sidebar-section{ font-size:0.58rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; padding:0 0.5rem; margin-bottom:0.5rem; margin-top:1.25rem; }
+.sidebar-section:first-child{ margin-top:0; }
+.nav-item{
+  display:flex; align-items:center; gap:0.6rem; padding:0.55rem 0.75rem;
+  border-radius:8px; cursor:pointer; font-size:0.82rem; color:var(--muted); transition:all 0.15s;
+  border:none; background:none; width:100%; text-align:left; margin-bottom:0.15rem;
+}
+.nav-item:hover{ color:var(--text); background:rgba(168,85,247,0.08); }
+.nav-item.active{ color:var(--text); background:rgba(168,85,247,0.15); border-left:3px solid var(--accent); padding-left:calc(0.75rem - 3px); }
+.main{ flex:1; padding:2rem; min-width:0; }
+.panel{ display:none; }
+.panel.active{ display:block; animation:fadeIn 0.3s ease; }
+@keyframes fadeIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
 
-  /* SECTIONS */
-  .a-section {
-    background: var(--gray2); border: 1px solid var(--border);
-    border-radius: 12px; padding: 1.8rem; margin-bottom: 1.5rem;
-  }
-  .a-section h3 {
-    font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;
-    letter-spacing: 0.08em; margin-bottom: 1.2rem; color: var(--gray5);
-    border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;
-  }
-  .a-section h3 span { color: var(--white); }
-  .row { display: flex; gap: 1rem; flex-wrap: wrap; }
-  .col { flex: 1; min-width: 200px; }
-  .fg { margin-bottom: 1rem; }
-  .fg label {
-    display: block; font-size: 0.65rem; font-family: 'Space Mono', monospace;
-    color: var(--gray5); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.4rem;
-  }
-  .fg input, .fg textarea, .fg select {
-    width: 100%; background: var(--gray3); border: 1px solid var(--border);
-    border-radius: 6px; color: var(--white); font-family: 'Space Mono', monospace;
-    font-size: 0.8rem; padding: 8px 12px; outline: none; transition: border-color 0.2s;
-  }
-  .fg input:focus, .fg textarea:focus { border-color: var(--white); }
-  .fg textarea { min-height: 120px; resize: vertical; }
-  .fg input[type="file"] { padding: 6px; font-size: 0.75rem; }
-  .btn {
-    background: var(--white); color: var(--black);
-    font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700;
-    letter-spacing: 0.15em; text-transform: uppercase; padding: 9px 20px;
-    border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s;
-  }
-  .btn:hover { background: #e0e0e0; }
-  .btn.outline {
-    background: none; color: var(--white); border: 1px solid var(--border);
-  }
-  .btn.outline:hover { border-color: var(--white); background: var(--gray3); }
-  .btn.danger { background: var(--red); color: var(--white); }
-  .btn.danger:hover { background: #cc2222; }
-  .btn.sm { padding: 5px 12px; font-size: 0.62rem; }
+.panel-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:1.75rem; padding-bottom:1rem; border-bottom:1px solid var(--border); }
+.panel-title{ font-size:1.3rem; font-weight:800; }
+.panel-sub{ color:var(--muted); font-size:0.78rem; margin-top:0.2rem; }
 
-  /* TABLES */
-  .plans-table, .orders-table, .users-table {
-    width: 100%; border-collapse: collapse;
-  }
-  .plans-table th, .plans-table td,
-  .orders-table th, .orders-table td,
-  .users-table th, .users-table td {
-    padding: 10px 12px; font-size: 0.75rem; font-family: 'Space Mono', monospace;
-    border-bottom: 1px solid var(--border); text-align: left;
-  }
-  .plans-table th, .orders-table th, .users-table th {
-    color: var(--gray5); text-transform: uppercase; letter-spacing: 0.1em;
-  }
-  .plans-table td input[type="number"] {
-    width: 90px; background: var(--gray3); border: 1px solid var(--border);
-    border-radius: 4px; color: var(--white); font-family: 'Space Mono', monospace;
-    font-size: 0.8rem; padding: 5px 8px; outline: none;
-  }
-  .toggle {
-    position: relative; display: inline-block; width: 36px; height: 20px;
-  }
-  .toggle input { opacity: 0; width: 0; height: 0; }
-  .toggle-slider {
-    position: absolute; inset: 0; background: var(--gray4); border-radius: 20px; cursor: pointer; transition: 0.2s;
-  }
-  .toggle-slider:before {
-    content: ''; position: absolute; width: 14px; height: 14px;
-    left: 3px; bottom: 3px; background: var(--white); border-radius: 50%; transition: 0.2s;
-  }
-  .toggle input:checked + .toggle-slider { background: var(--gray5); }
-  .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+/* Buttons */
+.btn-primary{ background:linear-gradient(135deg,#a855f7,#7c3aed); border:none; color:white; padding:0.6rem 1.3rem; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.82rem; transition:opacity 0.2s; white-space:nowrap; }
+.btn-primary:hover{ opacity:0.88; }
+.btn-secondary{ background:var(--card); border:1px solid var(--border); color:var(--text); padding:0.6rem 1.1rem; border-radius:8px; cursor:pointer; font-size:0.82rem; transition:border-color 0.2s; }
+.btn-secondary:hover{ border-color:var(--accent3); }
+.btn-danger{ background:none; border:1px solid rgba(239,68,68,0.3); color:var(--danger); padding:0.3rem 0.75rem; border-radius:6px; cursor:pointer; font-size:0.68rem; transition:all 0.2s; }
+.btn-danger:hover{ background:rgba(239,68,68,0.1); }
+.btn-success{ background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:#86efac; padding:0.3rem 0.75rem; border-radius:6px; cursor:pointer; font-size:0.68rem; transition:all 0.2s; }
+.btn-success:hover{ background:rgba(34,197,94,0.2); }
 
-  /* KEY MANAGER */
-  .key-plan-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.2rem; }
-  .key-plan-tab {
-    background: var(--gray3); border: 1px solid var(--border); border-radius: 6px;
-    color: var(--gray5); font-family: 'Space Mono', monospace; font-size: 0.65rem;
-    letter-spacing: 0.1em; padding: 6px 12px; cursor: pointer; transition: all 0.2s;
-    text-transform: uppercase; display: flex; align-items: center; gap: 6px;
-  }
-  .key-plan-tab.active, .key-plan-tab:hover { border-color: var(--white); color: var(--white); }
-  .key-plan-tab .count {
-    background: var(--gray4); border-radius: 3px; padding: 1px 5px;
-    font-size: 0.6rem; color: var(--white);
-  }
-  .key-plan-tab .count.low { background: var(--red); }
-  .keys-list {
-    max-height: 220px; overflow-y: auto; background: var(--gray3);
-    border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem;
-    margin-bottom: 1rem;
-  }
-  .key-item {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 5px 8px; border-radius: 4px; font-family: 'Space Mono', monospace;
-    font-size: 0.72rem; color: var(--gray5);
-    border-bottom: 1px solid var(--border);
-  }
-  .key-item .key-val { flex: 1; word-break: break-all; margin-right: 8px; }
-  .key-item button { background: none; border: none; color: var(--gray4); cursor: pointer; font-size: 0.8rem; }
-  .key-item button:hover { color: var(--red); }
+/* Stat cards */
+.stat-cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:1rem; margin-bottom:2rem; }
+.stat-card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.1rem 1.3rem; }
+.stat-val{ font-size:1.8rem; font-weight:800; color:var(--accent3); }
+.stat-lbl{ font-size:0.7rem; color:var(--muted); margin-top:0.2rem; }
 
-  /* BADGES */
-  .badge {
-    display: inline-block; padding: 2px 7px; border-radius: 4px;
-    font-size: 0.62rem; font-family: 'Space Mono', monospace; text-transform: uppercase;
-  }
-  .badge.fulfilled { background: rgba(68,255,136,0.12); color: var(--green); }
-  .badge.paid { background: rgba(255,255,255,0.08); color: var(--white); }
-  .badge.pending { background: rgba(255,255,255,0.04); color: var(--gray5); }
-  .badge.cancelled { background: rgba(255,68,68,0.12); color: var(--red); }
-  .badge.admin { background: rgba(255,68,68,0.12); color: var(--red); }
-  .badge.user { background: rgba(68,255,136,0.12); color: var(--green); }
+/* Form fields */
+.field-group{ margin-bottom:1.2rem; }
+.field-group label{ display:block; font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.4rem; }
+.field-input{ width:100%; background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:0.7rem 1rem; color:var(--text); font-size:0.88rem; transition:border-color 0.2s; }
+.field-input:focus{ outline:none; border-color:var(--accent3); }
+.field-textarea{ width:100%; background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:0.7rem 1rem; color:var(--text); font-size:0.85rem; font-family:monospace; resize:vertical; min-height:100px; }
+.field-textarea:focus{ outline:none; border-color:var(--accent3); }
+.field-select{ background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:0.6rem 0.9rem; color:var(--text); font-size:0.85rem; }
 
-  .key-inline { font-size: 0.65rem; color: var(--gray5); word-break: break-all; max-width: 160px; }
-  .fulfill-input { width: 130px; background: var(--gray3); border: 1px solid var(--border); border-radius: 4px; color: var(--white); font-family: 'Space Mono', monospace; font-size: 0.7rem; padding: 4px 7px; outline: none; }
+/* Table */
+.table-wrap{ overflow-x:auto; }
+.data-table{ width:100%; border-collapse:collapse; min-width:500px; }
+.data-table th{ text-align:left; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; padding:0 1rem 0.75rem; border-bottom:1px solid var(--border); }
+.data-table td{ padding:0.8rem 1rem; border-bottom:1px solid rgba(168,85,247,0.08); font-size:0.82rem; vertical-align:middle; }
+.data-table tr:last-child td{ border-bottom:none; }
+.data-table tr:hover td{ background:rgba(168,85,247,0.04); }
 
-  /* STATS */
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-  .stat-card {
-    background: var(--gray2); border: 1px solid var(--border); border-radius: 10px;
-    padding: 1.2rem; text-align: center;
-  }
-  .stat-card .val { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; line-height: 1; }
-  .stat-card .lbl { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--gray5); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+/* Status badges */
+.badge{ font-size:0.62rem; font-weight:700; padding:0.2rem 0.65rem; border-radius:99px; white-space:nowrap; }
+.badge-pending{ background:rgba(234,179,8,0.12); color:#fbbf24; border:1px solid rgba(234,179,8,0.25); }
+.badge-paid{ background:rgba(59,130,246,0.12); color:#93c5fd; border:1px solid rgba(59,130,246,0.25); }
+.badge-fulfilled{ background:rgba(34,197,94,0.12); color:#86efac; border:1px solid rgba(34,197,94,0.25); }
+.badge-cancelled{ background:rgba(239,68,68,0.1); color:#fca5a5; border:1px solid rgba(239,68,68,0.2); }
+.badge-admin{ background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.3); }
+.badge-user{ background:rgba(107,114,128,0.15); color:#9ca3af; border:1px solid rgba(107,114,128,0.25); }
 
-  /* MODAL */
-  .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
-    z-index: 1000; display: none; align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal-content {
-    background: var(--gray2); border: 1px solid var(--border);
-    border-radius: 16px; padding: 2rem; max-width: 480px; width: 90%;
-    max-height: 85vh; overflow-y: auto;
-  }
-  .modal-content h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; margin-bottom: 1rem; }
-  .modal-buttons { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end; }
+/* Plan row */
+.plan-row{ display:flex; gap:0.8rem; align-items:center; padding:0.8rem; border-radius:12px; border:1px solid var(--border); background:var(--card); margin-bottom:0.5rem; flex-wrap:wrap; }
+.plan-row-label{ font-size:0.88rem; font-weight:600; min-width:80px; }
+.plan-row input{ background:rgba(10,5,21,0.7); border:1px solid var(--border); border-radius:8px; padding:0.4rem 0.7rem; color:var(--text); font-size:0.85rem; width:90px; }
+.plan-row input:focus{ outline:none; border-color:var(--accent3); }
+.toggle-wrap{ display:flex; align-items:center; gap:0.4rem; font-size:0.72rem; color:var(--muted); }
+input[type=checkbox].toggle{ width:1.1rem; height:1.1rem; accent-color:var(--accent); }
 
-  /* TOAST */
-  .toast {
-    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
-    background: var(--white); color: var(--black); font-family: 'Space Mono', monospace;
-    font-size: 0.75rem; padding: 10px 20px; border-radius: 6px; z-index: 9999;
-    opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap;
-  }
-  .toast.show { opacity: 1; }
+/* Key pool list */
+.key-list{ max-height:300px; overflow-y:auto; }
+.key-item{ display:flex; align-items:center; justify-content:space-between; padding:0.4rem 0.7rem; border-radius:8px; font-family:monospace; font-size:0.78rem; color:var(--green); background:rgba(34,197,94,0.05); margin-bottom:0.3rem; }
+.key-item.used{ color:var(--muted); background:rgba(107,114,128,0.05); text-decoration:line-through; }
 
-  @media(max-width:600px) { .admin-body { padding: 1.5rem 1rem; } }
+/* Sub-card for orders */
+.order-row{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:0.9rem 1.1rem; margin-bottom:0.7rem; display:flex; gap:1rem; align-items:flex-start; flex-wrap:wrap; }
+.order-row-info{ flex:1; min-width:0; }
+.order-row-actions{ display:flex; flex-direction:column; gap:0.4rem; flex-shrink:0; }
+.fulfill-form{ display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
+.fulfill-input{ background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:0.35rem 0.7rem; color:var(--text); font-size:0.8rem; font-family:monospace; width:200px; }
+.fulfill-input:focus{ outline:none; border-color:var(--accent3); }
+
+/* Modal */
+.modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); z-index:500; display:none; align-items:center; justify-content:center; }
+.modal-overlay.open{ display:flex; }
+.modal-box2{ background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1.8rem; width:100%; max-width:440px; margin:1rem; max-height:85vh; overflow-y:auto; }
+.m-title{ font-size:1.1rem; font-weight:700; margin-bottom:0.3rem; }
+.m-sub{ color:var(--muted); font-size:0.75rem; margin-bottom:1.5rem; }
+.m-input{ width:100%; background:var(--surface); border:1.5px solid var(--border); border-radius:10px; padding:0.65rem 0.9rem; color:var(--text); font-size:0.85rem; margin-bottom:0.9rem; }
+.m-input:focus{ outline:none; border-color:var(--accent3); }
+.m-select{ background:var(--surface); border:1.5px solid var(--border); border-radius:10px; padding:0.65rem 0.9rem; color:var(--text); font-size:0.85rem; margin-bottom:0.9rem; width:100%; }
+.m-err{ color:#fca5a5; font-size:0.73rem; margin-bottom:0.7rem; display:none; }
+.m-err.show{ display:block; }
+
+/* Toast */
+.toast-bar{ position:fixed; bottom:20px; right:20px; padding:0.65rem 1.2rem; border-radius:10px; font-size:0.82rem; z-index:9999; opacity:0; transition:opacity 0.2s; pointer-events:none; }
+.toast-bar.show{ opacity:1; }
+.toast-bar.success{ background:#166534; border:1px solid #22c55e; color:#86efac; }
+.toast-bar.error{ background:#7f1d1d; border:1px solid #ef4444; color:#fca5a5; }
+
+.filter-bar{ display:flex; gap:0.6rem; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; }
+.filter-bar select{ background:var(--card); border:1px solid var(--border); border-radius:8px; padding:0.4rem 0.7rem; color:var(--text); font-size:0.8rem; }
+.filter-bar input{ background:var(--card); border:1px solid var(--border); border-radius:8px; padding:0.4rem 0.8rem; color:var(--text); font-size:0.8rem; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
-<div id="loginScreen">
+<!-- LOGIN -->
+<div id="login-screen">
   <div class="login-box">
-    <h1>N4XCO</h1>
-    <p>// ADMIN PANEL ACCESS</p>
-    <div class="l-group">
-      <label>Username</label>
-      <input type="text" id="loginUser" placeholder="N4XCO" autocomplete="off"/>
-    </div>
-    <div class="l-group">
-      <label>Password</label>
-      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
-    </div>
-    <button class="btn-login" onclick="doLogin()">Login</button>
-    <div class="login-err" id="loginErr">Invalid credentials</div>
+    <div class="login-logo">N4XCO Admin</div>
+    <div class="login-sub">Shop Management Panel</div>
+    <label>Username</label>
+    <input type="text" id="adm-user" placeholder="N4XCO">
+    <label>Password</label>
+    <input type="password" id="adm-pass" placeholder="••••••••">
+    <button class="btn-login" id="adm-login-btn">Login</button>
+    <div class="login-error" id="adm-err"></div>
   </div>
 </div>
 
-<!-- ADMIN PANEL -->
-<div id="adminScreen">
-  <div class="admin-header">
-    <div class="admin-header-title">N4XCO <span>// ADMIN</span></div>
-    <button class="btn-logout" onclick="doLogout()">Logout</button>
-  </div>
-  <div class="admin-nav">
-    <button class="active" onclick="switchATab('overview', this)">Overview</button>
-    <button onclick="switchATab('apk', this)">APK Settings</button>
-    <button onclick="switchATab('plans', this)">Plans & Prices</button>
-    <button onclick="switchATab('keys', this)">Key Manager</button>
-    <button onclick="switchATab('orders', this)">Orders</button>
-    <button onclick="switchATab('users', this)">Users</button>
-    <button onclick="switchATab('paymongo', this)">PayMongo</button>
-    <button onclick="switchATab('buyers', this)">Buyer History</button>
-  </div>
+<!-- ADMIN SHELL -->
+<div id="admin-shell">
+  <header>
+    <div style="display:flex;align-items:center;">
+      <span class="header-logo">N4XCO SHOP</span>
+      <span class="admin-badge">ADMIN</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <a href="/" target="_blank" class="btn-viewsite"><i class="fas fa-store"></i> View Shop</a>
+      <button class="btn-logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </header>
 
-  <div class="admin-body">
-
-    <!-- OVERVIEW -->
-    <div class="atab active" id="atab-overview">
-      <div class="stats" id="statsRow">
-        <div class="stat-card"><div class="val" id="st-orders">—</div><div class="lbl">Total Orders</div></div>
-        <div class="stat-card"><div class="val" id="st-fulfilled">—</div><div class="lbl">Fulfilled</div></div>
-        <div class="stat-card"><div class="val" id="st-pending">—</div><div class="lbl">Pending</div></div>
-        <div class="stat-card"><div class="val" id="st-cancelled">—</div><div class="lbl">Cancelled</div></div>
-        <div class="stat-card"><div class="val" id="st-revenue">—</div><div class="lbl">Total Revenue ₱</div></div>
-        <div class="stat-card"><div class="val" id="st-keys">—</div><div class="lbl">Keys Available</div></div>
-        <div class="stat-card"><div class="val" id="st-users">—</div><div class="lbl">Registered Users</div></div>
-      </div>
-      <div class="a-section">
-        <h3><span>Recent Orders</span></h3>
-        <div id="recentOrdersTable"></div>
-      </div>
+  <div class="admin-layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-section">Main</div>
+      <button class="nav-item active" data-panel="overview"><i class="fas fa-chart-bar"></i> Overview</button>
+      <div class="sidebar-section">Store</div>
+      <button class="nav-item" data-panel="apk"><i class="fas fa-mobile-alt"></i> APK Settings</button>
+      <button class="nav-item" data-panel="plans"><i class="fas fa-tags"></i> Plans & Prices</button>
+      <button class="nav-item" data-panel="keys"><i class="fas fa-key"></i> Key Manager</button>
+      <div class="sidebar-section">Operations</div>
+      <button class="nav-item" data-panel="orders"><i class="fas fa-receipt"></i> Orders</button>
+      <div class="sidebar-section">Admin</div>
+      <button class="nav-item" data-panel="users"><i class="fas fa-users"></i> Users</button>
+      <button class="nav-item" data-panel="paymongo"><i class="fas fa-credit-card"></i> PayMongo</button>
     </div>
 
-    <!-- APK SETTINGS -->
-    <div class="atab" id="atab-apk">
-      <div class="a-section">
-        <h3><span>APK</span> Settings</h3>
-        <div class="row">
-          <div class="col">
-            <div class="fg">
-              <label>App Name</label>
-              <input type="text" id="apkNameInput" placeholder="N4XCO App"/>
-            </div>
-            <div class="fg">
-              <label>Download Link</label>
-              <input type="text" id="apkLinkInput" placeholder="https://..."/>
-            </div>
-            <button class="btn" onclick="saveAPK()">Save APK Info</button>
-          </div>
-          <div class="col">
-            <div class="fg">
-              <label>Upload Logo (PNG/JPG, max 2MB)</label>
-              <input type="file" id="logoFile" accept="image/*"/>
-            </div>
-            <button class="btn" onclick="uploadLogo()">Upload Logo</button>
-            <div id="logoPreview" style="margin-top:1rem;"></div>
+    <div class="main">
+
+      <!-- OVERVIEW -->
+      <div class="panel active" id="panel-overview">
+        <div class="panel-header">
+          <div><div class="panel-title">Overview</div><div class="panel-sub">Shop stats at a glance</div></div>
+          <button class="btn-secondary" onclick="loadStats()"><i class="fas fa-sync-alt"></i> Refresh</button>
+        </div>
+        <div class="stat-cards" id="statCards"></div>
+        <div style="font-size:1rem;font-weight:700;margin-bottom:1rem;">Recent Orders</div>
+        <div id="recentOrders"></div>
+      </div>
+
+      <!-- APK SETTINGS -->
+      <div class="panel" id="panel-apk">
+        <div class="panel-header"><div><div class="panel-title">APK Settings</div><div class="panel-sub">App name, logo, and download link</div></div></div>
+        <div class="field-group"><label>App Name</label><input type="text" id="apkName" class="field-input" placeholder="N4XCO App"></div>
+        <div class="field-group"><label>Download Link</label><input type="text" id="apkLink" class="field-input" placeholder="https://..."></div>
+        <div class="field-group">
+          <label>Logo Image</label>
+          <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
+            <img id="currentLogo" src="" style="height:50px;border-radius:12px;display:none;border:1px solid var(--border);">
+            <input type="file" id="logoFile" accept="image/*" style="color:var(--muted);font-size:0.8rem;">
+            <button class="btn-primary" onclick="uploadLogo()">Upload Logo</button>
           </div>
         </div>
+        <button class="btn-primary" onclick="saveApk()">💾 Save APK Settings</button>
+        <div id="apkMsg" style="font-size:0.75rem;margin-top:0.8rem;display:none;"></div>
       </div>
-    </div>
 
-    <!-- PLANS & PRICES -->
-    <div class="atab" id="atab-plans">
-      <div class="a-section">
-        <h3><span>Plans</span> & Prices</h3>
-        <table class="plans-table" id="plansTable">
-          <thead><tr><th>Plan</th><th>Days</th><th>Price (₱)</th><th>Enabled</th></tr></thead>
-          <tbody id="plansTbody"></tbody>
-        </table>
-        <br/>
-        <button class="btn" onclick="savePlans()">Save Changes</button>
+      <!-- PLANS -->
+      <div class="panel" id="panel-plans">
+        <div class="panel-header"><div><div class="panel-title">Plans & Prices</div><div class="panel-sub">Edit prices and enable/disable plans</div></div>
+        <button class="btn-primary" onclick="savePlans()">💾 Save Plans</button></div>
+        <div id="plansEditor"></div>
+        <div id="plansMsg" style="font-size:0.75rem;margin-top:0.8rem;display:none;"></div>
       </div>
-    </div>
 
-    <!-- KEY MANAGER -->
-    <div class="atab" id="atab-keys">
-      <div class="a-section">
-        <h3><span>Add</span> Keys</h3>
-        <div class="fg">
-          <label>Select Plan</label>
-          <select id="keyPlanSelect"></select>
+      <!-- KEYS -->
+      <div class="panel" id="panel-keys">
+        <div class="panel-header"><div><div class="panel-title">Key Manager</div><div class="panel-sub">Manage activation key pool</div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;" class="keys-layout">
+          <!-- Add keys -->
+          <div>
+            <div style="font-size:0.88rem;font-weight:700;margin-bottom:0.8rem;">Add Keys</div>
+            <div class="field-group">
+              <label>Plan</label>
+              <select id="keyPlan" class="field-select" style="width:100%;"></select>
+            </div>
+            <div class="field-group">
+              <label>Keys (one per line)</label>
+              <textarea id="keyInput" class="field-textarea" placeholder="KEY-XXXX-XXXX&#10;KEY-YYYY-YYYY&#10;..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="addKeys()">+ Add Keys</button>
+            <div id="keysMsg" style="font-size:0.75rem;margin-top:0.8rem;display:none;"></div>
+          </div>
+          <!-- Pool viewer -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;">
+              <div style="font-size:0.88rem;font-weight:700;">Key Pool</div>
+              <select id="viewKeyPlan" class="field-select" onchange="renderKeyPool()" style="font-size:0.78rem;"></select>
+            </div>
+            <div id="keyPoolStats" style="font-size:0.72rem;color:var(--muted);margin-bottom:0.6rem;"></div>
+            <div class="key-list" id="keyPool"></div>
+          </div>
         </div>
-        <div class="fg">
-          <label>Paste Keys (one per line)</label>
-          <textarea id="keysInput" placeholder="KEY-XXXX-XXXX-XXXX&#10;KEY-YYYY-YYYY-YYYY&#10;..."></textarea>
-        </div>
-        <button class="btn" onclick="addKeys()">Add Keys</button>
       </div>
-      <div class="a-section">
-        <h3><span>Key</span> Pool</h3>
-        <div class="key-plan-tabs" id="keyPlanTabs"></div>
-        <div id="keysListWrap">
-          <div class="keys-list empty-state">Select a plan to view keys</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- ORDERS -->
-    <div class="atab" id="atab-orders">
-      <div class="a-section">
-        <h3><span>All</span> Orders</h3>
-        <div style="overflow-x:auto;" id="ordersTableWrap">
-          <table class="orders-table">
-            <thead>
-              <tr><th>Date</th><th>User</th><th>Telegram</th><th>Plan</th><th>Price</th><th>Status</th><th>Key Given</th><th>Action</th></tr>
-            </thead>
-            <tbody id="ordersTbody"></tbody>
+      <!-- ORDERS -->
+      <div class="panel" id="panel-orders">
+        <div class="panel-header"><div><div class="panel-title">Orders</div><div class="panel-sub">All customer orders · manually fulfill paid orders</div></div>
+        <button class="btn-secondary" onclick="loadOrders()"><i class="fas fa-sync-alt"></i> Refresh</button></div>
+        <div class="filter-bar">
+          <select id="orderFilter" onchange="loadOrders()">
+            <option value="">All Orders</option>
+            <option value="pending">Pending Payment</option>
+            <option value="paid">Paid (Awaiting Key)</option>
+            <option value="fulfilled">Fulfilled</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <input type="text" id="orderSearch" placeholder="Search username..." oninput="filterOrdersUI()" style="flex:1;max-width:220px;">
+        </div>
+        <div id="ordersList"></div>
+      </div>
+
+      <!-- USERS -->
+      <div class="panel" id="panel-users">
+        <div class="panel-header"><div><div class="panel-title">Users</div><div class="panel-sub">Manage registered accounts</div></div>
+        <button class="btn-primary" onclick="openAddUserModal()"><i class="fas fa-plus"></i> Add User</button></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Username</th><th>Telegram</th><th>Role</th><th>Joined</th><th>Orders</th><th>Actions</th></tr></thead>
+            <tbody id="usersTable"></tbody>
           </table>
         </div>
       </div>
-    </div>
 
-    <!-- USERS MANAGEMENT -->
-    <div class="atab" id="atab-users">
-      <div class="a-section">
-        <h3><span>Registered</span> Users</h3>
-        <button class="btn" onclick="openAddUserModal()" style="margin-bottom:1rem;">+ Add User / Admin</button>
-        <div style="overflow-x:auto;">
-          <table class="users-table">
-            <thead>
-              <tr><th>Username</th><th>Role</th><th>Telegram</th><th>Registered</th><th>Keys</th><th>Actions</th></tr>
-            </thead>
-            <tbody id="usersTbody"></tbody>
-          </table>
+      <!-- PAYMONGO -->
+      <div class="panel" id="panel-paymongo">
+        <div class="panel-header"><div><div class="panel-title">PayMongo Setup</div><div class="panel-sub">Configure GCash payment gateway</div></div></div>
+        <div style="max-width:520px;">
+          <div class="field-group"><label>Secret Key (sk_live_...)</label><input type="text" id="pmSecret" class="field-input" placeholder="sk_live_..."></div>
+          <div class="field-group"><label>Public Key (pk_live_...)</label><input type="text" id="pmPublic" class="field-input" placeholder="pk_live_..."></div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1.2rem;">
+            <div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.08em;">Webhook URL (register in PayMongo dashboard)</div>
+            <div id="webhookUrl" style="font-family:monospace;font-size:0.82rem;color:var(--accent3);word-break:break-all;"></div>
+          </div>
+          <div style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1.2rem;font-size:0.78rem;color:var(--muted);line-height:1.7;">
+            <strong style="color:var(--text);">Setup steps:</strong><br>
+            1. Get API keys from PayMongo Dashboard → Developers → API Keys<br>
+            2. Paste your Live Secret Key above<br>
+            3. In PayMongo → Developers → Webhooks, add the URL above<br>
+            4. Select event: <code style="color:var(--accent3);">link.payment.paid</code><br>
+            5. Prices per plan are set in <strong>Plans & Prices</strong>
+          </div>
+          <button class="btn-primary" onclick="savePaymongo()">💾 Save PayMongo Settings</button>
+          <div id="pmMsg" style="font-size:0.75rem;margin-top:0.8rem;display:none;"></div>
         </div>
       </div>
-    </div>
 
-    <!-- PAYMONGO SETUP -->
-    <div class="atab" id="atab-paymongo">
-      <div class="a-section">
-        <h3><span>💳</span> PayMongo Setup</h3>
-        <div class="fg">
-          <label>Secret Key (sk_live_...)</label>
-          <input type="password" id="pmSecret" placeholder="Enter PayMongo secret key">
-        </div>
-        <div class="fg">
-          <label>Public Key (pk_live_...)</label>
-          <input type="text" id="pmPublic" placeholder="Enter PayMongo public key">
-        </div>
-        <div class="fg">
-          <label>Price per Key (PHP) - minimum ₱20</label>
-          <input type="number" id="pmPrice" placeholder="100" min="20">
-        </div>
-        <div class="fg">
-          <label>Webhook URL (register in PayMongo Dashboard)</label>
-          <input type="text" id="webhookUrl" readonly style="background:var(--gray4); cursor:pointer;" onclick="this.select()">
-        </div>
-        <button class="btn" onclick="savePaymongo()">Save PayMongo Settings</button>
-        <div id="pmStatus" style="margin-top:1rem;"></div>
-      </div>
-      <div class="a-section">
-        <h3><span>📋</span> Setup Instructions</h3>
-        <div style="font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--gray5); line-height:1.8;">
-          1. Go to <a href="https://dashboard.paymongo.com/developers" target="_blank" style="color:var(--green);">PayMongo Developers</a><br>
-          2. Copy your Live Secret Key and Live Public Key<br>
-          3. Paste them above and set your desired price<br>
-          4. Register the webhook URL above in PayMongo Dashboard → Webhooks<br>
-          5. Enable event: <strong style="color:var(--white);">link.payment.paid</strong><br>
-          <br>
-          ✅ After setup, users can pay via GCash and keys will be auto-assigned!
-        </div>
-      </div>
-    </div>
-
-    <!-- BUYER HISTORY -->
-    <div class="atab" id="atab-buyers">
-      <div class="a-section">
-        <h3><span>Buyer</span> History</h3>
-        <div style="overflow-x:auto;">
-          <table class="orders-table">
-            <thead>
-              <tr><th>Date</th><th>User</th><th>Telegram</th><th>Plan</th><th>Price</th><th>Key</th><th>Status</th></tr>
-            </thead>
-            <tbody id="buyersTbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
+    </div><!-- /main -->
   </div>
 </div>
 
-<!-- MODAL for Add/Edit User -->
+<!-- ADD/EDIT USER MODAL -->
 <div class="modal-overlay" id="userModal">
-  <div class="modal-content">
-    <h3 id="userModalTitle">Add User</h3>
-    <div class="fg">
-      <label>Username</label>
-      <input type="text" id="userUsername">
-    </div>
-    <div class="fg">
-      <label>Password</label>
-      <input type="password" id="userPassword" placeholder="Leave blank to keep current">
-    </div>
-    <div class="fg">
-      <label>Role</label>
-      <select id="userRole">
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-      </select>
-    </div>
-    <div class="fg">
-      <label>Telegram</label>
-      <input type="text" id="userTelegram">
-    </div>
-    <div class="modal-buttons">
-      <button class="btn outline" onclick="closeUserModal()">Cancel</button>
-      <button class="btn" onclick="saveUser()">Save</button>
+  <div class="modal-box2">
+    <div class="m-title" id="userModalTitle">Add User</div>
+    <div class="m-sub">Create a new account</div>
+    <div class="m-err" id="userModalErr"></div>
+    <input type="hidden" id="editUserId">
+    <input type="text" id="newUsername" class="m-input" placeholder="Username">
+    <input type="password" id="newPassword" class="m-input" placeholder="Password (leave blank to keep)">
+    <input type="text" id="newTelegram" class="m-input" placeholder="Telegram username (optional)">
+    <select id="newRole" class="m-select">
+      <option value="user">User</option>
+      <option value="admin">Admin</option>
+    </select>
+    <div style="display:flex;gap:0.6rem;">
+      <button class="btn-primary" style="flex:1;" onclick="saveUser()">Save</button>
+      <button class="btn-secondary" onclick="closeModal2('userModal')">Cancel</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- FULFILL MODAL -->
+<div class="modal-overlay" id="fulfillModal">
+  <div class="modal-box2">
+    <div class="m-title">Manually Give Key</div>
+    <div class="m-sub" id="fulfillSub">Order details</div>
+    <div class="m-err" id="fulfillErr"></div>
+    <input type="hidden" id="fulfillOrderId">
+    <input type="text" id="fulfillKey" class="m-input" placeholder="Enter the key to give" style="font-family:monospace;">
+    <div style="display:flex;gap:0.6rem;">
+      <button class="btn-primary" style="flex:1;" onclick="doFulfill()">✅ Give Key</button>
+      <button class="btn-secondary" onclick="closeModal2('fulfillModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastBar" class="toast-bar"></div>
 
 <script>
-let adminToken = null;
-let currentUserId = null;
-let activePlanTab = null;
+// ==================== STATE ====================
+let adminData = { plans:[], keyCounts:[], orders:[], users:[], apk:{} };
+let allOrders = [];
+let allUsers = [];
 
-// ─── AUTH ──────────────────────────────────────────────────────────────────────
-async function doLogin() {
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value;
-  const errEl = document.getElementById('loginErr');
+// ==================== LOGIN ====================
+document.getElementById('adm-login-btn').addEventListener('click', async () => {
+  const username = document.getElementById('adm-user').value.trim();
+  const password = document.getElementById('adm-pass').value;
+  const errEl = document.getElementById('adm-err');
   errEl.style.display = 'none';
+  document.getElementById('adm-login-btn').textContent = 'Logging in...';
   try {
     const res = await fetch('/api/admin/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: u, password: p })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password })
     });
     const data = await res.json();
-    if (data.success) {
-      adminToken = 'admin_' + Date.now();
-      sessionStorage.setItem('n4xco_admin', adminToken);
-      showAdmin();
-    } else {
-      errEl.textContent = data.message || 'Invalid credentials.';
-      errEl.style.display = 'block';
+    if (!res.ok) { errEl.textContent = data.message || 'Invalid credentials'; errEl.style.display = 'block'; return; }
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-shell').style.display = 'block';
+    initAdmin();
+  } catch(e) { errEl.textContent = 'Network error'; errEl.style.display = 'block'; }
+  finally { document.getElementById('adm-login-btn').textContent = 'Login'; }
+});
+document.getElementById('adm-pass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('adm-login-btn').click(); });
+
+// Check session on load
+(async () => {
+  try {
+    const res = await fetch('/api/admin/check');
+    const data = await res.json();
+    if (data.admin) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-shell').style.display = 'block';
+      initAdmin();
     }
-  } catch(e) { errEl.textContent = 'Connection error.'; errEl.style.display = 'block'; }
-}
+  } catch(e) {}
+})();
 
-function doLogout() {
-  adminToken = null;
-  sessionStorage.removeItem('n4xco_admin');
-  document.getElementById('adminScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-}
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await fetch('/api/admin/logout', { method:'POST' });
+  location.reload();
+});
 
-function showAdmin() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('adminScreen').style.display = 'block';
-  loadAdminData();
-}
-
-function authHdr() { return { 'Content-Type': 'application/json' }; }
-
-// Check existing session
-if (sessionStorage.getItem('n4xco_admin')) {
-  adminToken = sessionStorage.getItem('n4xco_admin');
-  showAdmin();
-}
-
-// ─── DATA LOADING ──────────────────────────────────────────────────────────────
-let adminData = {};
-
-async function loadAdminData() {
-  const res = await fetch('/api/admin/data', { headers: authHdr() });
-  adminData = await res.json();
-  renderOverview();
-  renderAPKForm();
-  renderPlansTable();
-  renderKeyPlanSelect();
-  renderKeyPlanTabs();
-  renderOrders();
-  renderBuyers();
-  renderUsers();
-  renderPaymongoForm();
-}
-
-// ─── OVERVIEW ─────────────────────────────────────────────────────────────────
-function renderOverview() {
-  const orders = adminData.orders || [];
-  const fulfilled = orders.filter(o => o.status === 'fulfilled').length;
-  const pending = orders.filter(o => o.status === 'pending').length;
-  const cancelled = orders.filter(o => o.status === 'cancelled').length;
-  const revenue = orders.filter(o => o.status === 'fulfilled').reduce((s, o) => s + o.price, 0);
-  const totalKeys = Object.values(adminData.keys || {}).reduce((s, arr) => s + arr.length, 0);
-  const totalUsers = (adminData.users || []).length;
-
-  document.getElementById('st-orders').textContent = orders.length;
-  document.getElementById('st-fulfilled').textContent = fulfilled;
-  document.getElementById('st-pending').textContent = pending;
-  document.getElementById('st-cancelled').textContent = cancelled;
-  document.getElementById('st-revenue').textContent = '₱' + revenue.toLocaleString();
-  document.getElementById('st-keys').textContent = totalKeys;
-  document.getElementById('st-users').textContent = totalUsers;
-
-  const recent = [...orders].reverse().slice(0, 10);
-  const wrap = document.getElementById('recentOrdersTable');
-  if (!recent.length) { wrap.innerHTML = '<p style="color:var(--gray5);font-family:Space Mono,monospace;font-size:0.75rem;">No orders yet.</p>'; return; }
-  wrap.innerHTML = `<div style="overflow-x:auto;"><table class="orders-table">
-    <thead><tr><th>Date</th><th>User</th><th>Plan</th><th>Price</th><th>Status</th></tr></thead>
-    <tbody>${recent.map(o => `
-      <tr>
-        <td>${new Date(o.createdAt).toLocaleDateString()}</td>
-        <td>${escapeHtml(o.username || o.userId?.slice(0,8))}</td>
-        <td>${escapeHtml(o.label)}</span></td>
-        <td>₱${o.price}</td>
-        <td><span class="badge ${o.status}">${o.status}</span></td>
-      </tr>`).join('')}</tbody>
-  </table></div>`;
-}
-
-// ─── APK ───────────────────────────────────────────────────────────────────────
-function renderAPKForm() {
-  const apk = adminData.apk || {};
-  document.getElementById('apkNameInput').value = apk.name || '';
-  document.getElementById('apkLinkInput').value = apk.link || '';
-  if (apk.logo) {
-    document.getElementById('logoPreview').innerHTML = `<img src="${apk.logo}" style="max-width:80px;max-height:80px;border-radius:10px;border:1px solid var(--border);" alt="Logo"/>`;
-  }
-}
-
-async function saveAPK() {
-  const name = document.getElementById('apkNameInput').value.trim();
-  const link = document.getElementById('apkLinkInput').value.trim();
-  const res = await fetch('/api/admin/apk', {
-    method: 'POST', headers: authHdr(),
-    body: JSON.stringify({ name, link })
+// ==================== SIDEBAR NAV ====================
+document.querySelectorAll('.nav-item[data-panel]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const panelId = 'panel-' + btn.dataset.panel;
+    document.getElementById(panelId).classList.add('active');
+    if (btn.dataset.panel === 'orders') loadOrders();
+    if (btn.dataset.panel === 'users') loadUsers();
+    if (btn.dataset.panel === 'paymongo') loadPaymongo();
+    if (btn.dataset.panel === 'keys') loadKeys();
+    if (btn.dataset.panel === 'apk') loadApk();
   });
-  const d = await res.json();
-  if (d.success) { showToast('APK info saved!'); loadAdminData(); }
+});
+
+// ==================== INIT ====================
+async function initAdmin() {
+  await loadStats();
+  loadApk();
+  loadPlans();
+}
+
+// ==================== STATS / OVERVIEW ====================
+async function loadStats() {
+  try {
+    const [statsRes, ordersRes] = await Promise.all([
+      fetch('/api/admin/stats'),
+      fetch('/api/admin/orders')
+    ]);
+    const stats = await statsRes.json();
+    const orders = await ordersRes.json();
+    allOrders = orders;
+
+    document.getElementById('statCards').innerHTML = `
+      <div class="stat-card"><div class="stat-val">₱${(stats.revenue||0).toLocaleString()}</div><div class="stat-lbl">Total Revenue</div></div>
+      <div class="stat-card"><div class="stat-val">${stats.fulfilled||0}</div><div class="stat-lbl">Keys Delivered</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:#fbbf24;">${stats.pending||0}</div><div class="stat-lbl">Awaiting Key</div></div>
+      <div class="stat-card"><div class="stat-val">${stats.totalOrders||0}</div><div class="stat-lbl">Total Orders</div></div>
+      <div class="stat-card"><div class="stat-val">${stats.totalUsers||0}</div><div class="stat-lbl">Registered Users</div></div>
+    `;
+
+    const recent = orders.slice(0,8);
+    document.getElementById('recentOrders').innerHTML = recent.length ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>User</th><th>Plan</th><th>Price</th><th>Status</th><th>Date</th></tr></thead><tbody>' +
+      recent.map(o => `<tr>
+        <td>${esc(o.username)}</td>
+        <td>${esc(o.plan_label)}</td>
+        <td>₱${o.price}</td>
+        <td><span class="badge badge-${o.status}">${o.status}</span></td>
+        <td>${new Date(o.created_at).toLocaleDateString()}</td>
+      </tr>`).join('') + '</tbody></table></div>'
+    : '<div style="color:var(--muted);font-size:0.85rem;">No orders yet.</div>';
+  } catch(e) { console.error(e); }
+}
+
+// ==================== APK ====================
+async function loadApk() {
+  try {
+    const res = await fetch('/api/store');
+    const data = await res.json();
+    if (data.apk) {
+      document.getElementById('apkName').value = data.apk.name || '';
+      document.getElementById('apkLink').value = data.apk.link || '';
+      if (data.apk.logo) {
+        const img = document.getElementById('currentLogo');
+        img.src = data.apk.logo; img.style.display = '';
+      }
+    }
+  } catch(e) {}
+}
+
+async function saveApk() {
+  const name = document.getElementById('apkName').value.trim();
+  const link = document.getElementById('apkLink').value.trim();
+  const msg = document.getElementById('apkMsg');
+  try {
+    const res = await fetch('/api/admin/apk', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name, link })
+    });
+    if (res.ok) { showMsg(msg,'✅ APK settings saved!','var(--green)'); showToast('Saved!'); }
+    else showMsg(msg,'❌ Save failed','#fca5a5');
+  } catch(e) { showMsg(msg,'❌ Network error','#fca5a5'); }
 }
 
 async function uploadLogo() {
   const file = document.getElementById('logoFile').files[0];
-  if (!file) { showToast('Select a file first'); return; }
-  const fd = new FormData(); fd.append('logo', file);
-  const res = await fetch('/api/admin/logo', { method: 'POST', body: fd });
-  const d = await res.json();
-  if (d.success) { showToast('Logo uploaded!'); loadAdminData(); }
-  else { showToast('Upload failed'); }
+  if (!file) return showToast('Select a file first','error');
+  const form = new FormData(); form.append('logo', file);
+  try {
+    const res = await fetch('/api/admin/logo', { method:'POST', body:form });
+    const data = await res.json();
+    if (data.success) {
+      const img = document.getElementById('currentLogo');
+      img.src = data.logo + '&t=' + Date.now(); img.style.display = '';
+      showToast('Logo uploaded!');
+    } else showToast(data.message || 'Upload failed','error');
+  } catch(e) { showToast('Upload error','error'); }
 }
 
-// ─── PLANS ─────────────────────────────────────────────────────────────────────
-function renderPlansTable() {
-  const plans = adminData.plans || [];
-  const tbody = document.getElementById('plansTbody');
-  tbody.innerHTML = plans.map(p => `
-    <tr>
-      <td style="font-family:'Space Mono',monospace;">${escapeHtml(p.label)}</td>
-      <td style="font-family:'Space Mono',monospace;">${p.days}</td>
-      <td><input type="number" id="price-${p.id}" value="${p.price}" min="1"/></td>
-      <td>
-        <label class="toggle">
-          <input type="checkbox" id="en-${p.id}" ${p.enabled ? 'checked' : ''}/>
-          <span class="toggle-slider"></span>
-        </label>
-      </td>
-    </tr>
+// ==================== PLANS ====================
+async function loadPlans() {
+  try {
+    const res = await fetch('/api/admin/plans');
+    const plans = await res.json();
+    adminData.plans = plans;
+    renderPlansEditor(plans);
+    // Populate key plan selects
+    const opts = plans.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+    document.getElementById('keyPlan').innerHTML = opts;
+    document.getElementById('viewKeyPlan').innerHTML = opts;
+    loadKeys();
+  } catch(e) {}
+}
+
+function renderPlansEditor(plans) {
+  document.getElementById('plansEditor').innerHTML = plans.map(p => `
+    <div class="plan-row">
+      <div class="plan-row-label">${esc(p.label)}</div>
+      <div style="display:flex;align-items:center;gap:0.4rem;">
+        <span style="font-size:0.7rem;color:var(--muted);">₱</span>
+        <input type="number" value="${p.price}" id="plan-price-${p.id}" min="1" title="Price">
+      </div>
+      <div style="display:flex;align-items:center;gap:0.4rem;">
+        <span style="font-size:0.7rem;color:var(--muted);">Days</span>
+        <input type="number" value="${p.days}" id="plan-days-${p.id}" min="1" style="width:70px;" title="Days">
+      </div>
+      <div class="toggle-wrap">
+        <input type="checkbox" class="toggle" id="plan-en-${p.id}" ${p.enabled ? 'checked' : ''}>
+        <label for="plan-en-${p.id}">Enabled</label>
+      </div>
+    </div>
   `).join('');
 }
 
 async function savePlans() {
-  const plans = (adminData.plans || []).map(p => ({
+  const plans = adminData.plans.map(p => ({
     id: p.id,
-    price: parseInt(document.getElementById('price-' + p.id)?.value) || p.price,
-    enabled: document.getElementById('en-' + p.id)?.checked
+    label: p.label,
+    price: parseInt(document.getElementById('plan-price-'+p.id).value) || p.price,
+    days: parseInt(document.getElementById('plan-days-'+p.id).value) || p.days,
+    enabled: document.getElementById('plan-en-'+p.id).checked
   }));
-  const res = await fetch('/api/admin/plans', {
-    method: 'POST', headers: authHdr(),
-    body: JSON.stringify({ plans })
-  });
-  const d = await res.json();
-  if (d.success) { showToast('Plans saved!'); loadAdminData(); }
+  const msg = document.getElementById('plansMsg');
+  try {
+    const res = await fetch('/api/admin/plans', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ plans })
+    });
+    if (res.ok) { showMsg(msg,'✅ Plans saved!','var(--green)'); showToast('Plans saved!'); }
+    else showMsg(msg,'❌ Save failed','#fca5a5');
+  } catch(e) { showMsg(msg,'❌ Error','#fca5a5'); }
 }
 
-// ─── KEYS ─────────────────────────────────────────────────────────────────────
-function renderKeyPlanSelect() {
-  const sel = document.getElementById('keyPlanSelect');
-  sel.innerHTML = (adminData.plans || []).map(p => `<option value="${p.id}">${escapeHtml(p.label)}</option>`).join('');
+// ==================== KEYS ====================
+let allKeysData = [];
+
+async function loadKeys() {
+  try {
+    const res = await fetch('/api/admin/keys');
+    const data = await res.json();
+    allKeysData = data.keys || [];
+    // Update stats
+    renderKeyPool();
+  } catch(e) {}
 }
 
-function renderKeyPlanTabs() {
-  const keys = adminData.keys || {};
-  const tabs = document.getElementById('keyPlanTabs');
-  tabs.innerHTML = (adminData.plans || []).map(p => {
-    const count = (keys[p.id] || []).length;
-    return `<button class="key-plan-tab ${activePlanTab === p.id ? 'active' : ''}" onclick="viewKeyPlan('${p.id}', this)">
-      ${escapeHtml(p.label)} <span class="count ${count < 3 ? 'low' : ''}">${count}</span>
-    </button>`;
-  }).join('');
-  if (activePlanTab) viewKeyPlanById(activePlanTab);
-}
-
-function viewKeyPlan(planId, btn) {
-  document.querySelectorAll('.key-plan-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  activePlanTab = planId;
-  viewKeyPlanById(planId);
-}
-
-function viewKeyPlanById(planId) {
-  const keys = (adminData.keys || {})[planId] || [];
-  const wrap = document.getElementById('keysListWrap');
-  if (!keys.length) {
-    wrap.innerHTML = '<div class="keys-list empty-state">No keys in this pool</div>';
-    return;
-  }
-  wrap.innerHTML = `<div class="keys-list">${keys.map((k, i) => `
-    <div class="key-item">
-      <span class="key-val">${escapeHtml(k)}</span>
-      <button onclick="deleteKey('${planId}', ${i})" title="Delete">✕</button>
-    </div>`).join('')}</div>`;
+function renderKeyPool() {
+  const planId = document.getElementById('viewKeyPlan').value;
+  const planKeys = allKeysData.filter(k => k.plan_id === planId);
+  const available = planKeys.filter(k => !k.used).length;
+  document.getElementById('keyPoolStats').textContent = `${available} available · ${planKeys.length} total`;
+  document.getElementById('keyPool').innerHTML = planKeys.length
+    ? planKeys.map(k => `
+        <div class="key-item ${k.used ? 'used' : ''}">
+          <span>${esc(k.key_val)}${k.used ? ' (used)' : ''}</span>
+          ${!k.used ? `<button class="btn-danger" style="padding:0.15rem 0.5rem;font-size:0.62rem;" onclick="deleteKey(${k.id})">✕</button>` : ''}
+        </div>
+      `).join('')
+    : '<div style="color:var(--muted);font-size:0.8rem;padding:1rem;">No keys for this plan.</div>';
 }
 
 async function addKeys() {
-  const planId = document.getElementById('keyPlanSelect').value;
-  const keys = document.getElementById('keysInput').value.trim();
-  if (!keys) { showToast('Paste some keys first'); return; }
-  const res = await fetch('/api/admin/keys', {
-    method: 'POST', headers: authHdr(),
-    body: JSON.stringify({ planId, keys })
-  });
-  const d = await res.json();
-  if (d.success) {
-    showToast(`Added ${d.added} key(s) — total: ${d.total}`);
-    document.getElementById('keysInput').value = '';
-    activePlanTab = planId;
-    loadAdminData();
-  }
+  const planId = document.getElementById('keyPlan').value;
+  const keys = document.getElementById('keyInput').value;
+  const msg = document.getElementById('keysMsg');
+  if (!keys.trim()) { showMsg(msg,'Enter at least one key','#fca5a5'); return; }
+  try {
+    const res = await fetch('/api/admin/keys', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ planId, keys })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showMsg(msg,`✅ Added ${data.added} key(s)!`,'var(--green)');
+      document.getElementById('keyInput').value = '';
+      loadKeys();
+    } else showMsg(msg,'❌ Failed to add','#fca5a5');
+  } catch(e) { showMsg(msg,'❌ Error','#fca5a5'); }
 }
 
-async function deleteKey(planId, index) {
-  if (!confirm('Delete this key?')) return;
-  const res = await fetch(`/api/admin/keys/${planId}/${index}`, { method: 'DELETE', headers: authHdr() });
-  const d = await res.json();
-  if (d.success) { showToast('Key removed'); loadAdminData(); }
+async function deleteKey(id) {
+  if (!confirm('Delete this key from the pool?')) return;
+  await fetch('/api/admin/keys/' + id, { method:'DELETE' });
+  loadKeys();
+  showToast('Key deleted');
 }
 
-// ─── ORDERS ────────────────────────────────────────────────────────────────────
-function renderOrders() {
-  const orders = [...(adminData.orders || [])].reverse();
-  const tbody = document.getElementById('ordersTbody');
-  if (!orders.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="color:var(--gray5);font-family:Space Mono,monospace;">No orders yet.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = orders.map(o => `
-    <tr>
-      <td>${new Date(o.createdAt).toLocaleDateString()}</td>
-      <td>${escapeHtml(o.username || o.userId?.slice(0,8))}</td>
-      <td>${escapeHtml(o.telegram || '-')}</td>
-      <td>${escapeHtml(o.label)}</td>
-      <td>₱${o.price}</td>
-      <td><span class="badge ${o.status}">${o.status}</span></td>
-      <td class="key-inline">${o.keyGiven || '—'}</td>
-      <td>
-        ${o.status !== 'fulfilled' && o.status !== 'cancelled' ? `
-          <input class="fulfill-input" id="fkey-${o.id}" placeholder="Paste key"/>
-          <button class="btn sm" onclick="fulfillOrder('${o.id}')" style="margin-top:4px;">Give Key</button>
-          <button class="btn danger sm" onclick="cancelOrder('${o.id}')" style="margin-top:4px;">Cancel</button>
-        ` : o.status === 'fulfilled' ? '✓' : '✗'}
-      </td>
-    </tr>
+// ==================== ORDERS ====================
+async function loadOrders() {
+  const status = document.getElementById('orderFilter').value;
+  const listEl = document.getElementById('ordersList');
+  listEl.innerHTML = '<div style="color:var(--muted);padding:2rem;text-align:center;">Loading...</div>';
+  try {
+    const url = '/api/admin/orders' + (status ? '?status='+status : '');
+    const res = await fetch(url);
+    allOrders = await res.json();
+    filterOrdersUI();
+  } catch(e) { listEl.innerHTML = '<div style="color:var(--muted);padding:2rem;">Failed to load.</div>'; }
+}
+
+function filterOrdersUI() {
+  const search = document.getElementById('orderSearch').value.toLowerCase();
+  const filtered = search ? allOrders.filter(o => o.username.toLowerCase().includes(search) || o.id.includes(search)) : allOrders;
+  renderOrdersList(filtered);
+}
+
+function renderOrdersList(orders) {
+  const el = document.getElementById('ordersList');
+  if (!orders.length) { el.innerHTML = '<div style="color:var(--muted);padding:2rem;text-align:center;">No orders found.</div>'; return; }
+  el.innerHTML = orders.map(o => `
+    <div class="order-row">
+      <div class="order-row-info">
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.3rem;">
+          <strong>${esc(o.username)}</strong>
+          <span class="badge badge-${o.status}">${o.status}</span>
+          <span style="font-size:0.68rem;color:var(--muted);">#${o.id.split('-')[0]}</span>
+        </div>
+        <div style="font-size:0.78rem;color:var(--muted);">${esc(o.plan_label)} · ₱${o.price} · ${new Date(o.created_at).toLocaleString()}</div>
+        ${o.telegram ? `<div style="font-size:0.7rem;color:var(--accent3);margin-top:0.2rem;"><i class="fab fa-telegram"></i> ${esc(o.telegram)}</div>` : ''}
+        ${o.key_given ? `<div style="font-family:monospace;font-size:0.78rem;color:var(--green);margin-top:0.4rem;background:rgba(34,197,94,0.08);padding:0.3rem 0.6rem;border-radius:8px;display:inline-block;">🔑 ${esc(o.key_given)}</div>` : ''}
+      </div>
+      <div class="order-row-actions">
+        ${o.status === 'paid' ? `<button class="btn-success" onclick="openFulfillModal('${o.id}','${esc(o.username)}','${esc(o.plan_label)}')">🔑 Give Key</button>` : ''}
+        ${o.status === 'pending' ? `<button class="btn-danger" onclick="adminCancelOrder('${o.id}')">Cancel</button>` : ''}
+      </div>
+    </div>
   `).join('');
 }
 
-async function fulfillOrder(orderId) {
-  const key = document.getElementById('fkey-' + orderId)?.value.trim();
-  if (!key) { showToast('Enter a key first'); return; }
-  const res = await fetch(`/api/admin/fulfill/${orderId}`, {
-    method: 'POST', headers: authHdr(),
-    body: JSON.stringify({ key })
-  });
-  const d = await res.json();
-  if (d.success) { showToast('Order fulfilled!'); loadAdminData(); }
+function openFulfillModal(orderId, username, plan) {
+  document.getElementById('fulfillOrderId').value = orderId;
+  document.getElementById('fulfillSub').textContent = username + ' · ' + plan;
+  document.getElementById('fulfillKey').value = '';
+  document.getElementById('fulfillErr').classList.remove('show');
+  document.getElementById('fulfillModal').classList.add('open');
 }
 
-async function cancelOrder(orderId) {
-  if (!confirm('Cancel this order? The user will not receive a key.')) return;
-  const res = await fetch(`/api/admin/order/${orderId}/cancel`, {
-    method: 'POST', headers: authHdr()
-  });
-  const d = await res.json();
-  if (d.success) { showToast('Order cancelled'); loadAdminData(); }
+async function doFulfill() {
+  const orderId = document.getElementById('fulfillOrderId').value;
+  const key = document.getElementById('fulfillKey').value.trim();
+  const errEl = document.getElementById('fulfillErr');
+  if (!key) { errEl.textContent = 'Enter a key'; errEl.classList.add('show'); return; }
+  try {
+    const res = await fetch('/api/admin/orders/' + orderId + '/fulfill', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key })
+    });
+    if (res.ok) { closeModal2('fulfillModal'); showToast('Key given!'); loadOrders(); loadStats(); }
+    else { errEl.textContent = 'Failed'; errEl.classList.add('show'); }
+  } catch(e) { errEl.textContent = 'Error'; errEl.classList.add('show'); }
 }
 
-// ─── USERS ────────────────────────────────────────────────────────────────────
-function renderUsers() {
-  const users = adminData.users || [];
-  const tbody = document.getElementById('usersTbody');
-  if (!users.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--gray5);">No registered users</td></tr>';
-    return;
-  }
-  tbody.innerHTML = users.map(u => `
+async function adminCancelOrder(orderId) {
+  if (!confirm('Cancel this order?')) return;
+  await fetch('/api/admin/orders/' + orderId + '/cancel', { method:'POST' });
+  loadOrders(); showToast('Order cancelled');
+}
+
+// ==================== USERS ====================
+async function loadUsers() {
+  try {
+    const res = await fetch('/api/admin/users');
+    allUsers = await res.json();
+    renderUsersTable();
+  } catch(e) {}
+}
+
+function renderUsersTable() {
+  const tb = document.getElementById('usersTable');
+  if (!allUsers.length) { tb.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:2rem;">No users.</td></tr>'; return; }
+  tb.innerHTML = allUsers.map(u => `
     <tr>
-      <td>${escapeHtml(u.username)}</td>
-      <td><span class="badge ${u.role}">${escapeHtml(u.role)}</span></td>
-      <td>${escapeHtml(u.telegram || '-')}</td>
-      <td>${new Date(u.createdAt).toLocaleDateString()}</td>
-      <td>${u.keysCount || 0}</td>
+      <td><strong>${esc(u.username)}</strong></td>
+      <td>${u.telegram ? '<i class="fab fa-telegram" style="color:#00aaff;margin-right:4px;"></i>' + esc(u.telegram) : '<span style="color:var(--muted);">—</span>'}</td>
+      <td><span class="badge badge-${u.role}">${u.role}</span></td>
+      <td style="font-size:0.72rem;">${new Date(u.created_at).toLocaleDateString()}</td>
+      <td>—</td>
       <td>
-        <button class="btn sm" onclick="editUser('${u.id}')">Edit</button>
-        ${u.username !== 'N4XCO' ? `<button class="btn danger sm" onclick="deleteUser('${u.id}')">Del</button>` : '<span style="color:var(--gray5);">protected</span>'}
+        <div style="display:flex;gap:0.4rem;">
+          <button class="btn-secondary" style="font-size:0.68rem;padding:0.28rem 0.6rem;" onclick="openEditUserModal(${u.id},'${esc(u.username)}','${esc(u.telegram||'')}','${u.role}')">Edit</button>
+          ${u.username !== 'N4XCO' ? `<button class="btn-danger" onclick="deleteUser(${u.id},'${esc(u.username)}')">Delete</button>` : ''}
+        </div>
       </td>
     </tr>
   `).join('');
 }
 
 function openAddUserModal() {
-  currentUserId = null;
   document.getElementById('userModalTitle').textContent = 'Add User';
-  document.getElementById('userUsername').value = '';
-  document.getElementById('userPassword').value = '';
-  document.getElementById('userRole').value = 'user';
-  document.getElementById('userTelegram').value = '';
+  document.getElementById('editUserId').value = '';
+  document.getElementById('newUsername').value = '';
+  document.getElementById('newPassword').value = '';
+  document.getElementById('newTelegram').value = '';
+  document.getElementById('newRole').value = 'user';
+  document.getElementById('userModalErr').classList.remove('show');
   document.getElementById('userModal').classList.add('open');
 }
 
-function editUser(id) {
-  const user = adminData.users?.find(u => u.id === id);
-  if (!user) return;
-  currentUserId = id;
+function openEditUserModal(id, username, telegram, role) {
   document.getElementById('userModalTitle').textContent = 'Edit User';
-  document.getElementById('userUsername').value = user.username;
-  document.getElementById('userPassword').value = '';
-  document.getElementById('userRole').value = user.role;
-  document.getElementById('userTelegram').value = user.telegram || '';
+  document.getElementById('editUserId').value = id;
+  document.getElementById('newUsername').value = username;
+  document.getElementById('newPassword').value = '';
+  document.getElementById('newTelegram').value = telegram;
+  document.getElementById('newRole').value = role;
+  document.getElementById('userModalErr').classList.remove('show');
   document.getElementById('userModal').classList.add('open');
-}
-
-function closeUserModal() {
-  document.getElementById('userModal').classList.remove('open');
-  currentUserId = null;
 }
 
 async function saveUser() {
-  const username = document.getElementById('userUsername').value.trim();
-  const password = document.getElementById('userPassword').value;
-  const role = document.getElementById('userRole').value;
-  const telegram = document.getElementById('userTelegram').value.trim();
-  
-  if (!username) {
-    showToast('Username required');
-    return;
-  }
-  
-  const url = currentUserId ? `/api/admin/users/${currentUserId}` : '/api/admin/users';
-  const method = currentUserId ? 'PUT' : 'POST';
-  const body = { username, role, telegram };
-  if (password) body.password = password;
-  
+  const id = document.getElementById('editUserId').value;
+  const username = document.getElementById('newUsername').value.trim();
+  const password = document.getElementById('newPassword').value;
+  const telegram = document.getElementById('newTelegram').value.trim();
+  const role = document.getElementById('newRole').value;
+  const errEl = document.getElementById('userModalErr');
+  if (!username) { errEl.textContent = 'Username required'; errEl.classList.add('show'); return; }
   try {
-    const res = await fetch(url, { method, headers: authHdr(), body: JSON.stringify(body) });
-    const data = await res.json();
-    if (data.success) {
-      closeUserModal();
-      loadAdminData();
-      showToast('User saved!');
+    let res;
+    if (id) {
+      res = await fetch('/api/admin/users/' + id, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password: password || undefined, telegram, role })
+      });
     } else {
-      showToast(data.message || 'Error', true);
+      if (!password) { errEl.textContent = 'Password required for new user'; errEl.classList.add('show'); return; }
+      res = await fetch('/api/admin/users', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password, telegram, role })
+      });
     }
-  } catch (e) {
-    showToast('Network error', true);
-  }
+    const data = await res.json();
+    if (res.ok) { closeModal2('userModal'); loadUsers(); showToast(id ? 'User updated!' : 'User added!'); }
+    else { errEl.textContent = data.message || 'Error'; errEl.classList.add('show'); }
+  } catch(e) { errEl.textContent = 'Network error'; errEl.classList.add('show'); }
 }
 
-async function deleteUser(id) {
-  const user = adminData.users?.find(u => u.id === id);
-  if (!confirm(`Delete user "${user?.username}"?`)) return;
-  try {
-    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: authHdr() });
-    const data = await res.json();
-    if (data.success) {
-      loadAdminData();
-      showToast('User deleted');
-    } else {
-      showToast(data.message || 'Cannot delete this user', true);
-    }
-  } catch (e) {
-    showToast('Error', true);
-  }
+async function deleteUser(id, username) {
+  if (!confirm('Delete user "' + username + '"? This cannot be undone.')) return;
+  await fetch('/api/admin/users/' + id, { method:'DELETE' });
+  loadUsers(); showToast('User deleted');
 }
 
-// ─── PAYMONGO ─────────────────────────────────────────────────────────────────
-function renderPaymongoForm() {
-  const pm = adminData.paymongo || {};
-  document.getElementById('pmPublic').value = pm.public_key || '';
-  document.getElementById('pmPrice').value = pm.price_cents ? (pm.price_cents / 100).toFixed(0) : '';
-  // Set webhook URL
-  const webhookUrl = `${window.location.origin}/api/webhook/paymongo`;
-  document.getElementById('webhookUrl').value = webhookUrl;
+// ==================== PAYMONGO ====================
+async function loadPaymongo() {
+  try {
+    const res = await fetch('/api/admin/paymongo');
+    const data = await res.json();
+    document.getElementById('pmSecret').value = data?.secret_key || '';
+    document.getElementById('pmPublic').value = data?.public_key || '';
+    document.getElementById('webhookUrl').textContent = window.location.origin + '/api/webhook/paymongo';
+  } catch(e) {}
 }
 
 async function savePaymongo() {
-  const secret = document.getElementById('pmSecret').value;
-  const publicKey = document.getElementById('pmPublic').value;
-  const price = parseInt(document.getElementById('pmPrice').value) || 0;
-  
-  const res = await fetch('/api/admin/paymongo', {
-    method: 'PUT',
-    headers: authHdr(),
-    body: JSON.stringify({ secret_key: secret, public_key: publicKey, price_cents: price * 100 })
-  });
-  const data = await res.json();
-  if (data.success) {
-    document.getElementById('pmStatus').innerHTML = '<span style="color:var(--green);">✅ Settings saved!</span>';
-    setTimeout(() => document.getElementById('pmStatus').innerHTML = '', 3000);
-    showToast('PayMongo settings saved');
-  } else {
-    showToast('Save failed', true);
-  }
+  const secret_key = document.getElementById('pmSecret').value.trim();
+  const public_key = document.getElementById('pmPublic').value.trim();
+  const msg = document.getElementById('pmMsg');
+  try {
+    const res = await fetch('/api/admin/paymongo', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ secret_key, public_key })
+    });
+    if (res.ok) { showMsg(msg,'✅ PayMongo settings saved!','var(--green)'); showToast('Saved!'); }
+    else showMsg(msg,'❌ Save failed','#fca5a5');
+  } catch(e) { showMsg(msg,'❌ Error','#fca5a5'); }
 }
 
-// ─── BUYERS ────────────────────────────────────────────────────────────────────
-function renderBuyers() {
-  const buyers = [...(adminData.buyers || [])].reverse();
-  const tbody = document.getElementById('buyersTbody');
-  if (!buyers.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--gray5);">No buyers yet.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = buyers.map(b => `
-    <tr>
-      <td>${new Date(b.date).toLocaleDateString()}</td>
-      <td>${escapeHtml(b.username || b.userId?.slice(0,8))}</td>
-      <td>${escapeHtml(b.telegram || '-')}</td>
-      <td>${escapeHtml(b.plan)}</td>
-      <td>₱${b.price}</td>
-      <td class="key-inline">${b.key || '—'}</td>
-      <td><span class="badge ${b.status || 'fulfilled'}">${b.status || 'fulfilled'}</span></td>
-    </tr>
-  `).join('');
-}
-
-// ─── TABS ─────────────────────────────────────────────────────────────────────
-function switchATab(id, btn) {
-  document.querySelectorAll('.atab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('atab-' + id).classList.add('active');
-  btn.classList.add('active');
-  loadAdminData();
-}
-
-// ─── UTILS ────────────────────────────────────────────────────────────────────
-function showToast(msg, isError = false) {
-  const t = document.getElementById('toast');
-  t.textContent = (isError ? '⚠️ ' : '✓ ') + msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-function escapeHtml(str) {
+// ==================== UTILS ====================
+function esc(str) {
   if (!str) return '';
-  return String(str).replace(/[&<>]/g, function(m) {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    return m;
-  });
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// Close modal on outside click
-document.getElementById('userModal').addEventListener('click', function(e) {
-  if (e.target === this) closeUserModal();
-});
+function showToast(msg, type='success') {
+  const el = document.getElementById('toastBar');
+  el.textContent = msg; el.className = 'toast-bar ' + type + ' show';
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
 
-// Enter key on login
-document.getElementById('loginPass').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
+function showMsg(el, msg, color) {
+  el.textContent = msg; el.style.color = color; el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3500);
+}
+
+function closeModal2(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
 });
 </script>
 </body>
