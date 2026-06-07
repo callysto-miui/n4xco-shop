@@ -4,267 +4,767 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>N4XCO SHOP</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
+:root {
+  --black: #000000;
+  --white: #ffffff;
+  --gray-1: #111111;
+  --gray-2: #1a1a1a;
+  --gray-3: #2a2a2a;
+  --gray-4: #444444;
+  --gray-5: #888888;
+  --gray-6: #aaaaaa;
+  --accent: #ffffff;
+  --green: #00ff88;
+  --yellow: #ffee00;
+  --red: #ff3333;
+  --blue: #00aaff;
+}
+
 * { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
 body {
-  background: radial-gradient(circle at 20% 30%, #1a0b2e, #0a0515);
-  font-family: 'Inter', sans-serif; min-height:100vh; overflow-x:hidden;
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
-.morph-bg {
-  position:fixed; top:-50%; left:-50%; width:200%; height:200%;
-  background: radial-gradient(circle at 30% 40%, rgba(168,85,247,0.35), rgba(139,92,246,0.15), rgba(76,29,149,0.1), transparent 70%);
-  filter:blur(70px); animation:morphShift 18s ease infinite alternate; z-index:0; pointer-events:none;
-}
-@keyframes morphShift {
-  0%{ transform:translate(0,0) scale(1); opacity:0.6; }
-  50%{ transform:translate(5%,3%) scale(1.15); opacity:0.8; }
-  100%{ transform:translate(-4%,-6%) scale(0.95); opacity:0.5; }
-}
-.morph-bg-2 {
-  position:fixed; bottom:-30%; right:-20%; width:150%; height:150%;
-  background:radial-gradient(circle, rgba(192,132,252,0.25), rgba(107,33,168,0.1), transparent 80%);
-  filter:blur(90px); animation:drift 25s infinite alternate; pointer-events:none;
-}
-@keyframes drift { 0%{ transform:translate(0,0); } 100%{ transform:translate(-8%,-10%); } }
 
-/* NAV */
+/* SCANLINE OVERLAY */
+body::before {
+  content:'';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255,255,255,0.012) 2px,
+    rgba(255,255,255,0.012) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* NOISE TEXTURE */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ===== NAV ===== */
 .nav-bar {
-  position:relative; z-index:10;
-  display:flex; justify-content:space-between; align-items:center; padding:0.7rem 1rem;
-  background:rgba(45,25,75,0.3); backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(168,85,247,0.3);
+  position: sticky; top: 0; z-index: 500;
+  display: flex; align-items: stretch; justify-content: space-between;
+  border-bottom: 1px solid var(--gray-3);
+  background: var(--black);
+  height: 52px;
 }
-.nav-tabs { display:flex; gap:0.5rem; flex-wrap:wrap; }
+
+.nav-tabs {
+  display: flex; align-items: stretch;
+}
+
 .nav-btn {
-  background:rgba(55,35,85,0.55); border:1px solid rgba(168,85,247,0.3);
-  padding:0.45rem 1.1rem; border-radius:60px; font-weight:600;
-  cursor:pointer; color:#ddd6fe; transition:all 0.3s; font-size:0.82rem;
+  background: none;
+  border: none;
+  border-right: 1px solid var(--gray-3);
+  padding: 0 1.4rem;
+  color: var(--gray-5);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  position: relative;
+  white-space: nowrap;
 }
-.nav-btn.active { background:linear-gradient(135deg,#a855f7,#7c3aed); color:white; border-color:#c084fc; }
-.nav-btn:hover { transform:translateY(-2px); background:rgba(168,85,247,0.4); }
 
-/* User pill in nav */
+.nav-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 0; height: 2px;
+  background: var(--white);
+  transition: width 0.2s;
+}
+
+.nav-btn.active {
+  color: var(--white);
+  background: var(--gray-1);
+}
+.nav-btn.active::after { width: 100%; }
+.nav-btn:hover { color: var(--white); background: var(--gray-1); }
+
 .nav-user {
-  display:flex; align-items:center; gap:0.5rem; flex-shrink:0;
+  display: flex; align-items: center; padding: 0 1rem;
+  border-left: 1px solid var(--gray-3);
 }
+
 .user-pill {
-  background:rgba(55,35,85,0.7); border:1px solid rgba(168,85,247,0.4);
-  padding:0.35rem 0.9rem; border-radius:60px; font-size:0.75rem;
-  color:#ddd6fe; cursor:pointer; display:flex; align-items:center; gap:0.4rem; transition:all 0.2s;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  background: none;
+  border: 1px solid var(--gray-4);
+  color: var(--gray-6);
+  padding: 0.35rem 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 0.5rem;
+  letter-spacing: 0.04em;
 }
-.user-pill:hover { background:rgba(168,85,247,0.3); }
-.user-pill.logged-in { border-color:rgba(34,197,94,0.5); color:#86efac; }
 
-.app-container { position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:1.2rem; }
+.user-pill:hover { border-color: var(--white); color: var(--white); }
+.user-pill.logged-in { border-color: var(--green); color: var(--green); }
 
-.tab-section { display:none; animation:fadeIn 0.35s ease; }
-.tab-section.active { display:block; }
+/* ===== LAYOUT ===== */
+.app-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.tab-section { display: none; animation: fadeIn 0.2s ease; }
+.tab-section.active { display: block; }
+
 @keyframes fadeIn { from{ opacity:0; } to{ opacity:1; } }
-@keyframes fadeInUp { from{ opacity:0; transform:translateY(15px); } to{ opacity:1; transform:translateY(0); } }
 
-.glass-header {
-  text-align:center; margin-bottom:1.5rem; padding:1rem 1.5rem;
-  background:rgba(45,25,75,0.4); backdrop-filter:blur(20px);
-  border-radius:80px; border:1px solid rgba(168,85,247,0.3);
+/* ===== HEADER ===== */
+.shop-header {
+  border: 1px solid var(--gray-3);
+  padding: 2rem 2.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
 }
+
+.shop-header::before {
+  content: 'N4XCO';
+  position: absolute;
+  right: -0.5rem; top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(5rem, 12vw, 9rem);
+  color: rgba(255,255,255,0.03);
+  letter-spacing: 0.1em;
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+}
+
 .header-logo {
-  font-size:1.9rem; font-weight:800;
-  background:linear-gradient(135deg,#f0e6ff,#c084fc,#a855f7);
-  background-clip:text; -webkit-background-clip:text; color:transparent;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  letter-spacing: 0.08em;
+  color: var(--white);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
-.header-tagline { font-size:0.73rem; color:#b9a9e6; margin-top:4px; }
 
-/* PLANS GRID */
+.header-logo img {
+  height: 48px;
+  width: 48px;
+  object-fit: contain;
+  border: 1px solid var(--gray-3);
+  display: none;
+}
+
+.header-meta {
+  font-size: 0.65rem;
+  color: var(--gray-5);
+  letter-spacing: 0.08em;
+  line-height: 1.8;
+  text-align: right;
+}
+
+.header-meta span {
+  display: block;
+}
+
+/* APK BANNER */
+.apk-banner {
+  display: none;
+  border: 1px solid var(--gray-3);
+  border-top: none;
+  padding: 0.85rem 1.5rem;
+  margin-bottom: 2rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: var(--gray-1);
+}
+
+.apk-banner-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: var(--gray-5);
+  text-transform: uppercase;
+}
+
+.apk-banner-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  color: var(--white);
+  margin-top: 0.1rem;
+}
+
+.btn-download {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.12em;
+  font-size: 0.9rem;
+  background: var(--white);
+  color: var(--black);
+  border: none;
+  padding: 0.55rem 1.4rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn-download:hover { background: var(--gray-6); }
+
+/* ===== PLANS GRID ===== */
+.section-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: var(--gray-5);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--gray-3);
+}
+
 .plans-grid {
-  display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem;
-  animation:fadeInUp 0.4s ease;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0;
+  border: 1px solid var(--gray-3);
 }
+
 .plan-card {
-  background:rgba(35,25,65,0.55); backdrop-filter:blur(16px);
-  border-radius:24px; padding:1.3rem; border:1px solid rgba(168,85,247,0.35);
-  cursor:pointer; transition:all 0.3s; position:relative;
+  padding: 1.5rem;
+  border-right: 1px solid var(--gray-3);
+  border-bottom: 1px solid var(--gray-3);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+  overflow: hidden;
 }
-.plan-card:hover { transform:translateY(-4px); border-color:#c084fc; background:rgba(65,45,105,0.7); }
-.plan-label { font-size:1.1rem; font-weight:700; color:#f3e8ff; margin-bottom:0.3rem; }
-.plan-price { font-size:1.8rem; font-weight:800; color:#c084fc; }
-.plan-price span { font-size:0.9rem; font-weight:500; color:#b9a9e6; }
-.plan-days { font-size:0.72rem; color:#a78bfa; margin-top:0.2rem; }
+
+.plan-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 0;
+  background: var(--white);
+  transition: height 0.25s;
+}
+
+.plan-card:hover {
+  background: var(--gray-1);
+}
+.plan-card:hover::before { height: 100%; }
+
+.plan-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 4rem;
+  line-height: 1;
+  color: rgba(255,255,255,0.07);
+  position: absolute;
+  right: 0.8rem; top: 0.5rem;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -0.05em;
+}
+
+.plan-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--gray-5);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.plan-price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.4rem;
+  letter-spacing: 0.05em;
+  color: var(--white);
+  line-height: 1;
+}
+
+.plan-price-unit {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--gray-5);
+  letter-spacing: 0.1em;
+}
+
+.plan-days-line {
+  font-size: 0.62rem;
+  color: var(--gray-5);
+  margin: 0.6rem 0 1.2rem;
+  letter-spacing: 0.05em;
+}
+
 .plan-buy-btn {
-  width:100%; margin-top:1rem; background:linear-gradient(135deg,#a855f7,#7c3aed);
-  border:none; padding:0.65rem; border-radius:60px; color:white;
-  font-weight:700; font-size:0.88rem; cursor:pointer; transition:all 0.2s;
+  width: 100%;
+  background: none;
+  border: 1px solid var(--gray-3);
+  color: var(--gray-6);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.88rem;
+  letter-spacing: 0.15em;
+  padding: 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s;
 }
-.plan-buy-btn:hover { opacity:0.9; transform:scale(1.02); }
+.plan-buy-btn:hover { background: var(--white); color: var(--black); border-color: var(--white); }
 
-/* CONTACTS */
+/* ===== CONTACTS ===== */
 .contacts-grid {
-  display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem;
-  animation:fadeInUp 0.4s ease;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0;
+  border: 1px solid var(--gray-3);
 }
+
 .contact-card {
-  background:rgba(35,25,65,0.55); backdrop-filter:blur(16px);
-  border-radius:24px; padding:1.3rem 1.5rem; border:1px solid rgba(168,85,247,0.35);
-  display:flex; align-items:center; gap:1rem; cursor:pointer; transition:all 0.3s;
-  text-decoration:none;
+  padding: 1.5rem;
+  border-right: 1px solid var(--gray-3);
+  border-bottom: 1px solid var(--gray-3);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  color: inherit;
 }
-.contact-card:hover { transform:translateY(-4px); border-color:#c084fc; background:rgba(65,45,105,0.7); }
-.contact-icon {
-  width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-  font-size:1.4rem; flex-shrink:0;
-}
-.contact-icon.tg { background:linear-gradient(135deg,#0088cc,#00aaff); color:white; }
-.contact-title { font-size:1rem; font-weight:700; color:#f3e8ff; }
-.contact-sub { font-size:0.72rem; color:#b9a9e6; margin-top:2px; }
+.contact-card:hover { background: var(--gray-1); }
 
-/* ORDERS HISTORY */
-.orders-wrap { display:flex; flex-direction:column; gap:0.8rem; }
+.contact-icon-wrap {
+  width: 44px; height: 44px;
+  border: 1px solid var(--gray-3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  color: var(--white);
+  transition: background 0.15s, border-color 0.15s;
+}
+.contact-card:hover .contact-icon-wrap { background: var(--white); color: var(--black); border-color: var(--white); }
+
+.contact-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  color: var(--white);
+  line-height: 1.2;
+}
+.contact-sub { font-size: 0.6rem; color: var(--gray-5); letter-spacing: 0.08em; margin-top: 0.25rem; }
+
+/* ===== ORDERS ===== */
+.orders-page-header {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid var(--gray-3);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.orders-wrap { display: flex; flex-direction: column; }
+
 .order-card {
-  background:rgba(35,25,65,0.55); backdrop-filter:blur(16px);
-  border-radius:20px; padding:1.1rem 1.3rem; border:1px solid rgba(168,85,247,0.3);
-  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  border: 1px solid var(--gray-3);
+  border-top: none;
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  transition: background 0.15s;
 }
-.order-info { flex:1; min-width:0; }
-.order-plan { font-weight:700; color:#f3e8ff; font-size:0.95rem; }
-.order-meta { font-size:0.7rem; color:#b9a9e6; margin-top:3px; }
+.order-card:first-child { border-top: 1px solid var(--gray-3); }
+.order-card:hover { background: var(--gray-1); }
+
+.order-plan { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.08em; }
+.order-meta { font-size: 0.6rem; color: var(--gray-5); margin-top: 0.25rem; letter-spacing: 0.04em; }
+
 .order-key {
-  font-family:monospace; font-size:0.85rem; background:rgba(34,197,94,0.12);
-  border:1px solid rgba(34,197,94,0.3); border-radius:10px;
-  padding:0.3rem 0.8rem; color:#86efac; margin-top:0.4rem; word-break:break-all;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  background: rgba(0,255,136,0.06);
+  border: 1px solid rgba(0,255,136,0.2);
+  padding: 0.25rem 0.7rem;
+  color: var(--green);
+  margin-top: 0.5rem;
+  word-break: break-all;
+  letter-spacing: 0.06em;
 }
+
 .order-status-badge {
-  font-size:0.65rem; font-weight:700; padding:0.25rem 0.75rem;
-  border-radius:60px; white-space:nowrap;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid;
+  white-space: nowrap;
+  text-transform: uppercase;
 }
-.badge-pending { background:rgba(234,179,8,0.15); color:#fbbf24; border:1px solid rgba(234,179,8,0.3); }
-.badge-paid { background:rgba(59,130,246,0.15); color:#93c5fd; border:1px solid rgba(59,130,246,0.3); }
-.badge-fulfilled { background:rgba(34,197,94,0.15); color:#86efac; border:1px solid rgba(34,197,94,0.3); }
-.badge-cancelled { background:rgba(239,68,68,0.1); color:#fca5a5; border:1px solid rgba(239,68,68,0.2); }
+
+.badge-pending  { border-color: rgba(255,238,0,0.35); color: var(--yellow); background: rgba(255,238,0,0.06); }
+.badge-paid     { border-color: rgba(0,170,255,0.35); color: var(--blue); background: rgba(0,170,255,0.06); }
+.badge-fulfilled{ border-color: rgba(0,255,136,0.35); color: var(--green); background: rgba(0,255,136,0.06); }
+.badge-cancelled{ border-color: rgba(255,51,51,0.3); color: var(--red); background: rgba(255,51,51,0.06); }
+
 .btn-cancel-order {
-  background:none; border:1px solid rgba(239,68,68,0.3); color:#fca5a5;
-  padding:0.3rem 0.8rem; border-radius:8px; cursor:pointer; font-size:0.7rem; transition:all 0.2s;
-  white-space:nowrap;
+  background: none;
+  border: 1px solid rgba(255,51,51,0.3);
+  color: var(--red);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  padding: 0.25rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
-.btn-cancel-order:hover { background:rgba(239,68,68,0.1); }
+.btn-cancel-order:hover { background: rgba(255,51,51,0.1); }
+
 .btn-copy-key {
-  background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:#86efac;
-  padding:0.25rem 0.7rem; border-radius:8px; cursor:pointer; font-size:0.68rem; transition:all 0.2s;
+  background: none;
+  border: 1px solid rgba(0,255,136,0.25);
+  color: var(--green);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  padding: 0.25rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
 }
-.btn-copy-key:hover { background:rgba(34,197,94,0.2); }
-.empty-msg { text-align:center; color:#7c6a9e; padding:3rem 1rem; font-size:0.9rem; }
+.btn-copy-key:hover { background: rgba(0,255,136,0.1); }
 
-/* MODALS */
+.empty-msg {
+  text-align: center;
+  color: var(--gray-4);
+  padding: 4rem 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--gray-3);
+}
+
+/* ===== MODALS ===== */
 .modal-overlay {
-  position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);
-  z-index:1000; display:none; align-items:center; justify-content:center;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
 }
-.modal-overlay.open { display:flex; }
-.modal-box {
-  background:rgba(20,12,40,0.97); border:1px solid rgba(168,85,247,0.4);
-  border-radius:28px; padding:2rem; width:100%; max-width:420px; margin:1rem;
-  animation:modalIn 0.25s ease; max-height:90vh; overflow-y:auto;
-}
-@keyframes modalIn { from{ opacity:0; transform:scale(0.95) translateY(8px); } to{ opacity:1; transform:scale(1) translateY(0); } }
-.modal-title { font-size:1.15rem; font-weight:700; color:#f3e8ff; margin-bottom:0.3rem; }
-.modal-sub { font-size:0.75rem; color:#b9a9e6; margin-bottom:1.5rem; }
-.modal-tabs { display:flex; gap:0.5rem; margin-bottom:1.5rem; }
-.modal-tab {
-  flex:1; padding:0.55rem; border-radius:12px; cursor:pointer; text-align:center;
-  font-size:0.82rem; font-weight:600; border:1px solid rgba(168,85,247,0.3);
-  background:rgba(55,35,85,0.3); color:#b9a9e6; transition:all 0.2s;
-}
-.modal-tab.active { background:linear-gradient(135deg,#a855f7,#7c3aed); color:white; border-color:#c084fc; }
-.modal-input {
-  width:100%; background:rgba(30,20,50,0.8); border:1.5px solid rgba(168,85,247,0.35);
-  border-radius:60px; padding:0.7rem 1.2rem; color:#f0e6ff; font-size:0.9rem;
-  margin-bottom:0.85rem;
-}
-.modal-input:focus { outline:none; border-color:#c084fc; }
-.modal-btn {
-  width:100%; background:linear-gradient(135deg,#a855f7,#7c3aed);
-  border:none; padding:0.8rem; border-radius:60px;
-  color:white; font-weight:700; cursor:pointer; font-size:0.9rem; transition:all 0.2s;
-}
-.modal-btn:hover { opacity:0.9; }
-.modal-btn:disabled { opacity:0.5; cursor:not-allowed; }
-.modal-cancel {
-  width:100%; background:rgba(55,35,85,0.5); border:1px solid rgba(168,85,247,0.3);
-  padding:0.65rem; border-radius:60px; color:#b9a9e6; cursor:pointer; font-size:0.85rem;
-  margin-top:0.6rem;
-}
-.modal-error { color:#fca5a5; font-size:0.75rem; text-align:center; margin-bottom:0.8rem; display:none; }
-.modal-error.show { display:block; }
-.modal-success { color:#86efac; font-size:0.78rem; text-align:center; margin-bottom:0.8rem; display:none; }
-.modal-success.show { display:block; }
+.modal-overlay.open { display: flex; }
 
-/* Key reveal card */
-.key-reveal-card {
-  background:rgba(34,197,94,0.1); border:1.5px solid rgba(34,197,94,0.4);
-  border-radius:18px; padding:1.3rem; text-align:center; margin-bottom:1rem;
+.modal-box {
+  background: var(--black);
+  border: 1px solid var(--gray-3);
+  width: 100%; max-width: 400px; margin: 1rem;
+  animation: modalIn 0.2s ease;
+  max-height: 92vh; overflow-y: auto;
 }
-.key-reveal-label { font-size:0.68rem; color:#86efac; margin-bottom:0.5rem; letter-spacing:0.1em; }
+@keyframes modalIn { from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
+
+.modal-header {
+  border-bottom: 1px solid var(--gray-3);
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.modal-close {
+  background: none;
+  border: 1px solid var(--gray-3);
+  color: var(--gray-5);
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.modal-close:hover { border-color: var(--white); color: var(--white); }
+
+.modal-body { padding: 1.5rem; }
+
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--gray-3);
+  margin-bottom: 1.5rem;
+}
+
+.modal-tab {
+  flex: 1; padding: 0.7rem; text-align: center;
+  cursor: pointer;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  color: var(--gray-5);
+  border: none; background: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.modal-tab.active { color: var(--white); border-bottom-color: var(--white); }
+.modal-tab:hover { color: var(--white); }
+
+.modal-input {
+  width: 100%;
+  background: var(--gray-1);
+  border: 1px solid var(--gray-3);
+  border-radius: 0;
+  padding: 0.75rem 1rem;
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.82rem;
+  margin-bottom: 0.75rem;
+  transition: border-color 0.15s;
+  letter-spacing: 0.04em;
+}
+.modal-input:focus { outline: none; border-color: var(--white); }
+
+.modal-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  color: var(--gray-5);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+.modal-btn {
+  width: 100%;
+  background: var(--white);
+  color: var(--black);
+  border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.15em;
+  padding: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 0.25rem;
+}
+.modal-btn:hover { background: var(--gray-6); }
+.modal-btn:disabled { background: var(--gray-3); color: var(--gray-5); cursor: not-allowed; }
+
+.modal-cancel {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--gray-3);
+  color: var(--gray-5);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  padding: 0.65rem;
+  cursor: pointer;
+  margin-top: 0.6rem;
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
+}
+.modal-cancel:hover { border-color: var(--white); color: var(--white); }
+
+.modal-error {
+  font-size: 0.68rem;
+  color: var(--red);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(255,51,51,0.25);
+  background: rgba(255,51,51,0.06);
+  margin-bottom: 0.75rem;
+  display: none;
+  letter-spacing: 0.04em;
+}
+.modal-error.show { display: block; }
+.modal-success {
+  font-size: 0.68rem;
+  color: var(--green);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(0,255,136,0.25);
+  background: rgba(0,255,136,0.06);
+  margin-bottom: 0.75rem;
+  display: none;
+  letter-spacing: 0.04em;
+}
+.modal-success.show { display: block; }
+
+/* KEY REVEAL */
+.key-reveal-card {
+  border: 1px solid rgba(0,255,136,0.3);
+  padding: 1.3rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  background: rgba(0,255,136,0.04);
+}
+.key-reveal-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: var(--green);
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
 .key-reveal-value {
-  font-family:monospace; font-size:1.4rem; font-weight:800;
-  color:#4ade80; letter-spacing:0.1em; word-break:break-all; margin-bottom:0.6rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.1em;
+  word-break: break-all;
+  margin-bottom: 0.7rem;
 }
 .btn-copy {
-  background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.4); color:#4ade80;
-  padding:0.4rem 1.2rem; border-radius:60px; cursor:pointer; font-size:0.78rem; transition:all 0.2s;
+  background: rgba(0,255,136,0.1);
+  border: 1px solid rgba(0,255,136,0.3);
+  color: var(--green);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  padding: 0.4rem 1.2rem;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: all 0.15s;
 }
-.btn-copy:hover { background:rgba(34,197,94,0.25); }
+.btn-copy:hover { background: rgba(0,255,136,0.2); }
 
-/* Payment waiting */
+/* PAYMENT WAITING */
 .pay-info-card {
-  background:rgba(0,102,204,0.1); border:1px solid rgba(0,170,255,0.3);
-  border-radius:16px; padding:1rem; margin-bottom:1.2rem; text-align:center;
+  border: 1px solid var(--gray-3);
+  padding: 1.2rem;
+  text-align: center;
+  margin-bottom: 1.2rem;
+  background: var(--gray-1);
 }
-.pay-info-name { font-size:0.9rem; font-weight:700; color:#e0f7ff; }
-.pay-info-price { font-size:1.6rem; font-weight:800; color:#4ade80; margin-top:0.3rem; }
+.pay-info-name { font-size: 0.72rem; color: var(--gray-5); letter-spacing: 0.08em; }
+.pay-info-price { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 0.08em; color: var(--white); margin-top: 0.2rem; }
+
+/* CHECKOUT CONFIRM */
+.confirm-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--gray-3);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+.confirm-row:last-child { border-bottom: none; }
+.confirm-key { color: var(--gray-5); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.confirm-val { font-weight: 700; color: var(--white); }
+
 .spinner {
-  width:36px; height:36px; border:3px solid rgba(168,85,247,0.3);
-  border-top-color:#a855f7; border-radius:50%; animation:spin 0.8s linear infinite; margin:1rem auto;
+  width: 32px; height: 32px;
+  border: 2px solid var(--gray-3);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 1rem auto;
 }
 @keyframes spin { to{ transform:rotate(360deg); } }
 
-/* Toast */
-.toast-msg {
-  position:fixed; bottom:25px; left:50%; transform:translateX(-50%);
-  background:rgba(45,25,75,0.95); backdrop-filter:blur(20px);
-  padding:10px 24px; border-radius:60px; color:#f0e6ff;
-  z-index:2000; opacity:0; transition:0.2s; pointer-events:none; font-size:0.85rem;
-  border:1px solid rgba(168,85,247,0.3);
+/* CHECKOUT RESULT */
+.ck-result {
+  font-size: 0.7rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid;
+  margin-bottom: 1rem;
+  display: none;
+  letter-spacing: 0.04em;
 }
-.toast-msg.show { opacity:1; }
 
+/* BTN ROW */
+.btn-row { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+.btn-row .modal-btn { margin-top: 0; }
+.btn-row .modal-cancel { margin-top: 0; }
+
+/* TOAST */
+.toast-msg {
+  position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+  background: var(--white);
+  color: var(--black);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  padding: 0.65rem 1.5rem;
+  z-index: 9000;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.toast-msg.show { opacity: 1; }
+
+/* FOOTER */
 .glass-footer {
-  margin-top:2rem; text-align:center; padding:0.8rem;
-  background:rgba(35,20,55,0.3); backdrop-filter:blur(12px);
-  border-radius:60px; font-size:0.7rem; color:#a78bfa;
+  margin-top: 2.5rem;
+  padding: 1rem;
+  border-top: 1px solid var(--gray-3);
+  font-size: 0.58rem;
+  color: var(--gray-4);
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 @media(max-width:640px) {
-  .plans-grid, .contacts-grid { grid-template-columns:1fr; }
-  .nav-tabs { gap:0.3rem; }
-  .nav-btn { padding:0.4rem 0.8rem; font-size:0.75rem; }
+  .plans-grid, .contacts-grid { grid-template-columns: 1fr; }
+  .nav-btn { padding: 0 0.9rem; font-size: 0.9rem; }
+  .shop-header { padding: 1.2rem; }
+  .modal-box { margin: 0.5rem; }
 }
 </style>
 </head>
 <body>
-<div class="morph-bg"></div>
-<div class="morph-bg-2"></div>
 
 <!-- NAV -->
 <div class="nav-bar">
   <div class="nav-tabs">
-    <button class="nav-btn active" data-tab="shop">🔑 SHOP</button>
-    <button class="nav-btn" data-tab="orders">📋 MY ORDERS</button>
-    <button class="nav-btn" data-tab="contacts">📲 CONTACTS</button>
+    <button class="nav-btn active" data-tab="shop">SHOP</button>
+    <button class="nav-btn" data-tab="orders">ORDERS</button>
+    <button class="nav-btn" data-tab="contacts">CONTACTS</button>
   </div>
   <div class="nav-user">
     <div class="user-pill" id="userPill" onclick="openAuthModal()">
       <i class="fas fa-user" id="userPillIcon"></i>
-      <span id="userPillText">Login</span>
+      <span id="userPillText">LOGIN</span>
     </div>
   </div>
 </div>
@@ -273,61 +773,61 @@ body {
 
   <!-- ===== SHOP TAB ===== -->
   <div id="shopTab" class="tab-section active">
-    <div class="glass-header">
-      <div id="appLogo" style="display:flex;align-items:center;justify-content:center;gap:0.8rem;margin-bottom:0.4rem;">
-        <img id="shopLogoImg" src="" alt="" style="height:48px;border-radius:14px;display:none;">
-        <div class="header-logo" id="appName">N4XCO SHOP</div>
+    <div class="shop-header">
+      <div class="header-logo">
+        <img id="shopLogoImg" src="" alt="">
+        <span id="appName">N4XCO SHOP</span>
       </div>
-      <div class="header-tagline">Buy activation keys securely · Powered by PayMongo GCash</div>
+      <div class="header-meta">
+        <span>ACTIVATION KEYS</span>
+        <span>GCASH · PAYMONGO</span>
+        <span>AUTO-DELIVERED</span>
+      </div>
     </div>
 
     <!-- APK download -->
-    <div id="apkDownload" style="display:none;margin-bottom:1.2rem;background:rgba(35,25,65,0.5);border:1px solid rgba(168,85,247,0.3);border-radius:20px;padding:1rem 1.3rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+    <div id="apkDownload" class="apk-banner">
       <div>
-        <div style="font-weight:700;color:#f3e8ff;font-size:0.95rem;" id="apkName">N4XCO App</div>
-        <div style="font-size:0.7rem;color:#b9a9e6;">Click to download the APK</div>
+        <div class="apk-banner-label">AVAILABLE NOW</div>
+        <div class="apk-banner-name" id="apkName">N4XCO APP</div>
       </div>
-      <button onclick="downloadApk()" style="background:linear-gradient(135deg,#a855f7,#7c3aed);border:none;padding:0.55rem 1.3rem;border-radius:60px;color:white;font-weight:700;font-size:0.82rem;cursor:pointer;white-space:nowrap;">
-        <i class="fas fa-download"></i> Download APK
+      <button class="btn-download" onclick="downloadApk()">
+        ↓ DOWNLOAD APK
       </button>
     </div>
 
+    <div class="section-label">AVAILABLE PLANS</div>
     <div id="plansGrid" class="plans-grid"></div>
-    <div class="glass-footer">Secure checkout via GCash · PayMongo · Keys auto-delivered</div>
+    <div class="glass-footer">SECURE CHECKOUT VIA GCASH · PAYMONGO · KEYS AUTO-DELIVERED</div>
   </div>
 
   <!-- ===== ORDERS TAB ===== -->
   <div id="ordersTab" class="tab-section">
-    <div class="glass-header">
-      <div class="header-logo">📋 MY ORDERS</div>
-      <div class="header-tagline">Your purchase history · Manage your keys</div>
-    </div>
+    <div class="orders-page-header">MY ORDERS</div>
     <div id="ordersContainer"></div>
   </div>
 
   <!-- ===== CONTACTS TAB ===== -->
   <div id="contactsTab" class="tab-section">
-    <div class="glass-header">
-      <div class="header-logo">📲 CONTACTS</div>
-      <div class="header-tagline">Reach us on Telegram · Click any card to open</div>
-    </div>
+    <div class="orders-page-header">CONTACTS</div>
+    <div class="section-label">REACH US ON TELEGRAM</div>
     <div class="contacts-grid">
       <a class="contact-card" href="https://t.me/JEPFX" target="_blank">
-        <div class="contact-icon tg"><i class="fab fa-telegram"></i></div>
+        <div class="contact-icon-wrap"><i class="fab fa-telegram"></i></div>
         <div>
           <div class="contact-title">JEPFX SERVICES</div>
           <div class="contact-sub">t.me/JEPFX</div>
         </div>
       </a>
       <a class="contact-card" href="https://t.me/n4xcoall" target="_blank">
-        <div class="contact-icon tg"><i class="fab fa-telegram"></i></div>
+        <div class="contact-icon-wrap"><i class="fab fa-telegram"></i></div>
         <div>
           <div class="contact-title">N4XCO CHANNEL</div>
           <div class="contact-sub">t.me/n4xcoall</div>
         </div>
       </a>
       <a class="contact-card" href="https://t.me/zekielsZ" target="_blank">
-        <div class="contact-icon tg"><i class="fab fa-telegram"></i></div>
+        <div class="contact-icon-wrap"><i class="fab fa-telegram"></i></div>
         <div>
           <div class="contact-title">N4XCO ACCOUNT</div>
           <div class="contact-sub">t.me/zekielsZ</div>
@@ -338,128 +838,149 @@ body {
 
 </div><!-- /app-container -->
 
-<!-- ===== AUTH MODAL (Login / Register) ===== -->
+<!-- ===== AUTH MODAL ===== -->
 <div class="modal-overlay" id="authModal">
   <div class="modal-box">
-    <div class="modal-title" id="authModalTitle">Welcome to N4XCO</div>
-    <div class="modal-sub">Login or create an account to purchase keys</div>
-    <div class="modal-tabs">
-      <div class="modal-tab active" id="tabLogin" onclick="switchAuthTab('login')">Login</div>
-      <div class="modal-tab" id="tabRegister" onclick="switchAuthTab('register')">Register</div>
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="authModalTitle">N4XCO SHOP</div>
+        <div style="font-size:0.6rem;color:var(--gray-5);letter-spacing:0.08em;margin-top:0.2rem;">LOGIN OR REGISTER TO PURCHASE KEYS</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('authModal')"><i class="fas fa-times"></i></button>
     </div>
-    <div id="authError" class="modal-error"></div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tabLogin" onclick="switchAuthTab('login')">LOGIN</button>
+        <button class="modal-tab" id="tabRegister" onclick="switchAuthTab('register')">REGISTER</button>
+      </div>
+      <div id="authError" class="modal-error"></div>
 
-    <!-- Login form -->
-    <div id="loginForm">
-      <input type="text" id="loginUser" class="modal-input" placeholder="Username">
-      <input type="password" id="loginPass" class="modal-input" placeholder="Password">
-      <button class="modal-btn" id="loginBtn">🔐 Login</button>
+      <!-- Login -->
+      <div id="loginForm">
+        <label class="modal-label">Username</label>
+        <input type="text" id="loginUser" class="modal-input" placeholder="your_username">
+        <label class="modal-label">Password</label>
+        <input type="password" id="loginPass" class="modal-input" placeholder="••••••••">
+        <button class="modal-btn" id="loginBtn">LOGIN</button>
+      </div>
+
+      <!-- Register -->
+      <div id="registerForm" style="display:none;">
+        <label class="modal-label">Username</label>
+        <input type="text" id="regUser" class="modal-input" placeholder="choose_username">
+        <label class="modal-label">Password</label>
+        <input type="password" id="regPass" class="modal-input" placeholder="min. 6 characters">
+        <label class="modal-label">Telegram (optional)</label>
+        <input type="text" id="regTelegram" class="modal-input" placeholder="@yourtelegram">
+        <button class="modal-btn" id="registerBtn">CREATE ACCOUNT</button>
+      </div>
     </div>
-
-    <!-- Register form -->
-    <div id="registerForm" style="display:none;">
-      <input type="text" id="regUser" class="modal-input" placeholder="Username (min 3 chars)">
-      <input type="password" id="regPass" class="modal-input" placeholder="Password (min 6 chars)">
-      <input type="text" id="regTelegram" class="modal-input" placeholder="Telegram username (optional)">
-      <button class="modal-btn" id="registerBtn">📝 Create Account</button>
-    </div>
-
-    <button class="modal-cancel" onclick="closeModal('authModal')">Cancel</button>
   </div>
 </div>
 
 <!-- ===== CHECKOUT MODAL ===== -->
 <div class="modal-overlay" id="checkoutModal">
   <div class="modal-box">
-    <!-- Step 1: Confirm plan -->
-    <div id="ckStep1">
-      <div class="modal-title">Confirm Purchase</div>
-      <div class="modal-sub" id="ckPlanName">Plan details</div>
-      <div id="ckError" class="modal-error"></div>
-      <div style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:16px;padding:1rem 1.2rem;margin-bottom:1.2rem;">
-        <div style="font-size:0.7rem;color:#a78bfa;">SELECTED PLAN</div>
-        <div id="ckPlanLabel" style="font-size:1.1rem;font-weight:700;color:#f3e8ff;margin-top:0.3rem;"></div>
-        <div id="ckPlanPrice" style="font-size:1.6rem;font-weight:800;color:#c084fc;"></div>
-      </div>
-      <div style="font-size:0.72rem;color:#b9a9e6;margin-bottom:1.2rem;">
-        Logged in as: <strong id="ckUsername" style="color:#f0e6ff;"></strong>
-      </div>
-      <button class="modal-btn" id="ckPayBtn">
-        <i class="fas fa-credit-card"></i> Pay via GCash
-      </button>
-      <button class="modal-cancel" onclick="closeModal('checkoutModal')">Cancel</button>
+    <div class="modal-header">
+      <div class="modal-title" id="ckPlanName">CHECKOUT</div>
+      <button class="modal-close" id="ckCloseBtn"><i class="fas fa-times"></i></button>
     </div>
+    <div class="modal-body">
 
-    <!-- Step 2: Waiting for payment -->
-    <div id="ckStep2" style="display:none;text-align:center;">
-      <div style="font-size:2.5rem;margin-bottom:0.5rem;">💳</div>
-      <div class="modal-title">Complete GCash Payment</div>
-      <div style="font-size:0.78rem;color:#b9a9e6;margin:0.5rem 0 1.2rem;line-height:1.6;">
-        A GCash payment page has been opened.<br>
-        After paying, click <strong style="color:#c084fc;">Check Status</strong> below.
+      <!-- STEP 1: Confirm -->
+      <div id="ckStep1">
+        <div id="ckError" class="modal-error"></div>
+
+        <div style="border:1px solid var(--gray-3);margin-bottom:1.2rem;">
+          <div class="confirm-row" style="padding:0.7rem 1rem;">
+            <span class="confirm-key">Plan</span>
+            <span class="confirm-val" id="ckPlanLabel">—</span>
+          </div>
+          <div class="confirm-row" style="padding:0.7rem 1rem;border-bottom:none;">
+            <span class="confirm-key">Price</span>
+            <span class="confirm-val" id="ckPlanPrice">—</span>
+          </div>
+        </div>
+
+        <div style="font-size:0.6rem;color:var(--gray-5);letter-spacing:0.08em;margin-bottom:1rem;">
+          BUYING AS: <span id="ckUsername" style="color:var(--white);"></span>
+        </div>
+
+        <button class="modal-btn" id="ckPayBtn">PAY VIA GCASH</button>
+        <button class="modal-cancel" id="ckCancelBtn">CANCEL</button>
       </div>
-      <div class="pay-info-card">
-        <div class="pay-info-name" id="ckPayPlan"></div>
-        <div class="pay-info-price" id="ckPayPrice"></div>
-      </div>
-      <button class="modal-btn" id="ckReopenBtn" style="background:linear-gradient(135deg,#0066cc,#00aaff);margin-bottom:0.6rem;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
-        <i class="fas fa-external-link-alt"></i> Reopen Payment Page
-      </button>
-      <button class="modal-btn" id="ckCheckBtn" style="margin-bottom:0.6rem;">
-        🔄 Check Payment Status
-      </button>
-      <div id="ckCheckResult" style="display:none;border-radius:14px;padding:0.9rem;margin-bottom:0.8rem;font-size:0.82rem;"></div>
-      <!-- Key auto-reveal -->
-      <div id="ckKeyReveal" style="display:none;">
-        <div class="key-reveal-card">
-          <div class="key-reveal-label">✅ PAYMENT CONFIRMED — YOUR KEY</div>
-          <div class="key-reveal-value" id="ckRevealKey"></div>
-          <button class="btn-copy" onclick="copyText(document.getElementById('ckRevealKey').textContent)">📋 Copy Key</button>
+
+      <!-- STEP 2: Waiting for payment -->
+      <div id="ckStep2" style="display:none;">
+        <div class="pay-info-card">
+          <div class="pay-info-name" id="ckPayPlan">—</div>
+          <div class="pay-info-price" id="ckPayPrice">—</div>
+          <div style="font-size:0.6rem;color:var(--gray-5);margin-top:0.4rem;letter-spacing:0.08em;">
+            ORDER <span id="ckOrderIdDisplay"></span>
+          </div>
+        </div>
+
+        <div style="font-size:0.6rem;color:var(--gray-5);letter-spacing:0.06em;line-height:1.8;border:1px solid var(--gray-3);padding:0.75rem 1rem;margin-bottom:1rem;background:var(--gray-1);">
+          GCASH PAYMENT PAGE HAS BEEN OPENED.<br>
+          COMPLETE THE PAYMENT, THEN CHECK STATUS.
+        </div>
+
+        <div class="ck-result" id="ckCheckResult"></div>
+
+        <!-- Key reveal -->
+        <div class="key-reveal-card" id="ckKeyReveal" style="display:none;">
+          <div class="key-reveal-label">YOUR ACTIVATION KEY</div>
+          <div class="key-reveal-value" id="ckRevealKey">—</div>
+          <button class="btn-copy" onclick="copyText(document.getElementById('ckRevealKey').textContent)">COPY KEY</button>
+        </div>
+
+        <div class="btn-row">
+          <button class="modal-btn" id="ckCheckBtn" style="flex:1;">CHECK PAYMENT</button>
+          <button class="modal-cancel" id="ckReopenBtn" style="flex:1;margin-top:0;">REOPEN PAGE</button>
         </div>
       </div>
-      <div style="font-size:0.63rem;color:#7c6aff;margin-bottom:0.6rem;">
-        Order: <span style="font-family:monospace;color:#a78bfa;" id="ckOrderIdDisplay"></span>
-      </div>
-      <button class="modal-cancel" id="ckCancelBtn">Cancel / Close</button>
+
     </div>
   </div>
 </div>
 
-<div id="toastMsg" class="toast-msg"></div>
+<!-- TOAST -->
+<div class="toast-msg" id="toastMsg"></div>
 
 <script>
-// ==================== STATE ====================
-let userToken = localStorage.getItem('n4xco_token') || null;
-let userName  = localStorage.getItem('n4xco_user') || null;
-let storeData = { plans: [], apk: {} };
+// ===== STATE =====
+let userToken = localStorage.getItem('n4xco_token');
+let userName = localStorage.getItem('n4xco_user');
+let storeData = {};
 let activeCheckoutOrderId = null;
 let activeCheckoutUrl = null;
 let statusPollTimer = null;
+let pendingCheckoutPlanId = null;
 
-// ==================== NAV ====================
+// ===== TABS =====
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
     const tab = btn.dataset.tab;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
     document.getElementById(tab + 'Tab').classList.add('active');
     if (tab === 'orders') loadOrders();
   });
 });
 
-// ==================== AUTH ====================
+// ===== AUTH =====
 function updateUserPill() {
   const pill = document.getElementById('userPill');
   const icon = document.getElementById('userPillIcon');
   const text = document.getElementById('userPillText');
   if (userToken && userName) {
-    text.textContent = userName;
+    text.textContent = userName.toUpperCase();
     icon.className = 'fas fa-user-check';
     pill.classList.add('logged-in');
     pill.onclick = () => { if(confirm('Log out as ' + userName + '?')) doLogout(); };
   } else {
-    text.textContent = 'Login';
+    text.textContent = 'LOGIN';
     icon.className = 'fas fa-user';
     pill.classList.remove('logged-in');
     pill.onclick = openAuthModal;
@@ -469,7 +990,7 @@ function updateUserPill() {
 function doLogout() {
   userToken = null; userName = null;
   localStorage.removeItem('n4xco_token'); localStorage.removeItem('n4xco_user');
-  updateUserPill(); toast('Logged out');
+  updateUserPill(); toast('LOGGED OUT');
 }
 
 function openAuthModal() {
@@ -491,54 +1012,52 @@ function switchAuthTab(tab) {
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const username = document.getElementById('loginUser').value.trim();
   const password = document.getElementById('loginPass').value;
-  if (!username || !password) return showErr('authError', 'Enter username and password');
+  if (!username || !password) return showErr('authError', 'ENTER USERNAME AND PASSWORD');
   document.getElementById('loginBtn').disabled = true;
-  document.getElementById('loginBtn').textContent = 'Logging in...';
+  document.getElementById('loginBtn').textContent = 'LOGGING IN...';
   try {
     const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password }) });
     const data = await res.json();
-    if (!res.ok) { showErr('authError', data.message || 'Invalid credentials'); return; }
+    if (!res.ok) { showErr('authError', data.message || 'INVALID CREDENTIALS'); return; }
     userToken = data.token; userName = data.username;
     localStorage.setItem('n4xco_token', userToken);
     localStorage.setItem('n4xco_user', userName);
     updateUserPill();
     closeModal('authModal');
-    toast('Welcome back, ' + userName + '! 👋');
-    // If there was a pending checkout, resume it
+    toast('WELCOME BACK, ' + userName.toUpperCase());
     if (pendingCheckoutPlanId) { const p = pendingCheckoutPlanId; pendingCheckoutPlanId = null; openCheckout(p); }
-  } catch(e) { showErr('authError', 'Network error'); }
-  finally { document.getElementById('loginBtn').disabled = false; document.getElementById('loginBtn').textContent = '🔐 Login'; }
+  } catch(e) { showErr('authError', 'NETWORK ERROR'); }
+  finally { document.getElementById('loginBtn').disabled = false; document.getElementById('loginBtn').textContent = 'LOGIN'; }
 });
 
 document.getElementById('registerBtn').addEventListener('click', async () => {
   const username = document.getElementById('regUser').value.trim();
   const password = document.getElementById('regPass').value;
   const telegram = document.getElementById('regTelegram').value.trim();
-  if (!username || !password) return showErr('authError', 'Fill in username and password');
-  if (username.length < 3) return showErr('authError', 'Username must be at least 3 characters');
-  if (password.length < 6) return showErr('authError', 'Password must be at least 6 characters');
+  if (!username || !password) return showErr('authError', 'FILL IN USERNAME AND PASSWORD');
+  if (username.length < 3) return showErr('authError', 'USERNAME MUST BE AT LEAST 3 CHARACTERS');
+  if (password.length < 6) return showErr('authError', 'PASSWORD MUST BE AT LEAST 6 CHARACTERS');
   document.getElementById('registerBtn').disabled = true;
-  document.getElementById('registerBtn').textContent = 'Creating account...';
+  document.getElementById('registerBtn').textContent = 'CREATING...';
   try {
     const res = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password, telegram }) });
     const data = await res.json();
-    if (!res.ok) { showErr('authError', data.message || 'Registration failed'); return; }
+    if (!res.ok) { showErr('authError', data.message || 'REGISTRATION FAILED'); return; }
     userToken = data.token; userName = data.username;
     localStorage.setItem('n4xco_token', userToken);
     localStorage.setItem('n4xco_user', userName);
     updateUserPill();
     closeModal('authModal');
-    toast('Account created! Welcome, ' + userName + '! 🎉');
+    toast('ACCOUNT CREATED! WELCOME, ' + userName.toUpperCase());
     if (pendingCheckoutPlanId) { const p = pendingCheckoutPlanId; pendingCheckoutPlanId = null; openCheckout(p); }
-  } catch(e) { showErr('authError', 'Network error'); }
-  finally { document.getElementById('registerBtn').disabled = false; document.getElementById('registerBtn').textContent = '📝 Create Account'; }
+  } catch(e) { showErr('authError', 'NETWORK ERROR'); }
+  finally { document.getElementById('registerBtn').disabled = false; document.getElementById('registerBtn').textContent = 'CREATE ACCOUNT'; }
 });
 
-// Allow Enter key on login
 document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
 document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
 
-// ==================== STORE LOAD ====================
+// ===== STORE =====
 async function loadStore() {
   try {
     const res = await fetch('/api/store');
@@ -551,14 +1070,14 @@ async function loadStore() {
 function renderApk() {
   const apk = storeData.apk;
   if (!apk) return;
-  if (apk.name) document.getElementById('appName').textContent = apk.name;
+  if (apk.name) document.getElementById('appName').textContent = apk.name.toUpperCase();
   if (apk.logo) {
     const img = document.getElementById('shopLogoImg');
     img.src = apk.logo; img.style.display = '';
   }
   const apkDiv = document.getElementById('apkDownload');
   if (apk.link && apk.link !== 'https://example.com/download') {
-    document.getElementById('apkName').textContent = apk.name || 'N4XCO App';
+    document.getElementById('apkName').textContent = (apk.name || 'N4XCO App').toUpperCase();
     apkDiv.style.display = 'flex';
   }
 }
@@ -569,27 +1088,28 @@ function downloadApk() {
 
 function renderPlans() {
   const grid = document.getElementById('plansGrid');
-  if (!storeData.plans?.length) { grid.innerHTML = '<div style="color:#7c6a9e;text-align:center;padding:3rem;">No plans available. Check back soon!</div>'; return; }
-  grid.innerHTML = storeData.plans.map(p => `
+  if (!storeData.plans?.length) {
+    grid.innerHTML = '<div style="color:var(--gray-4);text-align:center;padding:4rem;font-size:0.72rem;letter-spacing:0.1em;border:1px solid var(--gray-3);">NO PLANS AVAILABLE. CHECK BACK SOON.</div>';
+    return;
+  }
+  grid.innerHTML = storeData.plans.map((p, i) => `
     <div class="plan-card" onclick="handleBuyClick('${p.id}')">
-      <div class="plan-label">${esc(p.label)}</div>
-      <div class="plan-price">₱${p.price}<span> PHP</span></div>
-      <div class="plan-days"><i class="fas fa-calendar-alt"></i> ${p.days} days access</div>
-      <button class="plan-buy-btn">
-        <i class="fas fa-shopping-cart"></i> Buy Now
-      </button>
+      <div class="plan-number">${String(p.days).padStart(2,'0')}</div>
+      <div class="plan-label">${esc(p.label)} PLAN</div>
+      <div class="plan-price">₱${p.price}</div>
+      <div class="plan-price-unit">PHP · ${p.days} DAYS ACCESS</div>
+      <div class="plan-days-line">Valid for ${p.days} day${p.days > 1 ? 's' : ''} from activation</div>
+      <button class="plan-buy-btn">BUY NOW →</button>
     </div>
   `).join('');
 }
 
-// ==================== CHECKOUT ====================
-let pendingCheckoutPlanId = null;
-
+// ===== CHECKOUT =====
 function handleBuyClick(planId) {
   if (!userToken || !userName) {
     pendingCheckoutPlanId = planId;
     openAuthModal();
-    toast('Please login or register to purchase', 'info');
+    toast('LOGIN TO PURCHASE');
     return;
   }
   openCheckout(planId);
@@ -598,18 +1118,15 @@ function handleBuyClick(planId) {
 function openCheckout(planId) {
   const plan = storeData.plans.find(p => p.id === planId);
   if (!plan) return;
-  // Reset modal
   document.getElementById('ckStep1').style.display = '';
   document.getElementById('ckStep2').style.display = 'none';
   document.getElementById('ckKeyReveal').style.display = 'none';
   document.getElementById('ckCheckResult').style.display = 'none';
   clearErr('ckError');
-  // Fill info
-  document.getElementById('ckPlanName').textContent = 'N4XCO ' + plan.label + ' Key';
-  document.getElementById('ckPlanLabel').textContent = plan.label;
+  document.getElementById('ckPlanName').textContent = 'N4XCO ' + plan.label.toUpperCase() + ' KEY';
+  document.getElementById('ckPlanLabel').textContent = plan.label.toUpperCase();
   document.getElementById('ckPlanPrice').textContent = '₱' + plan.price;
   document.getElementById('ckUsername').textContent = userName;
-  // Store plan in pay button
   document.getElementById('ckPayBtn').dataset.planId = planId;
   document.getElementById('checkoutModal').classList.add('open');
 }
@@ -617,7 +1134,7 @@ function openCheckout(planId) {
 document.getElementById('ckPayBtn').addEventListener('click', async () => {
   const planId = document.getElementById('ckPayBtn').dataset.planId;
   document.getElementById('ckPayBtn').disabled = true;
-  document.getElementById('ckPayBtn').textContent = '⏳ Creating payment link...';
+  document.getElementById('ckPayBtn').textContent = 'CREATING PAYMENT LINK...';
   clearErr('ckError');
   try {
     const res = await fetch('/api/checkout', {
@@ -626,27 +1143,20 @@ document.getElementById('ckPayBtn').addEventListener('click', async () => {
       body: JSON.stringify({ planId })
     });
     const data = await res.json();
-    if (!res.ok) { showErr('ckError', data.message || 'Checkout failed'); return; }
-
+    if (!res.ok) { showErr('ckError', data.message || 'CHECKOUT FAILED'); return; }
     activeCheckoutOrderId = data.orderId;
     activeCheckoutUrl = data.checkoutUrl;
-
-    // Show step 2
     const plan = storeData.plans.find(p => p.id === planId);
-    document.getElementById('ckPayPlan').textContent = plan ? plan.label : '';
+    document.getElementById('ckPayPlan').textContent = plan ? plan.label.toUpperCase() : '';
     document.getElementById('ckPayPrice').textContent = plan ? '₱' + plan.price : '';
-    document.getElementById('ckOrderIdDisplay').textContent = data.orderId.split('-')[0];
+    document.getElementById('ckOrderIdDisplay').textContent = data.orderId.split('-')[0].toUpperCase();
     document.getElementById('ckStep1').style.display = 'none';
     document.getElementById('ckStep2').style.display = '';
-
-    // Open GCash page
     window.open(activeCheckoutUrl, '_blank');
-
-    // Start auto-poll every 5 seconds
     if (statusPollTimer) clearInterval(statusPollTimer);
     statusPollTimer = setInterval(() => pollOrderStatus(activeCheckoutOrderId), 5000);
-  } catch(e) { showErr('ckError', 'Network error. Try again.'); }
-  finally { document.getElementById('ckPayBtn').disabled = false; document.getElementById('ckPayBtn').innerHTML = '<i class="fas fa-credit-card"></i> Pay via GCash'; }
+  } catch(e) { showErr('ckError', 'NETWORK ERROR. TRY AGAIN.'); }
+  finally { document.getElementById('ckPayBtn').disabled = false; document.getElementById('ckPayBtn').textContent = 'PAY VIA GCASH'; }
 });
 
 document.getElementById('ckReopenBtn').addEventListener('click', () => {
@@ -655,10 +1165,10 @@ document.getElementById('ckReopenBtn').addEventListener('click', () => {
 
 document.getElementById('ckCheckBtn').addEventListener('click', async () => {
   if (!activeCheckoutOrderId) return;
-  document.getElementById('ckCheckBtn').textContent = '⏳ Checking...';
+  document.getElementById('ckCheckBtn').textContent = 'CHECKING...';
   document.getElementById('ckCheckBtn').disabled = true;
   await pollOrderStatus(activeCheckoutOrderId);
-  document.getElementById('ckCheckBtn').textContent = '🔄 Check Payment Status';
+  document.getElementById('ckCheckBtn').textContent = 'CHECK PAYMENT';
   document.getElementById('ckCheckBtn').disabled = false;
 });
 
@@ -668,53 +1178,55 @@ document.getElementById('ckCancelBtn').addEventListener('click', () => {
   closeModal('checkoutModal');
 });
 
+document.getElementById('ckCloseBtn').addEventListener('click', () => {
+  if (activeCheckoutOrderId) return; // don't close mid-payment
+  closeModal('checkoutModal');
+});
+
 async function pollOrderStatus(orderId) {
   try {
     const res = await fetch('/api/order/' + orderId);
     const data = await res.json();
     if (!data.success) return;
-
     const resultEl = document.getElementById('ckCheckResult');
     resultEl.style.display = '';
-
     if (data.status === 'fulfilled' && data.key) {
-      // SUCCESS — show key
       if (statusPollTimer) { clearInterval(statusPollTimer); statusPollTimer = null; }
-      resultEl.style.background = 'rgba(34,197,94,0.1)';
-      resultEl.style.border = '1px solid rgba(34,197,94,0.3)';
-      resultEl.style.color = '#86efac';
-      resultEl.textContent = '✅ Payment confirmed!';
-
+      resultEl.style.borderColor = 'rgba(0,255,136,0.3)';
+      resultEl.style.color = 'var(--green)';
+      resultEl.style.background = 'rgba(0,255,136,0.06)';
+      resultEl.textContent = '✓ PAYMENT CONFIRMED!';
       document.getElementById('ckRevealKey').textContent = data.key;
       document.getElementById('ckKeyReveal').style.display = '';
       document.getElementById('ckCheckBtn').style.display = 'none';
       document.getElementById('ckReopenBtn').style.display = 'none';
-      toast('🎉 Key delivered! Check the modal.');
+      activeCheckoutOrderId = null;
+      toast('KEY DELIVERED!');
     } else if (data.status === 'paid') {
-      resultEl.style.background = 'rgba(59,130,246,0.1)';
-      resultEl.style.border = '1px solid rgba(59,130,246,0.3)';
-      resultEl.style.color = '#93c5fd';
-      resultEl.textContent = '✅ Paid! Assigning key... please wait.';
+      resultEl.style.borderColor = 'rgba(0,170,255,0.3)';
+      resultEl.style.color = 'var(--blue)';
+      resultEl.style.background = 'rgba(0,170,255,0.06)';
+      resultEl.textContent = '✓ PAID — ASSIGNING KEY, PLEASE WAIT.';
     } else if (data.status === 'pending') {
-      resultEl.style.background = 'rgba(234,179,8,0.1)';
-      resultEl.style.border = '1px solid rgba(234,179,8,0.25)';
-      resultEl.style.color = '#fbbf24';
-      resultEl.textContent = '⏳ Payment not detected yet. Make sure you completed payment.';
+      resultEl.style.borderColor = 'rgba(255,238,0,0.3)';
+      resultEl.style.color = 'var(--yellow)';
+      resultEl.style.background = 'rgba(255,238,0,0.06)';
+      resultEl.textContent = '⏳ PAYMENT NOT DETECTED. MAKE SURE PAYMENT IS COMPLETE.';
     } else if (data.status === 'cancelled') {
-      resultEl.style.background = 'rgba(239,68,68,0.1)';
-      resultEl.style.border = '1px solid rgba(239,68,68,0.2)';
-      resultEl.style.color = '#fca5a5';
-      resultEl.textContent = '❌ Order was cancelled.';
+      resultEl.style.borderColor = 'rgba(255,51,51,0.3)';
+      resultEl.style.color = 'var(--red)';
+      resultEl.style.background = 'rgba(255,51,51,0.06)';
+      resultEl.textContent = '✗ ORDER WAS CANCELLED.';
       if (statusPollTimer) { clearInterval(statusPollTimer); statusPollTimer = null; }
     }
   } catch(e) {}
 }
 
-// ==================== ORDERS ====================
+// ===== ORDERS =====
 async function loadOrders() {
   const container = document.getElementById('ordersContainer');
   if (!userToken) {
-    container.innerHTML = `<div class="empty-msg"><i class="fas fa-lock" style="font-size:2rem;display:block;margin-bottom:0.8rem;opacity:0.4;"></i>Login to see your orders</div>`;
+    container.innerHTML = `<div class="empty-msg">— LOGIN TO SEE YOUR ORDERS —</div>`;
     return;
   }
   container.innerHTML = `<div class="empty-msg"><div class="spinner"></div></div>`;
@@ -722,30 +1234,30 @@ async function loadOrders() {
     const res = await fetch('/api/user/orders', { headers:{ Authorization:'Bearer ' + userToken } });
     const data = await res.json();
     if (!data.success || !data.orders.length) {
-      container.innerHTML = `<div class="empty-msg"><i class="fas fa-receipt" style="font-size:2rem;display:block;margin-bottom:0.8rem;opacity:0.4;"></i>No orders yet. Go buy a key!</div>`;
+      container.innerHTML = `<div class="empty-msg">— NO ORDERS YET —</div>`;
       return;
     }
     container.innerHTML = '<div class="orders-wrap">' + data.orders.map(o => {
       const badge = o.status === 'fulfilled' ? 'badge-fulfilled' :
                     o.status === 'paid' ? 'badge-paid' :
                     o.status === 'cancelled' ? 'badge-cancelled' : 'badge-pending';
-      const statusLabel = o.status === 'fulfilled' ? '✅ Key Delivered' :
-                          o.status === 'paid' ? '🔵 Awaiting Key' :
-                          o.status === 'cancelled' ? '❌ Cancelled' : '⏳ Pending Payment';
+      const statusLabel = o.status === 'fulfilled' ? 'KEY DELIVERED' :
+                          o.status === 'paid' ? 'AWAITING KEY' :
+                          o.status === 'cancelled' ? 'CANCELLED' : 'PENDING PAYMENT';
       return `<div class="order-card">
-        <div class="order-info">
-          <div class="order-plan">${esc(o.plan_label)}</div>
-          <div class="order-meta">₱${o.price} · ${new Date(o.created_at).toLocaleString()} · #${o.id.split('-')[0]}</div>
+        <div class="order-info" style="flex:1;min-width:0;">
+          <div class="order-plan">${esc(o.plan_label.toUpperCase())}</div>
+          <div class="order-meta">₱${o.price} · ${new Date(o.created_at).toLocaleString()} · #${o.id.split('-')[0].toUpperCase()}</div>
           ${o.key_given ? `<div class="order-key">${esc(o.key_given)}</div>` : ''}
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem;">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem;flex-shrink:0;">
           <span class="order-status-badge ${badge}">${statusLabel}</span>
-          ${o.key_given ? `<button class="btn-copy-key" onclick="copyText('${esc(o.key_given)}')">📋 Copy Key</button>` : ''}
-          ${o.status === 'pending' ? `<button class="btn-cancel-order" onclick="cancelOrder('${o.id}')">Cancel</button>` : ''}
+          ${o.key_given ? `<button class="btn-copy-key" onclick="copyText('${esc(o.key_given)}')">COPY KEY</button>` : ''}
+          ${o.status === 'pending' ? `<button class="btn-cancel-order" onclick="cancelOrder('${o.id}')">CANCEL</button>` : ''}
         </div>
       </div>`;
     }).join('') + '</div>';
-  } catch(e) { container.innerHTML = `<div class="empty-msg">Failed to load orders. Try again.</div>`; }
+  } catch(e) { container.innerHTML = `<div class="empty-msg">FAILED TO LOAD. TRY AGAIN.</div>`; }
 }
 
 async function cancelOrder(orderId) {
@@ -755,12 +1267,12 @@ async function cancelOrder(orderId) {
       method:'POST', headers:{ Authorization:'Bearer ' + userToken }
     });
     const data = await res.json();
-    if (data.success) { toast('Order cancelled'); loadOrders(); }
-    else toast(data.message || 'Cannot cancel', 'error');
-  } catch(e) { toast('Error', 'error'); }
+    if (data.success) { toast('ORDER CANCELLED'); loadOrders(); }
+    else toast(data.message || 'CANNOT CANCEL');
+  } catch(e) { toast('ERROR'); }
 }
 
-// ==================== UTILS ====================
+// ===== UTILS =====
 function esc(str) {
   if (!str) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -773,7 +1285,7 @@ function toast(msg) {
 }
 
 function copyText(text) {
-  navigator.clipboard.writeText(text).then(() => toast('📋 Copied!')).catch(() => {});
+  navigator.clipboard.writeText(text).then(() => toast('COPIED!')).catch(() => {});
 }
 
 function closeModal(id) {
@@ -789,17 +1301,16 @@ function clearErr(id) {
   if (el) { el.textContent = ''; el.classList.remove('show'); }
 }
 
-// Close modals on backdrop click
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', function(e) {
     if (e.target === this) {
-      if (this.id === 'checkoutModal' && activeCheckoutOrderId) return; // don't close mid-payment
+      if (this.id === 'checkoutModal' && activeCheckoutOrderId) return;
       this.classList.remove('open');
     }
   });
 });
 
-// ==================== INIT ====================
+// ===== INIT =====
 updateUserPill();
 loadStore();
 </script>

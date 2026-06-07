@@ -3,163 +3,658 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>N4XCO Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
+<title>N4XCO ADMIN</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
 :root {
-  --bg:#0a0515; --surface:#0f0a20; --card:#140d28;
-  --border:rgba(168,85,247,0.2); --accent:#a855f7; --accent2:#7c3aed; --accent3:#c084fc;
-  --text:#f0e6ff; --muted:#7c6a9e; --danger:#ef4444; --success:#22c55e; --green:#86efac;
+  --black: #000;
+  --white: #fff;
+  --g1: #0d0d0d;
+  --g2: #1a1a1a;
+  --g3: #2a2a2a;
+  --g4: #444;
+  --g5: #777;
+  --g6: #aaa;
+  --green: #00ff88;
+  --yellow: #ffee00;
+  --red: #ff3333;
+  --blue: #00aaff;
 }
-*{ margin:0; padding:0; box-sizing:border-box; }
-body{ background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
 
-/* LOGIN */
-#login-screen{
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+}
+
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.01) 2px, rgba(255,255,255,0.01) 4px);
+  pointer-events:none; z-index:9999;
+}
+
+/* ===== LOGIN ===== */
+#login-screen {
   min-height:100vh; display:flex; align-items:center; justify-content:center;
-  background:var(--bg);
-  background-image:radial-gradient(ellipse at 30% 20%,rgba(168,85,247,0.15) 0%,transparent 50%),
-                   radial-gradient(ellipse at 70% 80%,rgba(124,58,237,0.1) 0%,transparent 50%);
+  background: var(--black);
 }
-.login-box{
-  background:rgba(15,10,32,0.9); border:1px solid var(--border);
-  border-radius:24px; padding:2.5rem; width:100%; max-width:380px; backdrop-filter:blur(20px);
+
+.login-box {
+  border: 1px solid var(--g3);
+  padding: 2.5rem;
+  width: 100%; max-width: 360px;
 }
-.login-logo{ font-size:1.8rem; font-weight:800; background:linear-gradient(135deg,#f0e6ff,#c084fc,#a855f7); background-clip:text; -webkit-background-clip:text; color:transparent; margin-bottom:0.2rem; }
-.login-sub{ color:var(--muted); font-size:0.75rem; margin-bottom:2rem; }
-.login-box label{ display:block; font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.4rem; }
-.login-box input{
-  width:100%; background:rgba(20,13,40,0.8); border:1.5px solid var(--border);
-  border-radius:60px; padding:0.75rem 1.2rem; color:var(--text); font-size:0.88rem; margin-bottom:1rem;
+
+.login-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 0.1em;
+  color: var(--white);
+  line-height: 1;
+  margin-bottom: 0.2rem;
 }
-.login-box input:focus{ outline:none; border-color:var(--accent3); }
-.btn-login{ width:100%; background:linear-gradient(135deg,#a855f7,#7c3aed); border:none; color:white; padding:0.8rem; border-radius:60px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:opacity 0.2s; }
-.btn-login:hover{ opacity:0.88; }
-.login-error{ color:#fca5a5; font-size:0.73rem; margin-top:0.75rem; display:none; text-align:center; }
 
-/* SHELL */
-#admin-shell{ display:none; min-height:100vh; }
-header{
-  border-bottom:1px solid var(--border); padding:0 1.5rem;
-  display:flex; align-items:center; justify-content:space-between; height:56px;
-  background:rgba(10,5,21,0.95); backdrop-filter:blur(12px); position:sticky; top:0; z-index:200;
+.login-sub {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: var(--g5);
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--g3);
+  padding-bottom: 1rem;
 }
-.header-logo{ font-size:1.1rem; font-weight:800; background:linear-gradient(135deg,#f0e6ff,#c084fc); background-clip:text; -webkit-background-clip:text; color:transparent; }
-.admin-badge{ font-size:0.58rem; background:rgba(168,85,247,0.15); color:var(--accent3); border:1px solid rgba(168,85,247,0.3); padding:0.15rem 0.6rem; border-radius:99px; margin-left:0.6rem; }
-.btn-viewsite{ background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.3); color:var(--accent3); font-size:0.7rem; padding:0.35rem 0.8rem; border-radius:6px; cursor:pointer; text-decoration:none; transition:all 0.2s; }
-.btn-viewsite:hover{ background:rgba(168,85,247,0.2); }
-.btn-logout{ background:none; border:1px solid var(--border); color:var(--muted); font-size:0.7rem; padding:0.35rem 0.8rem; border-radius:6px; cursor:pointer; transition:all 0.2s; }
-.btn-logout:hover{ border-color:var(--danger); color:var(--danger); }
 
-.admin-layout{ display:flex; min-height:calc(100vh - 56px); }
-.sidebar{
-  width:200px; flex-shrink:0; border-right:1px solid var(--border);
-  padding:1.25rem 0.75rem; background:var(--surface);
-  position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto;
+.login-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  color: var(--g5);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.4rem;
 }
-.sidebar-section{ font-size:0.58rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; padding:0 0.5rem; margin-bottom:0.5rem; margin-top:1.25rem; }
-.sidebar-section:first-child{ margin-top:0; }
-.nav-item{
-  display:flex; align-items:center; gap:0.6rem; padding:0.55rem 0.75rem;
-  border-radius:8px; cursor:pointer; font-size:0.82rem; color:var(--muted); transition:all 0.15s;
-  border:none; background:none; width:100%; text-align:left; margin-bottom:0.15rem;
+
+.login-input {
+  width:100%;
+  background: var(--g1);
+  border: 1px solid var(--g3);
+  padding: 0.75rem 1rem;
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.82rem;
+  margin-bottom: 1rem;
+  transition: border-color 0.15s;
 }
-.nav-item:hover{ color:var(--text); background:rgba(168,85,247,0.08); }
-.nav-item.active{ color:var(--text); background:rgba(168,85,247,0.15); border-left:3px solid var(--accent); padding-left:calc(0.75rem - 3px); }
-.main{ flex:1; padding:2rem; min-width:0; }
-.panel{ display:none; }
-.panel.active{ display:block; animation:fadeIn 0.3s ease; }
-@keyframes fadeIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+.login-input:focus { outline:none; border-color: var(--white); }
 
-.panel-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:1.75rem; padding-bottom:1rem; border-bottom:1px solid var(--border); }
-.panel-title{ font-size:1.3rem; font-weight:800; }
-.panel-sub{ color:var(--muted); font-size:0.78rem; margin-top:0.2rem; }
+.btn-login {
+  width:100%;
+  background: var(--white);
+  color: var(--black);
+  border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.15em;
+  padding: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-login:hover { background: var(--g6); }
 
-/* Buttons */
-.btn-primary{ background:linear-gradient(135deg,#a855f7,#7c3aed); border:none; color:white; padding:0.6rem 1.3rem; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.82rem; transition:opacity 0.2s; white-space:nowrap; }
-.btn-primary:hover{ opacity:0.88; }
-.btn-secondary{ background:var(--card); border:1px solid var(--border); color:var(--text); padding:0.6rem 1.1rem; border-radius:8px; cursor:pointer; font-size:0.82rem; transition:border-color 0.2s; }
-.btn-secondary:hover{ border-color:var(--accent3); }
-.btn-danger{ background:none; border:1px solid rgba(239,68,68,0.3); color:var(--danger); padding:0.3rem 0.75rem; border-radius:6px; cursor:pointer; font-size:0.68rem; transition:all 0.2s; }
-.btn-danger:hover{ background:rgba(239,68,68,0.1); }
-.btn-success{ background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:#86efac; padding:0.3rem 0.75rem; border-radius:6px; cursor:pointer; font-size:0.68rem; transition:all 0.2s; }
-.btn-success:hover{ background:rgba(34,197,94,0.2); }
+.login-error {
+  font-size: 0.65rem;
+  color: var(--red);
+  margin-top: 0.75rem;
+  letter-spacing: 0.06em;
+  display: none;
+}
 
-/* Stat cards */
-.stat-cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:1rem; margin-bottom:2rem; }
-.stat-card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.1rem 1.3rem; }
-.stat-val{ font-size:1.8rem; font-weight:800; color:var(--accent3); }
-.stat-lbl{ font-size:0.7rem; color:var(--muted); margin-top:0.2rem; }
+/* ===== SHELL ===== */
+#admin-shell { display:none; min-height:100vh; flex-direction:column; }
+#admin-shell.visible { display:flex; }
 
-/* Form fields */
-.field-group{ margin-bottom:1.2rem; }
-.field-group label{ display:block; font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.4rem; }
-.field-input{ width:100%; background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:0.7rem 1rem; color:var(--text); font-size:0.88rem; transition:border-color 0.2s; }
-.field-input:focus{ outline:none; border-color:var(--accent3); }
-.field-textarea{ width:100%; background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:0.7rem 1rem; color:var(--text); font-size:0.85rem; font-family:monospace; resize:vertical; min-height:100px; }
-.field-textarea:focus{ outline:none; border-color:var(--accent3); }
-.field-select{ background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:0.6rem 0.9rem; color:var(--text); font-size:0.85rem; }
+/* HEADER */
+header {
+  height: 48px;
+  border-bottom: 1px solid var(--g3);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.5rem;
+  background: var(--black);
+  position: sticky; top:0; z-index:200;
+  flex-shrink: 0;
+}
 
-/* Table */
-.table-wrap{ overflow-x:auto; }
-.data-table{ width:100%; border-collapse:collapse; min-width:500px; }
-.data-table th{ text-align:left; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; padding:0 1rem 0.75rem; border-bottom:1px solid var(--border); }
-.data-table td{ padding:0.8rem 1rem; border-bottom:1px solid rgba(168,85,247,0.08); font-size:0.82rem; vertical-align:middle; }
-.data-table tr:last-child td{ border-bottom:none; }
-.data-table tr:hover td{ background:rgba(168,85,247,0.04); }
+.header-brand {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.12em;
+  color: var(--white);
+  display: flex; align-items: center; gap: 0.8rem;
+}
 
-/* Status badges */
-.badge{ font-size:0.62rem; font-weight:700; padding:0.2rem 0.65rem; border-radius:99px; white-space:nowrap; }
-.badge-pending{ background:rgba(234,179,8,0.12); color:#fbbf24; border:1px solid rgba(234,179,8,0.25); }
-.badge-paid{ background:rgba(59,130,246,0.12); color:#93c5fd; border:1px solid rgba(59,130,246,0.25); }
-.badge-fulfilled{ background:rgba(34,197,94,0.12); color:#86efac; border:1px solid rgba(34,197,94,0.25); }
-.badge-cancelled{ background:rgba(239,68,68,0.1); color:#fca5a5; border:1px solid rgba(239,68,68,0.2); }
-.badge-admin{ background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.3); }
-.badge-user{ background:rgba(107,114,128,0.15); color:#9ca3af; border:1px solid rgba(107,114,128,0.25); }
+.admin-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.15em;
+  border: 1px solid var(--g4);
+  color: var(--g5);
+  padding: 0.15rem 0.5rem;
+  text-transform: uppercase;
+}
 
-/* Plan row */
-.plan-row{ display:flex; gap:0.8rem; align-items:center; padding:0.8rem; border-radius:12px; border:1px solid var(--border); background:var(--card); margin-bottom:0.5rem; flex-wrap:wrap; }
-.plan-row-label{ font-size:0.88rem; font-weight:600; min-width:80px; }
-.plan-row input{ background:rgba(10,5,21,0.7); border:1px solid var(--border); border-radius:8px; padding:0.4rem 0.7rem; color:var(--text); font-size:0.85rem; width:90px; }
-.plan-row input:focus{ outline:none; border-color:var(--accent3); }
-.toggle-wrap{ display:flex; align-items:center; gap:0.4rem; font-size:0.72rem; color:var(--muted); }
-input[type=checkbox].toggle{ width:1.1rem; height:1.1rem; accent-color:var(--accent); }
+.header-actions { display:flex; gap:0.6rem; align-items:center; }
 
-/* Key pool list */
-.key-list{ max-height:300px; overflow-y:auto; }
-.key-item{ display:flex; align-items:center; justify-content:space-between; padding:0.4rem 0.7rem; border-radius:8px; font-family:monospace; font-size:0.78rem; color:var(--green); background:rgba(34,197,94,0.05); margin-bottom:0.3rem; }
-.key-item.used{ color:var(--muted); background:rgba(107,114,128,0.05); text-decoration:line-through; }
+.btn-sm {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--g3);
+  background: none;
+  color: var(--g6);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.btn-sm:hover { border-color: var(--white); color: var(--white); }
+.btn-sm.danger:hover { border-color: var(--red); color: var(--red); }
 
-/* Sub-card for orders */
-.order-row{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:0.9rem 1.1rem; margin-bottom:0.7rem; display:flex; gap:1rem; align-items:flex-start; flex-wrap:wrap; }
-.order-row-info{ flex:1; min-width:0; }
-.order-row-actions{ display:flex; flex-direction:column; gap:0.4rem; flex-shrink:0; }
-.fulfill-form{ display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
-.fulfill-input{ background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:0.35rem 0.7rem; color:var(--text); font-size:0.8rem; font-family:monospace; width:200px; }
-.fulfill-input:focus{ outline:none; border-color:var(--accent3); }
+/* LAYOUT */
+.admin-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
 
-/* Modal */
-.modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); z-index:500; display:none; align-items:center; justify-content:center; }
-.modal-overlay.open{ display:flex; }
-.modal-box2{ background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1.8rem; width:100%; max-width:440px; margin:1rem; max-height:85vh; overflow-y:auto; }
-.m-title{ font-size:1.1rem; font-weight:700; margin-bottom:0.3rem; }
-.m-sub{ color:var(--muted); font-size:0.75rem; margin-bottom:1.5rem; }
-.m-input{ width:100%; background:var(--surface); border:1.5px solid var(--border); border-radius:10px; padding:0.65rem 0.9rem; color:var(--text); font-size:0.85rem; margin-bottom:0.9rem; }
-.m-input:focus{ outline:none; border-color:var(--accent3); }
-.m-select{ background:var(--surface); border:1.5px solid var(--border); border-radius:10px; padding:0.65rem 0.9rem; color:var(--text); font-size:0.85rem; margin-bottom:0.9rem; width:100%; }
-.m-err{ color:#fca5a5; font-size:0.73rem; margin-bottom:0.7rem; display:none; }
-.m-err.show{ display:block; }
+/* SIDEBAR */
+.sidebar {
+  width: 188px; flex-shrink:0;
+  border-right: 1px solid var(--g3);
+  background: var(--g1);
+  padding: 1rem 0;
+  position: sticky; top:48px;
+  height: calc(100vh - 48px);
+  overflow-y: auto;
+}
 
-/* Toast */
-.toast-bar{ position:fixed; bottom:20px; right:20px; padding:0.65rem 1.2rem; border-radius:10px; font-size:0.82rem; z-index:9999; opacity:0; transition:opacity 0.2s; pointer-events:none; }
-.toast-bar.show{ opacity:1; }
-.toast-bar.success{ background:#166534; border:1px solid #22c55e; color:#86efac; }
-.toast-bar.error{ background:#7f1d1d; border:1px solid #ef4444; color:#fca5a5; }
+.sidebar-section {
+  font-size: 0.52rem;
+  letter-spacing: 0.2em;
+  color: var(--g4);
+  text-transform: uppercase;
+  padding: 0.8rem 1.2rem 0.4rem;
+}
 
-.filter-bar{ display:flex; gap:0.6rem; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; }
-.filter-bar select{ background:var(--card); border:1px solid var(--border); border-radius:8px; padding:0.4rem 0.7rem; color:var(--text); font-size:0.8rem; }
-.filter-bar input{ background:var(--card); border:1px solid var(--border); border-radius:8px; padding:0.4rem 0.8rem; color:var(--text); font-size:0.8rem; }
+.nav-item {
+  display: flex; align-items: center; gap: 0.7rem;
+  padding: 0.6rem 1.2rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--g5);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border: none; background: none;
+  width: 100%; text-align: left;
+  transition: all 0.12s;
+  border-left: 2px solid transparent;
+}
+.nav-item:hover { color: var(--white); background: var(--g2); }
+.nav-item.active { color: var(--white); background: var(--g2); border-left-color: var(--white); }
+.nav-item i { width: 14px; text-align: center; }
+
+/* MAIN */
+.main { flex:1; padding: 1.8rem 2rem; min-width:0; overflow-y:auto; }
+
+.panel { display:none; animation: fadeIn 0.2s ease; }
+.panel.active { display:block; }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+/* PANEL HEADER */
+.panel-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  border-bottom: 1px solid var(--g3);
+  padding-bottom: 1.2rem;
+  margin-bottom: 1.8rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.panel-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.panel-sub {
+  font-size: 0.6rem;
+  color: var(--g5);
+  letter-spacing: 0.08em;
+  margin-top: 0.3rem;
+  text-transform: uppercase;
+}
+
+/* BUTTONS */
+.btn-primary {
+  background: var(--white);
+  color: var(--black);
+  border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  padding: 0.55rem 1.2rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn-primary:hover { background: var(--g6); }
+
+.btn-secondary {
+  background: none;
+  color: var(--g6);
+  border: 1px solid var(--g3);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+.btn-secondary:hover { border-color: var(--white); color: var(--white); }
+
+.btn-danger {
+  background: none;
+  border: 1px solid rgba(255,51,51,0.3);
+  color: var(--red);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
+}
+.btn-danger:hover { background: rgba(255,51,51,0.1); }
+
+.btn-success {
+  background: none;
+  border: 1px solid rgba(0,255,136,0.3);
+  color: var(--green);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
+}
+.btn-success:hover { background: rgba(0,255,136,0.08); }
+
+/* STAT CARDS */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0;
+  border: 1px solid var(--g3);
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  padding: 1.2rem 1.5rem;
+  border-right: 1px solid var(--g3);
+  border-bottom: 1px solid var(--g3);
+}
+
+.stat-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 0.05em;
+  color: var(--white);
+  line-height: 1;
+}
+
+.stat-lbl {
+  font-size: 0.58rem;
+  color: var(--g5);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 0.3rem;
+}
+
+/* FORM FIELDS */
+.field-group { margin-bottom: 1.1rem; }
+
+.field-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  color: var(--g5);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.field-input {
+  width: 100%;
+  background: var(--g1);
+  border: 1px solid var(--g3);
+  padding: 0.7rem 1rem;
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  transition: border-color 0.15s;
+  letter-spacing: 0.04em;
+}
+.field-input:focus { outline:none; border-color: var(--white); }
+
+.field-textarea {
+  width: 100%;
+  background: var(--g1);
+  border: 1px solid var(--g3);
+  padding: 0.7rem 1rem;
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  resize: vertical;
+  min-height: 110px;
+  letter-spacing: 0.04em;
+}
+.field-textarea:focus { outline:none; border-color: var(--white); }
+
+.field-select {
+  background: var(--g1);
+  border: 1px solid var(--g3);
+  padding: 0.6rem 0.8rem;
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+}
+
+/* TABLE */
+.table-wrap { overflow-x: auto; border: 1px solid var(--g3); }
+.data-table {
+  width: 100%; border-collapse: collapse; min-width: 500px;
+}
+.data-table th {
+  text-align: left;
+  font-size: 0.55rem;
+  color: var(--g5);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--g3);
+  background: var(--g1);
+  font-weight: 400;
+}
+.data-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.75rem;
+  vertical-align: middle;
+  letter-spacing: 0.02em;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--g1); }
+
+/* BADGES */
+.badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.badge-pending  { border-color: rgba(255,238,0,0.35); color: var(--yellow); }
+.badge-paid     { border-color: rgba(0,170,255,0.35); color: var(--blue); }
+.badge-fulfilled{ border-color: rgba(0,255,136,0.35); color: var(--green); }
+.badge-cancelled{ border-color: rgba(255,51,51,0.3); color: var(--red); }
+.badge-admin    { border-color: rgba(255,255,255,0.25); color: var(--white); }
+.badge-user     { border-color: rgba(100,100,100,0.4); color: var(--g5); }
+
+/* PLAN EDITOR ROW */
+.plan-row {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--g3);
+  border-top: none;
+  background: var(--g1);
+  transition: background 0.15s;
+}
+.plan-row:first-child { border-top: 1px solid var(--g3); }
+.plan-row:hover { background: var(--g2); }
+
+.plan-row-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  min-width: 90px;
+}
+
+.plan-row-input {
+  background: var(--black);
+  border: 1px solid var(--g3);
+  padding: 0.35rem 0.7rem;
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  width: 85px;
+  transition: border-color 0.15s;
+}
+.plan-row-input:focus { outline:none; border-color: var(--white); }
+
+.toggle-wrap { display:flex; align-items:center; gap:0.4rem; font-size:0.65rem; color: var(--g5); letter-spacing: 0.06em; }
+input[type=checkbox].toggle { width:1rem; height:1rem; accent-color: var(--white); }
+
+/* KEY POOL */
+.key-list { max-height: 280px; overflow-y: auto; border: 1px solid var(--g3); }
+.key-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.4rem 0.8rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--green);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  letter-spacing: 0.04em;
+}
+.key-item:last-child { border-bottom:none; }
+.key-item.used { color: var(--g4); text-decoration: line-through; }
+
+/* ORDER ROWS */
+.order-row {
+  border: 1px solid var(--g3);
+  border-top: none;
+  padding: 1rem 1.2rem;
+  display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap;
+  transition: background 0.15s;
+}
+.order-row:first-child { border-top: 1px solid var(--g3); }
+.order-row:hover { background: var(--g1); }
+.order-row-info { flex:1; min-width: 0; }
+.order-row-actions { display:flex; flex-direction:column; gap:0.4rem; flex-shrink:0; }
+
+/* FILTER BAR */
+.filter-bar {
+  display: flex; gap: 0.6rem; align-items: center;
+  margin-bottom: 1.2rem; flex-wrap: wrap;
+}
+
+/* KEYS LAYOUT */
+.keys-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+@media(max-width:700px) { .keys-layout { grid-template-columns: 1fr; } }
+
+/* SECTION SUBHEAD */
+.sub-head {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  color: var(--white);
+  margin-bottom: 0.8rem;
+}
+
+/* INFO BOX */
+.info-box {
+  border: 1px solid var(--g3);
+  padding: 1rem 1.2rem;
+  background: var(--g1);
+  font-size: 0.7rem;
+  line-height: 1.8;
+  color: var(--g5);
+  letter-spacing: 0.04em;
+}
+
+/* CODE BLOCK */
+.code-block {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--green);
+  word-break: break-all;
+  letter-spacing: 0.04em;
+  background: var(--black);
+  border: 1px solid var(--g3);
+  padding: 0.7rem 1rem;
+  margin-top: 0.6rem;
+  display: block;
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset:0;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(4px);
+  z-index:500; display:none;
+  align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+
+.modal-box2 {
+  background: var(--black);
+  border: 1px solid var(--g3);
+  width: 100%; max-width: 400px;
+  margin: 1rem;
+  max-height: 88vh; overflow-y: auto;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+
+.modal-head {
+  border-bottom: 1px solid var(--g3);
+  padding: 1.2rem 1.5rem;
+}
+
+.m-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.m-sub {
+  font-size: 0.6rem;
+  color: var(--g5);
+  letter-spacing: 0.08em;
+  margin-top: 0.2rem;
+  text-transform: uppercase;
+}
+
+.modal-body2 { padding: 1.5rem; }
+
+.m-input {
+  width:100%;
+  background: var(--g1);
+  border: 1px solid var(--g3);
+  padding: 0.7rem 1rem;
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+  transition: border-color 0.15s;
+}
+.m-input:focus { outline:none; border-color: var(--white); }
+
+.m-select {
+  background: var(--g1);
+  border: 1px solid var(--g3);
+  padding: 0.7rem 1rem;
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+  width:100%;
+}
+
+.m-err {
+  font-size: 0.65rem;
+  color: var(--red);
+  padding: 0.4rem 0.7rem;
+  border: 1px solid rgba(255,51,51,0.25);
+  background: rgba(255,51,51,0.06);
+  margin-bottom: 0.75rem;
+  display:none;
+  letter-spacing: 0.04em;
+}
+.m-err.show { display:block; }
+
+.m-label {
+  font-size: 0.52rem;
+  letter-spacing: 0.18em;
+  color: var(--g5);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.btn-row { display:flex; gap:0.6rem; }
+.btn-row .btn-primary { flex:1; }
+.btn-row .btn-secondary { flex:1; }
+
+/* TOAST */
+.toast-bar {
+  position: fixed; bottom:1.5rem; right:1.5rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  padding: 0.6rem 1.2rem;
+  z-index:9999; opacity:0;
+  transition:opacity 0.2s;
+  pointer-events:none;
+  letter-spacing: 0.06em;
+  border: 1px solid;
+}
+.toast-bar.show { opacity:1; }
+.toast-bar.success { background: rgba(0,255,136,0.06); border-color: rgba(0,255,136,0.3); color: var(--green); }
+.toast-bar.error { background: rgba(255,51,51,0.06); border-color: rgba(255,51,51,0.3); color: var(--red); }
+
+/* RECENT TABLE WRAPPER */
+.section-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: var(--g5);
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+/* MSG */
+.inline-msg {
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  margin-top: 0.6rem;
+  display:none;
+}
+
+@media(max-width:700px) {
+  .sidebar { display:none; }
+  .main { padding: 1rem; }
+  .plan-row { flex-direction:column; align-items:flex-start; }
+}
 </style>
 </head>
 <body>
@@ -167,13 +662,13 @@ input[type=checkbox].toggle{ width:1.1rem; height:1.1rem; accent-color:var(--acc
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-logo">N4XCO Admin</div>
-    <div class="login-sub">Shop Management Panel</div>
-    <label>Username</label>
-    <input type="text" id="adm-user" placeholder="N4XCO">
-    <label>Password</label>
-    <input type="password" id="adm-pass" placeholder="••••••••">
-    <button class="btn-login" id="adm-login-btn">Login</button>
+    <div class="login-logo">N4XCO</div>
+    <div class="login-sub">ADMIN PANEL · SHOP MANAGEMENT</div>
+    <label class="login-label">Username</label>
+    <input type="text" id="adm-user" class="login-input" placeholder="N4XCO">
+    <label class="login-label">Password</label>
+    <input type="password" id="adm-pass" class="login-input" placeholder="••••••••">
+    <button class="btn-login" id="adm-login-btn">LOGIN</button>
     <div class="login-error" id="adm-err"></div>
   </div>
 </div>
@@ -181,28 +676,28 @@ input[type=checkbox].toggle{ width:1.1rem; height:1.1rem; accent-color:var(--acc
 <!-- ADMIN SHELL -->
 <div id="admin-shell">
   <header>
-    <div style="display:flex;align-items:center;">
-      <span class="header-logo">N4XCO SHOP</span>
+    <div class="header-brand">
+      N4XCO SHOP
       <span class="admin-badge">ADMIN</span>
     </div>
-    <div style="display:flex;align-items:center;gap:0.75rem;">
-      <a href="/" target="_blank" class="btn-viewsite"><i class="fas fa-store"></i> View Shop</a>
-      <button class="btn-logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    <div class="header-actions">
+      <a href="/" target="_blank" class="btn-sm"><i class="fas fa-store"></i> VIEW SHOP</a>
+      <button id="logoutBtn" class="btn-sm danger"><i class="fas fa-sign-out-alt"></i> LOGOUT</button>
     </div>
   </header>
 
   <div class="admin-layout">
     <!-- SIDEBAR -->
     <div class="sidebar">
-      <div class="sidebar-section">Main</div>
+      <div class="sidebar-section">MAIN</div>
       <button class="nav-item active" data-panel="overview"><i class="fas fa-chart-bar"></i> Overview</button>
-      <div class="sidebar-section">Store</div>
+      <div class="sidebar-section">STORE</div>
       <button class="nav-item" data-panel="apk"><i class="fas fa-mobile-alt"></i> APK Settings</button>
       <button class="nav-item" data-panel="plans"><i class="fas fa-tags"></i> Plans & Prices</button>
       <button class="nav-item" data-panel="keys"><i class="fas fa-key"></i> Key Manager</button>
-      <div class="sidebar-section">Operations</div>
+      <div class="sidebar-section">OPERATIONS</div>
       <button class="nav-item" data-panel="orders"><i class="fas fa-receipt"></i> Orders</button>
-      <div class="sidebar-section">Admin</div>
+      <div class="sidebar-section">SYSTEM</div>
       <button class="nav-item" data-panel="users"><i class="fas fa-users"></i> Users</button>
       <button class="nav-item" data-panel="paymongo"><i class="fas fa-credit-card"></i> PayMongo</button>
     </div>
@@ -212,64 +707,90 @@ input[type=checkbox].toggle{ width:1.1rem; height:1.1rem; accent-color:var(--acc
       <!-- OVERVIEW -->
       <div class="panel active" id="panel-overview">
         <div class="panel-header">
-          <div><div class="panel-title">Overview</div><div class="panel-sub">Shop stats at a glance</div></div>
-          <button class="btn-secondary" onclick="loadStats()"><i class="fas fa-sync-alt"></i> Refresh</button>
+          <div>
+            <div class="panel-title">OVERVIEW</div>
+            <div class="panel-sub">SHOP STATS AT A GLANCE</div>
+          </div>
+          <button class="btn-secondary" onclick="loadStats()"><i class="fas fa-sync-alt"></i> REFRESH</button>
         </div>
-        <div class="stat-cards" id="statCards"></div>
-        <div style="font-size:1rem;font-weight:700;margin-bottom:1rem;">Recent Orders</div>
+        <div class="stat-cards" id="statCards">
+          <div class="stat-card"><div class="stat-val">—</div><div class="stat-lbl">LOADING</div></div>
+        </div>
+        <div class="section-label">RECENT ORDERS</div>
         <div id="recentOrders"></div>
       </div>
 
       <!-- APK SETTINGS -->
       <div class="panel" id="panel-apk">
-        <div class="panel-header"><div><div class="panel-title">APK Settings</div><div class="panel-sub">App name, logo, and download link</div></div></div>
-        <div class="field-group"><label>App Name</label><input type="text" id="apkName" class="field-input" placeholder="N4XCO App"></div>
-        <div class="field-group"><label>Download Link</label><input type="text" id="apkLink" class="field-input" placeholder="https://..."></div>
-        <div class="field-group">
-          <label>Logo Image</label>
-          <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
-            <img id="currentLogo" src="" style="height:50px;border-radius:12px;display:none;border:1px solid var(--border);">
-            <input type="file" id="logoFile" accept="image/*" style="color:var(--muted);font-size:0.8rem;">
-            <button class="btn-primary" onclick="uploadLogo()">Upload Logo</button>
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">APK SETTINGS</div>
+            <div class="panel-sub">APP NAME, LOGO AND DOWNLOAD LINK</div>
           </div>
         </div>
-        <button class="btn-primary" onclick="saveApk()">💾 Save APK Settings</button>
-        <div id="apkMsg" style="font-size:0.75rem;margin-top:0.8rem;display:none;"></div>
+        <div style="max-width:480px;">
+          <div class="field-group">
+            <label class="field-label">App Name</label>
+            <input type="text" id="apkName" class="field-input" placeholder="N4XCO App">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Download Link</label>
+            <input type="text" id="apkLink" class="field-input" placeholder="https://...">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Logo Image</label>
+            <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
+              <img id="currentLogo" src="" style="height:44px;display:none;border:1px solid var(--g3);">
+              <input type="file" id="logoFile" accept="image/*" style="color:var(--g5);font-size:0.72rem;font-family:'Space Mono',monospace;">
+              <button class="btn-secondary" onclick="uploadLogo()">UPLOAD LOGO</button>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="saveApk()">SAVE APK SETTINGS</button>
+          <div class="inline-msg" id="apkMsg"></div>
+        </div>
       </div>
 
       <!-- PLANS -->
       <div class="panel" id="panel-plans">
-        <div class="panel-header"><div><div class="panel-title">Plans & Prices</div><div class="panel-sub">Edit prices and enable/disable plans</div></div>
-        <button class="btn-primary" onclick="savePlans()">💾 Save Plans</button></div>
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">PLANS & PRICES</div>
+            <div class="panel-sub">EDIT PRICES AND ENABLE/DISABLE PLANS</div>
+          </div>
+          <button class="btn-primary" onclick="savePlans()">SAVE PLANS</button>
+        </div>
         <div id="plansEditor"></div>
-        <div id="plansMsg" style="font-size:0.75rem;margin-top:0.8rem;display:none;"></div>
+        <div class="inline-msg" id="plansMsg"></div>
       </div>
 
       <!-- KEYS -->
       <div class="panel" id="panel-keys">
-        <div class="panel-header"><div><div class="panel-title">Key Manager</div><div class="panel-sub">Manage activation key pool</div></div></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;" class="keys-layout">
-          <!-- Add keys -->
+        <div class="panel-header">
           <div>
-            <div style="font-size:0.88rem;font-weight:700;margin-bottom:0.8rem;">Add Keys</div>
+            <div class="panel-title">KEY MANAGER</div>
+            <div class="panel-sub">MANAGE ACTIVATION KEY POOL</div>
+          </div>
+        </div>
+        <div class="keys-layout">
+          <div>
+            <div class="sub-head">ADD KEYS</div>
             <div class="field-group">
-              <label>Plan</label>
+              <label class="field-label">Plan</label>
               <select id="keyPlan" class="field-select" style="width:100%;"></select>
             </div>
             <div class="field-group">
-              <label>Keys (one per line)</label>
+              <label class="field-label">Keys (one per line)</label>
               <textarea id="keyInput" class="field-textarea" placeholder="KEY-XXXX-XXXX&#10;KEY-YYYY-YYYY&#10;..."></textarea>
             </div>
-            <button class="btn-primary" onclick="addKeys()">+ Add Keys</button>
-            <div id="keysMsg" style="font-size:0.75rem;margin-top:0.8rem;display:none;"></div>
+            <button class="btn-primary" onclick="addKeys()">+ ADD KEYS</button>
+            <div class="inline-msg" id="keysMsg"></div>
           </div>
-          <!-- Pool viewer -->
           <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;">
-              <div style="font-size:0.88rem;font-weight:700;">Key Pool</div>
-              <select id="viewKeyPlan" class="field-select" onchange="renderKeyPool()" style="font-size:0.78rem;"></select>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem;">
+              <div class="sub-head" style="margin-bottom:0;">KEY POOL</div>
+              <select id="viewKeyPlan" class="field-select" onchange="renderKeyPool()" style="font-size:0.7rem;"></select>
             </div>
-            <div id="keyPoolStats" style="font-size:0.72rem;color:var(--muted);margin-bottom:0.6rem;"></div>
+            <div id="keyPoolStats" style="font-size:0.62rem;color:var(--g5);margin-bottom:0.6rem;letter-spacing:0.08em;"></div>
             <div class="key-list" id="keyPool"></div>
           </div>
         </div>
@@ -277,28 +798,47 @@ input[type=checkbox].toggle{ width:1.1rem; height:1.1rem; accent-color:var(--acc
 
       <!-- ORDERS -->
       <div class="panel" id="panel-orders">
-        <div class="panel-header"><div><div class="panel-title">Orders</div><div class="panel-sub">All customer orders · manually fulfill paid orders</div></div>
-        <button class="btn-secondary" onclick="loadOrders()"><i class="fas fa-sync-alt"></i> Refresh</button></div>
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">ORDERS</div>
+            <div class="panel-sub">ALL CUSTOMER ORDERS · MANUALLY FULFILL PAID</div>
+          </div>
+          <button class="btn-secondary" onclick="loadOrders()"><i class="fas fa-sync-alt"></i> REFRESH</button>
+        </div>
         <div class="filter-bar">
-          <select id="orderFilter" onchange="loadOrders()">
-            <option value="">All Orders</option>
-            <option value="pending">Pending Payment</option>
-            <option value="paid">Paid (Awaiting Key)</option>
-            <option value="fulfilled">Fulfilled</option>
-            <option value="cancelled">Cancelled</option>
+          <select id="orderFilter" class="field-select" onchange="loadOrders()">
+            <option value="">ALL ORDERS</option>
+            <option value="pending">PENDING</option>
+            <option value="paid">PAID (AWAITING KEY)</option>
+            <option value="fulfilled">FULFILLED</option>
+            <option value="cancelled">CANCELLED</option>
           </select>
-          <input type="text" id="orderSearch" placeholder="Search username..." oninput="filterOrdersUI()" style="flex:1;max-width:220px;">
+          <input type="text" id="orderSearch" class="field-input" placeholder="Search username..." oninput="filterOrdersUI()" style="flex:1;max-width:220px;">
         </div>
         <div id="ordersList"></div>
       </div>
 
       <!-- USERS -->
       <div class="panel" id="panel-users">
-        <div class="panel-header"><div><div class="panel-title">Users</div><div class="panel-sub">Manage registered accounts</div></div>
-        <button class="btn-primary" onclick="openAddUserModal()"><i class="fas fa-plus"></i> Add User</button></div>
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">USERS</div>
+            <div class="panel-sub">MANAGE REGISTERED ACCOUNTS</div>
+          </div>
+          <button class="btn-primary" onclick="openAddUserModal()">+ ADD USER</button>
+        </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Username</th><th>Telegram</th><th>Role</th><th>Joined</th><th>Orders</th><th>Actions</th></tr></thead>
+            <thead>
+              <tr>
+                <th>USERNAME</th>
+                <th>TELEGRAM</th>
+                <th>ROLE</th>
+                <th>JOINED</th>
+                <th>ORDERS</th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
             <tbody id="usersTable"></tbody>
           </table>
         </div>
@@ -306,24 +846,35 @@ input[type=checkbox].toggle{ width:1.1rem; height:1.1rem; accent-color:var(--acc
 
       <!-- PAYMONGO -->
       <div class="panel" id="panel-paymongo">
-        <div class="panel-header"><div><div class="panel-title">PayMongo Setup</div><div class="panel-sub">Configure GCash payment gateway</div></div></div>
-        <div style="max-width:520px;">
-          <div class="field-group"><label>Secret Key (sk_live_...)</label><input type="text" id="pmSecret" class="field-input" placeholder="sk_live_..."></div>
-          <div class="field-group"><label>Public Key (pk_live_...)</label><input type="text" id="pmPublic" class="field-input" placeholder="pk_live_..."></div>
-          <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1.2rem;">
-            <div style="font-size:0.65rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.08em;">Webhook URL (register in PayMongo dashboard)</div>
-            <div id="webhookUrl" style="font-family:monospace;font-size:0.82rem;color:var(--accent3);word-break:break-all;"></div>
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">PAYMONGO SETUP</div>
+            <div class="panel-sub">CONFIGURE GCASH PAYMENT GATEWAY</div>
           </div>
-          <div style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1.2rem;font-size:0.78rem;color:var(--muted);line-height:1.7;">
-            <strong style="color:var(--text);">Setup steps:</strong><br>
+        </div>
+        <div style="max-width:520px;">
+          <div class="field-group">
+            <label class="field-label">Secret Key (sk_live_...)</label>
+            <input type="text" id="pmSecret" class="field-input" placeholder="sk_live_...">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Public Key (pk_live_...)</label>
+            <input type="text" id="pmPublic" class="field-input" placeholder="pk_live_...">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Webhook URL (register in PayMongo dashboard)</label>
+            <div id="webhookUrl" class="code-block">—</div>
+          </div>
+          <div class="info-box" style="margin-bottom:1.2rem;">
+            <strong style="color:var(--white);letter-spacing:0.06em;">SETUP STEPS</strong><br>
             1. Get API keys from PayMongo Dashboard → Developers → API Keys<br>
             2. Paste your Live Secret Key above<br>
             3. In PayMongo → Developers → Webhooks, add the URL above<br>
-            4. Select event: <code style="color:var(--accent3);">link.payment.paid</code><br>
-            5. Prices per plan are set in <strong>Plans & Prices</strong>
+            4. Select event: <code style="color:var(--green);">link.payment.paid</code><br>
+            5. Prices per plan are set in Plans & Prices
           </div>
-          <button class="btn-primary" onclick="savePaymongo()">💾 Save PayMongo Settings</button>
-          <div id="pmMsg" style="font-size:0.75rem;margin-top:0.8rem;display:none;"></div>
+          <button class="btn-primary" onclick="savePaymongo()">SAVE PAYMONGO SETTINGS</button>
+          <div class="inline-msg" id="pmMsg"></div>
         </div>
       </div>
 
@@ -334,20 +885,28 @@ input[type=checkbox].toggle{ width:1.1rem; height:1.1rem; accent-color:var(--acc
 <!-- ADD/EDIT USER MODAL -->
 <div class="modal-overlay" id="userModal">
   <div class="modal-box2">
-    <div class="m-title" id="userModalTitle">Add User</div>
-    <div class="m-sub">Create a new account</div>
-    <div class="m-err" id="userModalErr"></div>
-    <input type="hidden" id="editUserId">
-    <input type="text" id="newUsername" class="m-input" placeholder="Username">
-    <input type="password" id="newPassword" class="m-input" placeholder="Password (leave blank to keep)">
-    <input type="text" id="newTelegram" class="m-input" placeholder="Telegram username (optional)">
-    <select id="newRole" class="m-select">
-      <option value="user">User</option>
-      <option value="admin">Admin</option>
-    </select>
-    <div style="display:flex;gap:0.6rem;">
-      <button class="btn-primary" style="flex:1;" onclick="saveUser()">Save</button>
-      <button class="btn-secondary" onclick="closeModal2('userModal')">Cancel</button>
+    <div class="modal-head">
+      <div class="m-title" id="userModalTitle">ADD USER</div>
+      <div class="m-sub">MANAGE ACCOUNT DETAILS</div>
+    </div>
+    <div class="modal-body2">
+      <div class="m-err" id="userModalErr"></div>
+      <input type="hidden" id="editUserId">
+      <label class="m-label">Username</label>
+      <input type="text" id="newUsername" class="m-input" placeholder="username">
+      <label class="m-label">Password <span style="color:var(--g4);">(leave blank to keep)</span></label>
+      <input type="password" id="newPassword" class="m-input" placeholder="new password">
+      <label class="m-label">Telegram (optional)</label>
+      <input type="text" id="newTelegram" class="m-input" placeholder="@telegram">
+      <label class="m-label">Role</label>
+      <select id="newRole" class="m-select">
+        <option value="user">USER</option>
+        <option value="admin">ADMIN</option>
+      </select>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="saveUser()">SAVE</button>
+        <button class="btn-secondary" onclick="closeModal2('userModal')">CANCEL</button>
+      </div>
     </div>
   </div>
 </div>
@@ -355,14 +914,19 @@ input[type=checkbox].toggle{ width:1.1rem; height:1.1rem; accent-color:var(--acc
 <!-- FULFILL MODAL -->
 <div class="modal-overlay" id="fulfillModal">
   <div class="modal-box2">
-    <div class="m-title">Manually Give Key</div>
-    <div class="m-sub" id="fulfillSub">Order details</div>
-    <div class="m-err" id="fulfillErr"></div>
-    <input type="hidden" id="fulfillOrderId">
-    <input type="text" id="fulfillKey" class="m-input" placeholder="Enter the key to give" style="font-family:monospace;">
-    <div style="display:flex;gap:0.6rem;">
-      <button class="btn-primary" style="flex:1;" onclick="doFulfill()">✅ Give Key</button>
-      <button class="btn-secondary" onclick="closeModal2('fulfillModal')">Cancel</button>
+    <div class="modal-head">
+      <div class="m-title">GIVE KEY</div>
+      <div class="m-sub" id="fulfillSub">ORDER DETAILS</div>
+    </div>
+    <div class="modal-body2">
+      <div class="m-err" id="fulfillErr"></div>
+      <input type="hidden" id="fulfillOrderId">
+      <label class="m-label">Activation Key</label>
+      <input type="text" id="fulfillKey" class="m-input" placeholder="KEY-XXXX-XXXX-XXXX" style="font-family:'Space Mono',monospace;">
+      <div class="btn-row">
+        <button class="btn-primary" onclick="doFulfill()">GIVE KEY</button>
+        <button class="btn-secondary" onclick="closeModal2('fulfillModal')">CANCEL</button>
+      </div>
     </div>
   </div>
 </div>
@@ -370,41 +934,40 @@ input[type=checkbox].toggle{ width:1.1rem; height:1.1rem; accent-color:var(--acc
 <div id="toastBar" class="toast-bar"></div>
 
 <script>
-// ==================== STATE ====================
 let adminData = { plans:[], keyCounts:[], orders:[], users:[], apk:{} };
 let allOrders = [];
 let allUsers = [];
 
-// ==================== LOGIN ====================
+// ===== LOGIN =====
 document.getElementById('adm-login-btn').addEventListener('click', async () => {
   const username = document.getElementById('adm-user').value.trim();
   const password = document.getElementById('adm-pass').value;
   const errEl = document.getElementById('adm-err');
   errEl.style.display = 'none';
-  document.getElementById('adm-login-btn').textContent = 'Logging in...';
+  document.getElementById('adm-login-btn').textContent = 'LOGGING IN...';
   try {
     const res = await fetch('/api/admin/login', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ username, password })
     });
     const data = await res.json();
-    if (!res.ok) { errEl.textContent = data.message || 'Invalid credentials'; errEl.style.display = 'block'; return; }
+    if (!res.ok) { errEl.textContent = (data.message || 'INVALID CREDENTIALS').toUpperCase(); errEl.style.display = 'block'; return; }
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-shell').style.display = 'block';
+    document.getElementById('admin-shell').classList.add('visible');
     initAdmin();
-  } catch(e) { errEl.textContent = 'Network error'; errEl.style.display = 'block'; }
-  finally { document.getElementById('adm-login-btn').textContent = 'Login'; }
+  } catch(e) { errEl.textContent = 'NETWORK ERROR'; errEl.style.display = 'block'; }
+  finally { document.getElementById('adm-login-btn').textContent = 'LOGIN'; }
 });
+
 document.getElementById('adm-pass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('adm-login-btn').click(); });
 
-// Check session on load
 (async () => {
   try {
     const res = await fetch('/api/admin/check');
     const data = await res.json();
     if (data.admin) {
       document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('admin-shell').style.display = 'block';
+      document.getElementById('admin-shell').classList.add('visible');
       initAdmin();
     }
   } catch(e) {}
@@ -415,14 +978,13 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   location.reload();
 });
 
-// ==================== SIDEBAR NAV ====================
+// ===== SIDEBAR NAV =====
 document.querySelectorAll('.nav-item[data-panel]').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    const panelId = 'panel-' + btn.dataset.panel;
-    document.getElementById(panelId).classList.add('active');
+    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
     if (btn.dataset.panel === 'orders') loadOrders();
     if (btn.dataset.panel === 'users') loadUsers();
     if (btn.dataset.panel === 'paymongo') loadPaymongo();
@@ -431,14 +993,14 @@ document.querySelectorAll('.nav-item[data-panel]').forEach(btn => {
   });
 });
 
-// ==================== INIT ====================
+// ===== INIT =====
 async function initAdmin() {
   await loadStats();
   loadApk();
   loadPlans();
 }
 
-// ==================== STATS / OVERVIEW ====================
+// ===== STATS =====
 async function loadStats() {
   try {
     const [statsRes, ordersRes] = await Promise.all([
@@ -450,27 +1012,28 @@ async function loadStats() {
     allOrders = orders;
 
     document.getElementById('statCards').innerHTML = `
-      <div class="stat-card"><div class="stat-val">₱${(stats.revenue||0).toLocaleString()}</div><div class="stat-lbl">Total Revenue</div></div>
-      <div class="stat-card"><div class="stat-val">${stats.fulfilled||0}</div><div class="stat-lbl">Keys Delivered</div></div>
-      <div class="stat-card"><div class="stat-val" style="color:#fbbf24;">${stats.pending||0}</div><div class="stat-lbl">Awaiting Key</div></div>
-      <div class="stat-card"><div class="stat-val">${stats.totalOrders||0}</div><div class="stat-lbl">Total Orders</div></div>
-      <div class="stat-card"><div class="stat-val">${stats.totalUsers||0}</div><div class="stat-lbl">Registered Users</div></div>
+      <div class="stat-card"><div class="stat-val">₱${(stats.revenue||0).toLocaleString()}</div><div class="stat-lbl">TOTAL REVENUE</div></div>
+      <div class="stat-card"><div class="stat-val">${stats.fulfilled||0}</div><div class="stat-lbl">KEYS DELIVERED</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--yellow);">${stats.pending||0}</div><div class="stat-lbl">AWAITING KEY</div></div>
+      <div class="stat-card"><div class="stat-val">${stats.totalOrders||0}</div><div class="stat-lbl">TOTAL ORDERS</div></div>
+      <div class="stat-card"><div class="stat-val">${stats.totalUsers||0}</div><div class="stat-lbl">USERS</div></div>
     `;
 
     const recent = orders.slice(0,8);
-    document.getElementById('recentOrders').innerHTML = recent.length ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>User</th><th>Plan</th><th>Price</th><th>Status</th><th>Date</th></tr></thead><tbody>' +
-      recent.map(o => `<tr>
-        <td>${esc(o.username)}</td>
-        <td>${esc(o.plan_label)}</td>
-        <td>₱${o.price}</td>
-        <td><span class="badge badge-${o.status}">${o.status}</span></td>
-        <td>${new Date(o.created_at).toLocaleDateString()}</td>
-      </tr>`).join('') + '</tbody></table></div>'
-    : '<div style="color:var(--muted);font-size:0.85rem;">No orders yet.</div>';
+    document.getElementById('recentOrders').innerHTML = recent.length
+      ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>USER</th><th>PLAN</th><th>PRICE</th><th>STATUS</th><th>DATE</th></tr></thead><tbody>' +
+        recent.map(o => `<tr>
+          <td>${esc(o.username)}</td>
+          <td>${esc(o.plan_label)}</td>
+          <td>₱${o.price}</td>
+          <td><span class="badge badge-${o.status}">${o.status.toUpperCase()}</span></td>
+          <td style="font-size:0.68rem;color:var(--g5);">${new Date(o.created_at).toLocaleDateString()}</td>
+        </tr>`).join('') + '</tbody></table></div>'
+      : '<div style="color:var(--g5);font-size:0.72rem;padding:1.5rem;border:1px solid var(--g3);letter-spacing:0.08em;">NO ORDERS YET.</div>';
   } catch(e) { console.error(e); }
 }
 
-// ==================== APK ====================
+// ===== APK =====
 async function loadApk() {
   try {
     const res = await fetch('/api/store');
@@ -495,14 +1058,14 @@ async function saveApk() {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ name, link })
     });
-    if (res.ok) { showMsg(msg,'✅ APK settings saved!','var(--green)'); showToast('Saved!'); }
-    else showMsg(msg,'❌ Save failed','#fca5a5');
-  } catch(e) { showMsg(msg,'❌ Network error','#fca5a5'); }
+    if (res.ok) { showMsg(msg,'APK SETTINGS SAVED','var(--green)'); showToast('SAVED!'); }
+    else showMsg(msg,'SAVE FAILED','var(--red)');
+  } catch(e) { showMsg(msg,'NETWORK ERROR','var(--red)'); }
 }
 
 async function uploadLogo() {
   const file = document.getElementById('logoFile').files[0];
-  if (!file) return showToast('Select a file first','error');
+  if (!file) return showToast('SELECT A FILE FIRST','error');
   const form = new FormData(); form.append('logo', file);
   try {
     const res = await fetch('/api/admin/logo', { method:'POST', body:form });
@@ -510,20 +1073,19 @@ async function uploadLogo() {
     if (data.success) {
       const img = document.getElementById('currentLogo');
       img.src = data.logo + '&t=' + Date.now(); img.style.display = '';
-      showToast('Logo uploaded!');
-    } else showToast(data.message || 'Upload failed','error');
-  } catch(e) { showToast('Upload error','error'); }
+      showToast('LOGO UPLOADED!');
+    } else showToast(data.message || 'UPLOAD FAILED','error');
+  } catch(e) { showToast('UPLOAD ERROR','error'); }
 }
 
-// ==================== PLANS ====================
+// ===== PLANS =====
 async function loadPlans() {
   try {
     const res = await fetch('/api/admin/plans');
     const plans = await res.json();
     adminData.plans = plans;
     renderPlansEditor(plans);
-    // Populate key plan selects
-    const opts = plans.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+    const opts = plans.map(p => `<option value="${p.id}">${p.label.toUpperCase()}</option>`).join('');
     document.getElementById('keyPlan').innerHTML = opts;
     document.getElementById('viewKeyPlan').innerHTML = opts;
     loadKeys();
@@ -534,17 +1096,17 @@ function renderPlansEditor(plans) {
   document.getElementById('plansEditor').innerHTML = plans.map(p => `
     <div class="plan-row">
       <div class="plan-row-label">${esc(p.label)}</div>
-      <div style="display:flex;align-items:center;gap:0.4rem;">
-        <span style="font-size:0.7rem;color:var(--muted);">₱</span>
-        <input type="number" value="${p.price}" id="plan-price-${p.id}" min="1" title="Price">
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <span style="font-size:0.65rem;color:var(--g5);">₱</span>
+        <input type="number" value="${p.price}" id="plan-price-${p.id}" min="1" class="plan-row-input" title="Price">
       </div>
-      <div style="display:flex;align-items:center;gap:0.4rem;">
-        <span style="font-size:0.7rem;color:var(--muted);">Days</span>
-        <input type="number" value="${p.days}" id="plan-days-${p.id}" min="1" style="width:70px;" title="Days">
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <span style="font-size:0.65rem;color:var(--g5);">DAYS</span>
+        <input type="number" value="${p.days}" id="plan-days-${p.id}" min="1" class="plan-row-input" style="width:70px;" title="Days">
       </div>
       <div class="toggle-wrap">
         <input type="checkbox" class="toggle" id="plan-en-${p.id}" ${p.enabled ? 'checked' : ''}>
-        <label for="plan-en-${p.id}">Enabled</label>
+        <label for="plan-en-${p.id}">ENABLED</label>
       </div>
     </div>
   `).join('');
@@ -552,8 +1114,7 @@ function renderPlansEditor(plans) {
 
 async function savePlans() {
   const plans = adminData.plans.map(p => ({
-    id: p.id,
-    label: p.label,
+    id: p.id, label: p.label,
     price: parseInt(document.getElementById('plan-price-'+p.id).value) || p.price,
     days: parseInt(document.getElementById('plan-days-'+p.id).value) || p.days,
     enabled: document.getElementById('plan-en-'+p.id).checked
@@ -564,12 +1125,12 @@ async function savePlans() {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ plans })
     });
-    if (res.ok) { showMsg(msg,'✅ Plans saved!','var(--green)'); showToast('Plans saved!'); }
-    else showMsg(msg,'❌ Save failed','#fca5a5');
-  } catch(e) { showMsg(msg,'❌ Error','#fca5a5'); }
+    if (res.ok) { showMsg(msg,'PLANS SAVED','var(--green)'); showToast('PLANS SAVED!'); }
+    else showMsg(msg,'SAVE FAILED','var(--red)');
+  } catch(e) { showMsg(msg,'ERROR','var(--red)'); }
 }
 
-// ==================== KEYS ====================
+// ===== KEYS =====
 let allKeysData = [];
 
 async function loadKeys() {
@@ -577,7 +1138,6 @@ async function loadKeys() {
     const res = await fetch('/api/admin/keys');
     const data = await res.json();
     allKeysData = data.keys || [];
-    // Update stats
     renderKeyPool();
   } catch(e) {}
 }
@@ -586,22 +1146,21 @@ function renderKeyPool() {
   const planId = document.getElementById('viewKeyPlan').value;
   const planKeys = allKeysData.filter(k => k.plan_id === planId);
   const available = planKeys.filter(k => !k.used).length;
-  document.getElementById('keyPoolStats').textContent = `${available} available · ${planKeys.length} total`;
+  document.getElementById('keyPoolStats').textContent = `${available} AVAILABLE · ${planKeys.length} TOTAL`;
   document.getElementById('keyPool').innerHTML = planKeys.length
     ? planKeys.map(k => `
         <div class="key-item ${k.used ? 'used' : ''}">
           <span>${esc(k.key_val)}${k.used ? ' (used)' : ''}</span>
-          ${!k.used ? `<button class="btn-danger" style="padding:0.15rem 0.5rem;font-size:0.62rem;" onclick="deleteKey(${k.id})">✕</button>` : ''}
-        </div>
-      `).join('')
-    : '<div style="color:var(--muted);font-size:0.8rem;padding:1rem;">No keys for this plan.</div>';
+          ${!k.used ? `<button class="btn-danger" style="padding:0.12rem 0.45rem;font-size:0.55rem;" onclick="deleteKey(${k.id})">✕</button>` : ''}
+        </div>`).join('')
+    : '<div style="color:var(--g4);font-size:0.68rem;padding:1rem;letter-spacing:0.08em;">NO KEYS FOR THIS PLAN.</div>';
 }
 
 async function addKeys() {
   const planId = document.getElementById('keyPlan').value;
   const keys = document.getElementById('keyInput').value;
   const msg = document.getElementById('keysMsg');
-  if (!keys.trim()) { showMsg(msg,'Enter at least one key','#fca5a5'); return; }
+  if (!keys.trim()) { showMsg(msg,'ENTER AT LEAST ONE KEY','var(--red)'); return; }
   try {
     const res = await fetch('/api/admin/keys', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -609,31 +1168,30 @@ async function addKeys() {
     });
     const data = await res.json();
     if (data.success) {
-      showMsg(msg,`✅ Added ${data.added} key(s)!`,'var(--green)');
+      showMsg(msg,`ADDED ${data.added} KEY(S)`,'var(--green)');
       document.getElementById('keyInput').value = '';
       loadKeys();
-    } else showMsg(msg,'❌ Failed to add','#fca5a5');
-  } catch(e) { showMsg(msg,'❌ Error','#fca5a5'); }
+    } else showMsg(msg,'FAILED TO ADD','var(--red)');
+  } catch(e) { showMsg(msg,'ERROR','var(--red)'); }
 }
 
 async function deleteKey(id) {
   if (!confirm('Delete this key from the pool?')) return;
   await fetch('/api/admin/keys/' + id, { method:'DELETE' });
-  loadKeys();
-  showToast('Key deleted');
+  loadKeys(); showToast('KEY DELETED');
 }
 
-// ==================== ORDERS ====================
+// ===== ORDERS =====
 async function loadOrders() {
   const status = document.getElementById('orderFilter').value;
   const listEl = document.getElementById('ordersList');
-  listEl.innerHTML = '<div style="color:var(--muted);padding:2rem;text-align:center;">Loading...</div>';
+  listEl.innerHTML = '<div style="color:var(--g5);padding:2rem;letter-spacing:0.1em;font-size:0.68rem;">LOADING...</div>';
   try {
     const url = '/api/admin/orders' + (status ? '?status='+status : '');
     const res = await fetch(url);
     allOrders = await res.json();
     filterOrdersUI();
-  } catch(e) { listEl.innerHTML = '<div style="color:var(--muted);padding:2rem;">Failed to load.</div>'; }
+  } catch(e) { listEl.innerHTML = '<div style="color:var(--g5);padding:2rem;">FAILED TO LOAD.</div>'; }
 }
 
 function filterOrdersUI() {
@@ -644,22 +1202,22 @@ function filterOrdersUI() {
 
 function renderOrdersList(orders) {
   const el = document.getElementById('ordersList');
-  if (!orders.length) { el.innerHTML = '<div style="color:var(--muted);padding:2rem;text-align:center;">No orders found.</div>'; return; }
+  if (!orders.length) { el.innerHTML = '<div style="color:var(--g5);padding:2rem;letter-spacing:0.1em;font-size:0.68rem;">NO ORDERS FOUND.</div>'; return; }
   el.innerHTML = orders.map(o => `
     <div class="order-row">
       <div class="order-row-info">
-        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.3rem;">
-          <strong>${esc(o.username)}</strong>
-          <span class="badge badge-${o.status}">${o.status}</span>
-          <span style="font-size:0.68rem;color:var(--muted);">#${o.id.split('-')[0]}</span>
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.35rem;">
+          <strong style="font-size:0.78rem;letter-spacing:0.04em;">${esc(o.username.toUpperCase())}</strong>
+          <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
+          <span style="font-size:0.6rem;color:var(--g5);letter-spacing:0.06em;">#${o.id.split('-')[0].toUpperCase()}</span>
         </div>
-        <div style="font-size:0.78rem;color:var(--muted);">${esc(o.plan_label)} · ₱${o.price} · ${new Date(o.created_at).toLocaleString()}</div>
-        ${o.telegram ? `<div style="font-size:0.7rem;color:var(--accent3);margin-top:0.2rem;"><i class="fab fa-telegram"></i> ${esc(o.telegram)}</div>` : ''}
-        ${o.key_given ? `<div style="font-family:monospace;font-size:0.78rem;color:var(--green);margin-top:0.4rem;background:rgba(34,197,94,0.08);padding:0.3rem 0.6rem;border-radius:8px;display:inline-block;">🔑 ${esc(o.key_given)}</div>` : ''}
+        <div style="font-size:0.68rem;color:var(--g5);letter-spacing:0.04em;">${esc(o.plan_label.toUpperCase())} · ₱${o.price} · ${new Date(o.created_at).toLocaleString()}</div>
+        ${o.telegram ? `<div style="font-size:0.65rem;color:var(--blue);margin-top:0.25rem;letter-spacing:0.04em;"><i class="fab fa-telegram"></i> ${esc(o.telegram)}</div>` : ''}
+        ${o.key_given ? `<div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--green);margin-top:0.4rem;letter-spacing:0.06em;">${esc(o.key_given)}</div>` : ''}
       </div>
       <div class="order-row-actions">
-        ${o.status === 'paid' ? `<button class="btn-success" onclick="openFulfillModal('${o.id}','${esc(o.username)}','${esc(o.plan_label)}')">🔑 Give Key</button>` : ''}
-        ${o.status === 'pending' ? `<button class="btn-danger" onclick="adminCancelOrder('${o.id}')">Cancel</button>` : ''}
+        ${o.status === 'paid' ? `<button class="btn-success" onclick="openFulfillModal('${o.id}','${esc(o.username)}','${esc(o.plan_label)}')">GIVE KEY</button>` : ''}
+        ${o.status === 'pending' ? `<button class="btn-danger" onclick="adminCancelOrder('${o.id}')">CANCEL</button>` : ''}
       </div>
     </div>
   `).join('');
@@ -667,7 +1225,7 @@ function renderOrdersList(orders) {
 
 function openFulfillModal(orderId, username, plan) {
   document.getElementById('fulfillOrderId').value = orderId;
-  document.getElementById('fulfillSub').textContent = username + ' · ' + plan;
+  document.getElementById('fulfillSub').textContent = username.toUpperCase() + ' · ' + plan.toUpperCase();
   document.getElementById('fulfillKey').value = '';
   document.getElementById('fulfillErr').classList.remove('show');
   document.getElementById('fulfillModal').classList.add('open');
@@ -677,23 +1235,23 @@ async function doFulfill() {
   const orderId = document.getElementById('fulfillOrderId').value;
   const key = document.getElementById('fulfillKey').value.trim();
   const errEl = document.getElementById('fulfillErr');
-  if (!key) { errEl.textContent = 'Enter a key'; errEl.classList.add('show'); return; }
+  if (!key) { errEl.textContent = 'ENTER A KEY'; errEl.classList.add('show'); return; }
   try {
     const res = await fetch('/api/admin/orders/' + orderId + '/fulfill', {
       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key })
     });
-    if (res.ok) { closeModal2('fulfillModal'); showToast('Key given!'); loadOrders(); loadStats(); }
-    else { errEl.textContent = 'Failed'; errEl.classList.add('show'); }
-  } catch(e) { errEl.textContent = 'Error'; errEl.classList.add('show'); }
+    if (res.ok) { closeModal2('fulfillModal'); showToast('KEY GIVEN!'); loadOrders(); loadStats(); }
+    else { errEl.textContent = 'FAILED'; errEl.classList.add('show'); }
+  } catch(e) { errEl.textContent = 'ERROR'; errEl.classList.add('show'); }
 }
 
 async function adminCancelOrder(orderId) {
   if (!confirm('Cancel this order?')) return;
   await fetch('/api/admin/orders/' + orderId + '/cancel', { method:'POST' });
-  loadOrders(); showToast('Order cancelled');
+  loadOrders(); showToast('ORDER CANCELLED');
 }
 
-// ==================== USERS ====================
+// ===== USERS =====
 async function loadUsers() {
   try {
     const res = await fetch('/api/admin/users');
@@ -704,18 +1262,18 @@ async function loadUsers() {
 
 function renderUsersTable() {
   const tb = document.getElementById('usersTable');
-  if (!allUsers.length) { tb.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:2rem;">No users.</td></tr>'; return; }
+  if (!allUsers.length) { tb.innerHTML = '<tr><td colspan="6" style="color:var(--g5);text-align:center;padding:2rem;letter-spacing:0.1em;font-size:0.68rem;">NO USERS.</td></tr>'; return; }
   tb.innerHTML = allUsers.map(u => `
     <tr>
-      <td><strong>${esc(u.username)}</strong></td>
-      <td>${u.telegram ? '<i class="fab fa-telegram" style="color:#00aaff;margin-right:4px;"></i>' + esc(u.telegram) : '<span style="color:var(--muted);">—</span>'}</td>
-      <td><span class="badge badge-${u.role}">${u.role}</span></td>
-      <td style="font-size:0.72rem;">${new Date(u.created_at).toLocaleDateString()}</td>
-      <td>—</td>
+      <td style="font-weight:700;letter-spacing:0.04em;">${esc(u.username.toUpperCase())}</td>
+      <td style="color:var(--blue);font-size:0.7rem;">${u.telegram ? esc(u.telegram) : '<span style="color:var(--g4);">—</span>'}</td>
+      <td><span class="badge badge-${u.role}">${u.role.toUpperCase()}</span></td>
+      <td style="font-size:0.65rem;color:var(--g5);">${new Date(u.created_at).toLocaleDateString()}</td>
+      <td style="color:var(--g5);">—</td>
       <td>
         <div style="display:flex;gap:0.4rem;">
-          <button class="btn-secondary" style="font-size:0.68rem;padding:0.28rem 0.6rem;" onclick="openEditUserModal(${u.id},'${esc(u.username)}','${esc(u.telegram||'')}','${u.role}')">Edit</button>
-          ${u.username !== 'N4XCO' ? `<button class="btn-danger" onclick="deleteUser(${u.id},'${esc(u.username)}')">Delete</button>` : ''}
+          <button class="btn-secondary" style="font-size:0.6rem;padding:0.25rem 0.6rem;" onclick="openEditUserModal(${u.id},'${esc(u.username)}','${esc(u.telegram||'')}','${u.role}')">EDIT</button>
+          ${u.username !== 'N4XCO' ? `<button class="btn-danger" onclick="deleteUser(${u.id},'${esc(u.username)}')">DELETE</button>` : ''}
         </div>
       </td>
     </tr>
@@ -723,7 +1281,7 @@ function renderUsersTable() {
 }
 
 function openAddUserModal() {
-  document.getElementById('userModalTitle').textContent = 'Add User';
+  document.getElementById('userModalTitle').textContent = 'ADD USER';
   document.getElementById('editUserId').value = '';
   document.getElementById('newUsername').value = '';
   document.getElementById('newPassword').value = '';
@@ -734,7 +1292,7 @@ function openAddUserModal() {
 }
 
 function openEditUserModal(id, username, telegram, role) {
-  document.getElementById('userModalTitle').textContent = 'Edit User';
+  document.getElementById('userModalTitle').textContent = 'EDIT USER';
   document.getElementById('editUserId').value = id;
   document.getElementById('newUsername').value = username;
   document.getElementById('newPassword').value = '';
@@ -751,7 +1309,7 @@ async function saveUser() {
   const telegram = document.getElementById('newTelegram').value.trim();
   const role = document.getElementById('newRole').value;
   const errEl = document.getElementById('userModalErr');
-  if (!username) { errEl.textContent = 'Username required'; errEl.classList.add('show'); return; }
+  if (!username) { errEl.textContent = 'USERNAME REQUIRED'; errEl.classList.add('show'); return; }
   try {
     let res;
     if (id) {
@@ -760,25 +1318,25 @@ async function saveUser() {
         body: JSON.stringify({ username, password: password || undefined, telegram, role })
       });
     } else {
-      if (!password) { errEl.textContent = 'Password required for new user'; errEl.classList.add('show'); return; }
+      if (!password) { errEl.textContent = 'PASSWORD REQUIRED FOR NEW USER'; errEl.classList.add('show'); return; }
       res = await fetch('/api/admin/users', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ username, password, telegram, role })
       });
     }
     const data = await res.json();
-    if (res.ok) { closeModal2('userModal'); loadUsers(); showToast(id ? 'User updated!' : 'User added!'); }
-    else { errEl.textContent = data.message || 'Error'; errEl.classList.add('show'); }
-  } catch(e) { errEl.textContent = 'Network error'; errEl.classList.add('show'); }
+    if (res.ok) { closeModal2('userModal'); loadUsers(); showToast(id ? 'USER UPDATED' : 'USER ADDED'); }
+    else { errEl.textContent = (data.message || 'ERROR').toUpperCase(); errEl.classList.add('show'); }
+  } catch(e) { errEl.textContent = 'NETWORK ERROR'; errEl.classList.add('show'); }
 }
 
 async function deleteUser(id, username) {
   if (!confirm('Delete user "' + username + '"? This cannot be undone.')) return;
   await fetch('/api/admin/users/' + id, { method:'DELETE' });
-  loadUsers(); showToast('User deleted');
+  loadUsers(); showToast('USER DELETED');
 }
 
-// ==================== PAYMONGO ====================
+// ===== PAYMONGO =====
 async function loadPaymongo() {
   try {
     const res = await fetch('/api/admin/paymongo');
@@ -798,12 +1356,12 @@ async function savePaymongo() {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ secret_key, public_key })
     });
-    if (res.ok) { showMsg(msg,'✅ PayMongo settings saved!','var(--green)'); showToast('Saved!'); }
-    else showMsg(msg,'❌ Save failed','#fca5a5');
-  } catch(e) { showMsg(msg,'❌ Error','#fca5a5'); }
+    if (res.ok) { showMsg(msg,'PAYMONGO SETTINGS SAVED','var(--green)'); showToast('SAVED!'); }
+    else showMsg(msg,'SAVE FAILED','var(--red)');
+  } catch(e) { showMsg(msg,'ERROR','var(--red)'); }
 }
 
-// ==================== UTILS ====================
+// ===== UTILS =====
 function esc(str) {
   if (!str) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -816,6 +1374,7 @@ function showToast(msg, type='success') {
 }
 
 function showMsg(el, msg, color) {
+  if (typeof el === 'string') el = document.getElementById(el);
   el.textContent = msg; el.style.color = color; el.style.display = 'block';
   setTimeout(() => { el.style.display = 'none'; }, 3500);
 }
