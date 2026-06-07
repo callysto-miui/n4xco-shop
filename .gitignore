@@ -1,3 +1,6 @@
 node_modules/
+data/
+*.db
+*.log
+public/images/logo*
 .env
-public/images/logo.*
