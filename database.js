@@ -97,7 +97,16 @@ db.serialize(() => {
     processed_by    TEXT DEFAULT NULL
   )`);
 
-  // Services table (for Android, Boosting, etc.)
+  // Deposit settings (GCash number and QR code)
+  db.run(`CREATE TABLE IF NOT EXISTS deposit_settings (
+    id          INTEGER PRIMARY KEY,
+    gcash_number TEXT DEFAULT '09123456789',
+    qr_code     TEXT DEFAULT '',
+    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+  db.run(`INSERT OR IGNORE INTO deposit_settings (id, gcash_number) VALUES (1, '09123456789')`);
+
+  // Services table
   db.run(`CREATE TABLE IF NOT EXISTS services (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     category    TEXT NOT NULL,
@@ -146,21 +155,17 @@ db.serialize(() => {
 
   // Seed default services
   const services = [
-    // Android Services
     ['android', '🔰 REMOTE SERVICE', '⚠️REMOTE SERVICE⚠️\n🔰Root\n🔰Rent tools\n🔰Custom ROM\n🔰Instant unlock BL (Mtk devices only)\n🔰Stock logo\n🔰Root\n🔰Mi cloud remove\n🔰Reflash\n🔰FRP bypass\n🔰Unbrick\n\n‼️REQUIREMENTS‼️\n🌐PC or Laptop\n🌐Original charger\n🌐Internet', '', 0, 1],
     ['android', 'ANDROID SERVICES', 'Custom ROM · Instant unlock BL · Stock logo · Root · Mi cloud remove · Reflash · FRP bypass · Unbrick', '', 0, 2],
-    // Boosting Services
     ['boosting', 'Instagram Services', 'Likes · Followers · Views', '', 100, 1],
     ['boosting', 'Telegram Services', 'Subscribers · Reactions · Views', '', 100, 2],
     ['boosting', 'Facebook Services', 'Post shares · Views · Followers', '', 100, 3],
     ['boosting', 'TikTok Services', 'Followers · Likes · Views', '', 100, 4],
-    // JEPFX Service Tool
     ['jepfx', '03 Hours', 'JEPFX Service Tool Access', 'https://t.me/n4xcoinfos/28', 50, 1],
     ['jepfx', '06 Hours', 'JEPFX Service Tool Access', 'https://t.me/n4xcoinfos/28', 80, 2],
     ['jepfx', '01 Day', 'JEPFX Service Tool Access', 'https://t.me/n4xcoinfos/28', 100, 3],
     ['jepfx', '07 Days', 'JEPFX Service Tool Access', 'https://t.me/n4xcoinfos/28', 150, 4],
     ['jepfx', 'LIFETIME', 'JEPFX Service Tool Access', 'https://t.me/n4xcoinfos/28', 500, 5],
-    // Module for Rooted
     ['module', 'MODULE FOR ROOTED', 'One time payment · Full features access', 'https://t.me/n4xcoinfos/25', 160, 1],
   ];
   services.forEach(([cat, title, desc, link, price, order]) => {
@@ -253,7 +258,7 @@ const dbFuncs = {
   ),
   deleteKey: (id) => run('DELETE FROM keys_pool WHERE id=?', [id]),
 
-  // ==================== ORDERS (Purchase with balance) ====================
+  // ==================== ORDERS ====================
   createOrder: (data) => run(
     `INSERT INTO orders (id, user_id, username, plan_id, plan_label, price, days, status)
      VALUES (?,?,?,?,?,?,?,?)`,
@@ -286,7 +291,6 @@ const dbFuncs = {
   updateDepositStatus: async (id, status, adminNotes = '', processedBy = '') => {
     await run('UPDATE deposits SET status=?, admin_notes=?, processed_at=datetime("now"), processed_by=? WHERE id=?',
       [status, adminNotes, processedBy, id]);
-    // If approved, add balance to user
     if (status === 'approved') {
       const deposit = await get('SELECT * FROM deposits WHERE id=?', [id]);
       if (deposit) {
@@ -297,6 +301,13 @@ const dbFuncs = {
     return null;
   },
   deleteDeposit: (id) => run('DELETE FROM deposits WHERE id=?', [id]),
+
+  // ==================== DEPOSIT SETTINGS ====================
+  getDepositSettings: () => get('SELECT * FROM deposit_settings WHERE id=1'),
+  updateDepositSettings: (data) => run(
+    'UPDATE deposit_settings SET gcash_number=?, qr_code=?, updated_at=CURRENT_TIMESTAMP WHERE id=1',
+    [data.gcash_number || '09123456789', data.qr_code || '']
+  ),
 
   // ==================== SERVICES ====================
   getServices: (category = null) => {
