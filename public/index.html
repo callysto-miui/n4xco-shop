@@ -21,6 +21,7 @@
   --yellow: #ffee00;
   --red: #ff3333;
   --blue: #00aaff;
+  --orange: #ff8800;
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -35,7 +36,6 @@ body {
   overflow-x: hidden;
 }
 
-/* SCANLINE OVERLAY */
 body::before {
   content:'';
   position: fixed;
@@ -51,7 +51,6 @@ body::before {
   z-index: 9999;
 }
 
-/* NOISE TEXTURE */
 body::after {
   content: '';
   position: fixed;
@@ -62,27 +61,28 @@ body::after {
   z-index: 9998;
 }
 
-/* ===== NAV ===== */
 .nav-bar {
   position: sticky; top: 0; z-index: 500;
   display: flex; align-items: stretch; justify-content: space-between;
   border-bottom: 1px solid var(--gray-3);
   background: var(--black);
   height: 52px;
+  flex-wrap: wrap;
 }
 
 .nav-tabs {
   display: flex; align-items: stretch;
+  flex-wrap: wrap;
 }
 
 .nav-btn {
   background: none;
   border: none;
   border-right: 1px solid var(--gray-3);
-  padding: 0 1.4rem;
+  padding: 0 1rem;
   color: var(--gray-5);
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   letter-spacing: 0.12em;
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
@@ -109,6 +109,7 @@ body::after {
 .nav-user {
   display: flex; align-items: center; padding: 0 1rem;
   border-left: 1px solid var(--gray-3);
+  gap: 0.8rem;
 }
 
 .user-pill {
@@ -127,9 +128,20 @@ body::after {
 .user-pill:hover { border-color: var(--white); color: var(--white); }
 .user-pill.logged-in { border-color: var(--green); color: var(--green); }
 
-/* ===== LAYOUT ===== */
+.balance-pill {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  background: rgba(0,255,136,0.1);
+  border: 1px solid rgba(0,255,136,0.3);
+  color: var(--green);
+  padding: 0.35rem 0.85rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
 .app-container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
 }
@@ -139,7 +151,6 @@ body::after {
 
 @keyframes fadeIn { from{ opacity:0; } to{ opacity:1; } }
 
-/* ===== HEADER ===== */
 .shop-header {
   border: 1px solid var(--gray-3);
   padding: 2rem 2.5rem;
@@ -194,11 +205,6 @@ body::after {
   text-align: right;
 }
 
-.header-meta span {
-  display: block;
-}
-
-/* APK BANNER */
 .apk-banner {
   display: none;
   border: 1px solid var(--gray-3);
@@ -241,7 +247,6 @@ body::after {
 }
 .btn-download:hover { background: var(--gray-6); }
 
-/* ===== PLANS GRID ===== */
 .section-label {
   font-size: 0.58rem;
   letter-spacing: 0.2em;
@@ -261,7 +266,7 @@ body::after {
 
 .plans-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 0;
   border: 1px solid var(--gray-3);
 }
@@ -276,6 +281,18 @@ body::after {
   overflow: hidden;
 }
 
+.plan-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.plan-card.disabled .plan-buy-btn {
+  background: var(--gray-3);
+  color: var(--gray-5);
+  cursor: not-allowed;
+}
+.plan-card.disabled:hover { background: transparent; }
+.plan-card.disabled .plan-buy-btn:hover { background: var(--gray-3); color: var(--gray-5); }
+
 .plan-card::before {
   content: '';
   position: absolute;
@@ -284,11 +301,8 @@ body::after {
   background: var(--white);
   transition: height 0.25s;
 }
-
-.plan-card:hover {
-  background: var(--gray-1);
-}
-.plan-card:hover::before { height: 100%; }
+.plan-card:not(.disabled):hover { background: var(--gray-1); }
+.plan-card:not(.disabled):hover::before { height: 100%; }
 
 .plan-number {
   font-family: 'Bebas Neue', sans-serif;
@@ -346,14 +360,272 @@ body::after {
 }
 .plan-buy-btn:hover { background: var(--white); color: var(--black); border-color: var(--white); }
 
-/* ===== CONTACTS ===== */
+.out-of-stock-tag {
+  font-size: 0.55rem;
+  color: var(--red);
+  border: 1px solid rgba(255,51,51,0.3);
+  background: rgba(255,51,51,0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0;
+  display: inline-block;
+  margin-top: 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+/* SERVICES SECTION */
+.services-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid var(--gray-3);
+}
+
+.service-category {
+  border-bottom: 1px solid var(--gray-3);
+}
+
+.service-category:last-child { border-bottom: none; }
+
+.category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--gray-1);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.category-header:hover { background: var(--gray-2); }
+
+.category-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+  color: var(--white);
+}
+
+.category-toggle {
+  font-size: 1rem;
+  color: var(--gray-5);
+  transition: transform 0.2s;
+}
+
+.category-content {
+  display: none;
+  padding: 1rem 1.5rem;
+  background: var(--black);
+}
+
+.category-content.open { display: block; }
+
+.service-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.service-item {
+  border: 1px solid var(--gray-3);
+  padding: 1rem;
+  transition: all 0.15s;
+  background: var(--gray-1);
+}
+
+.service-item:hover { border-color: var(--gray-5); }
+
+.service-item-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  color: var(--white);
+  margin-bottom: 0.3rem;
+}
+
+.service-item-price {
+  font-size: 0.8rem;
+  color: var(--green);
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.service-item-desc {
+  font-size: 0.65rem;
+  color: var(--gray-5);
+  line-height: 1.5;
+  margin-bottom: 0.8rem;
+  white-space: pre-line;
+}
+
+.service-item-link {
+  display: inline-block;
+  font-size: 0.6rem;
+  color: var(--blue);
+  text-decoration: none;
+  border: 1px solid rgba(0,170,255,0.3);
+  padding: 0.3rem 0.8rem;
+  transition: all 0.15s;
+}
+.service-item-link:hover { background: rgba(0,170,255,0.1); border-color: var(--blue); }
+
+/* DEPOSIT FORM */
+.deposit-form-card {
+  border: 1px solid var(--gray-3);
+  padding: 1.5rem;
+  background: var(--gray-1);
+  margin-bottom: 2rem;
+}
+
+.deposit-form-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+}
+
+.gcash-info {
+  background: rgba(0,170,255,0.1);
+  border: 1px solid rgba(0,170,255,0.3);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.gcash-number {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--blue);
+  letter-spacing: 0.05em;
+}
+
+.field-group { margin-bottom: 1rem; }
+.field-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  color: var(--gray-5);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+.field-input, .field-textarea {
+  width: 100%;
+  background: var(--black);
+  border: 1px solid var(--gray-3);
+  padding: 0.7rem 1rem;
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  transition: border-color 0.15s;
+}
+.field-input:focus, .field-textarea:focus { outline: none; border-color: var(--white); }
+.field-textarea { min-height: 80px; resize: vertical; }
+
+.amount-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+.amount-btn {
+  background: var(--gray-2);
+  border: 1px solid var(--gray-3);
+  color: var(--gray-5);
+  padding: 0.4rem 1rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.amount-btn:hover { border-color: var(--white); color: var(--white); }
+
+.btn-primary {
+  background: var(--white);
+  color: var(--black);
+  border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.15em;
+  padding: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  width: 100%;
+}
+.btn-primary:hover { background: var(--gray-6); }
+.btn-primary:disabled { background: var(--gray-3); color: var(--gray-5); cursor: not-allowed; }
+
+.deposit-history {
+  margin-top: 2rem;
+}
+.deposit-card {
+  border: 1px solid var(--gray-3);
+  border-top: none;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.deposit-card:first-child { border-top: 1px solid var(--gray-3); }
+
+.deposit-status {
+  font-size: 0.6rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid;
+}
+.status-pending { border-color: var(--yellow); color: var(--yellow); }
+.status-approved { border-color: var(--green); color: var(--green); }
+.status-rejected { border-color: var(--red); color: var(--red); }
+
+/* ORDERS */
+.orders-wrap { display: flex; flex-direction: column; }
+.order-card {
+  border: 1px solid var(--gray-3);
+  border-top: none;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.order-card:first-child { border-top: 1px solid var(--gray-3); }
+.order-plan { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.08em; }
+.order-key {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--green);
+  word-break: break-all;
+}
+.order-status-badge {
+  font-size: 0.6rem;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid;
+  text-transform: uppercase;
+}
+.badge-pending { border-color: var(--yellow); color: var(--yellow); }
+.badge-fulfilled { border-color: var(--green); color: var(--green); }
+.badge-cancelled { border-color: var(--red); color: var(--red); }
+
+.btn-copy-key, .btn-cancel-order {
+  background: none;
+  border: 1px solid;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  padding: 0.25rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-copy-key { border-color: rgba(0,255,136,0.3); color: var(--green); }
+.btn-copy-key:hover { background: rgba(0,255,136,0.1); }
+.btn-cancel-order { border-color: rgba(255,51,51,0.3); color: var(--red); }
+.btn-cancel-order:hover { background: rgba(255,51,51,0.1); }
+
+/* CONTACTS */
 .contacts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 0;
   border: 1px solid var(--gray-3);
 }
-
 .contact-card {
   padding: 1.5rem;
   border-right: 1px solid var(--gray-3);
@@ -362,128 +634,28 @@ body::after {
   align-items: center;
   gap: 1rem;
   text-decoration: none;
-  cursor: pointer;
   transition: background 0.15s;
   color: inherit;
 }
 .contact-card:hover { background: var(--gray-1); }
-
 .contact-icon-wrap {
   width: 44px; height: 44px;
   border: 1px solid var(--gray-3);
   display: flex; align-items: center; justify-content: center;
   font-size: 1.1rem;
   flex-shrink: 0;
-  color: var(--white);
-  transition: background 0.15s, border-color 0.15s;
 }
-.contact-card:hover .contact-icon-wrap { background: var(--white); color: var(--black); border-color: var(--white); }
-
 .contact-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.1rem;
+  font-size: 1rem;
   letter-spacing: 0.1em;
   color: var(--white);
-  line-height: 1.2;
-}
-.contact-sub { font-size: 0.6rem; color: var(--gray-5); letter-spacing: 0.08em; margin-top: 0.25rem; }
-
-/* ===== ORDERS ===== */
-.orders-page-header {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.2rem;
-  letter-spacing: 0.1em;
-  border-bottom: 1px solid var(--gray-3);
-  padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
 }
 
-.orders-wrap { display: flex; flex-direction: column; }
-
-.order-card {
-  border: 1px solid var(--gray-3);
-  border-top: none;
-  padding: 1.1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  transition: background 0.15s;
-}
-.order-card:first-child { border-top: 1px solid var(--gray-3); }
-.order-card:hover { background: var(--gray-1); }
-
-.order-plan { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.08em; }
-.order-meta { font-size: 0.6rem; color: var(--gray-5); margin-top: 0.25rem; letter-spacing: 0.04em; }
-
-.order-key {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.72rem;
-  background: rgba(0,255,136,0.06);
-  border: 1px solid rgba(0,255,136,0.2);
-  padding: 0.25rem 0.7rem;
-  color: var(--green);
-  margin-top: 0.5rem;
-  word-break: break-all;
-  letter-spacing: 0.06em;
-}
-
-.order-status-badge {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.08em;
-  padding: 0.25rem 0.7rem;
-  border: 1px solid;
-  white-space: nowrap;
-  text-transform: uppercase;
-}
-
-.badge-pending  { border-color: rgba(255,238,0,0.35); color: var(--yellow); background: rgba(255,238,0,0.06); }
-.badge-paid     { border-color: rgba(0,170,255,0.35); color: var(--blue); background: rgba(0,170,255,0.06); }
-.badge-fulfilled{ border-color: rgba(0,255,136,0.35); color: var(--green); background: rgba(0,255,136,0.06); }
-.badge-cancelled{ border-color: rgba(255,51,51,0.3); color: var(--red); background: rgba(255,51,51,0.06); }
-
-.btn-cancel-order {
-  background: none;
-  border: 1px solid rgba(255,51,51,0.3);
-  color: var(--red);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  padding: 0.25rem 0.65rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-.btn-cancel-order:hover { background: rgba(255,51,51,0.1); }
-
-.btn-copy-key {
-  background: none;
-  border: 1px solid rgba(0,255,136,0.25);
-  color: var(--green);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  padding: 0.25rem 0.65rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.btn-copy-key:hover { background: rgba(0,255,136,0.1); }
-
-.empty-msg {
-  text-align: center;
-  color: var(--gray-4);
-  padding: 4rem 1rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  border: 1px solid var(--gray-3);
-}
-
-/* ===== MODALS ===== */
+/* MODALS */
 .modal-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.88);
+  background: rgba(0,0,0,0.92);
   z-index: 1000;
   display: none;
   align-items: center;
@@ -495,7 +667,7 @@ body::after {
 .modal-box {
   background: var(--black);
   border: 1px solid var(--gray-3);
-  width: 100%; max-width: 400px; margin: 1rem;
+  width: 100%; max-width: 450px; margin: 1rem;
   animation: modalIn 0.2s ease;
   max-height: 92vh; overflow-y: auto;
 }
@@ -505,154 +677,92 @@ body::after {
   border-bottom: 1px solid var(--gray-3);
   padding: 1.2rem 1.5rem;
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  align-items: center;
 }
-
 .modal-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   letter-spacing: 0.1em;
-  line-height: 1;
 }
-
 .modal-close {
   background: none;
   border: 1px solid var(--gray-3);
   color: var(--gray-5);
   width: 28px; height: 28px;
-  display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  font-size: 0.8rem;
-  flex-shrink: 0;
-  transition: all 0.15s;
 }
-.modal-close:hover { border-color: var(--white); color: var(--white); }
-
 .modal-body { padding: 1.5rem; }
 
 .modal-tabs {
   display: flex;
   border-bottom: 1px solid var(--gray-3);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
-
 .modal-tab {
-  flex: 1; padding: 0.7rem; text-align: center;
+  flex: 1; padding: 0.6rem;
+  text-align: center;
   cursor: pointer;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 0.9rem;
-  letter-spacing: 0.12em;
   color: var(--gray-5);
-  border: none; background: none;
   border-bottom: 2px solid transparent;
-  transition: all 0.15s;
 }
 .modal-tab.active { color: var(--white); border-bottom-color: var(--white); }
-.modal-tab:hover { color: var(--white); }
 
 .modal-input {
   width: 100%;
   background: var(--gray-1);
   border: 1px solid var(--gray-3);
-  border-radius: 0;
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 1rem;
   color: var(--white);
   font-family: 'Space Mono', monospace;
-  font-size: 0.82rem;
-  margin-bottom: 0.75rem;
-  transition: border-color 0.15s;
-  letter-spacing: 0.04em;
+  font-size: 0.8rem;
+  margin-bottom: 0.8rem;
 }
 .modal-input:focus { outline: none; border-color: var(--white); }
-
 .modal-label {
   font-size: 0.58rem;
   letter-spacing: 0.15em;
   color: var(--gray-5);
   text-transform: uppercase;
-  margin-bottom: 0.4rem;
   display: block;
+  margin-bottom: 0.3rem;
 }
-
 .modal-btn {
   width: 100%;
   background: var(--white);
   color: var(--black);
   border: none;
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1rem;
+  font-size: 0.9rem;
   letter-spacing: 0.15em;
-  padding: 0.85rem;
+  padding: 0.7rem;
   cursor: pointer;
-  transition: background 0.15s;
-  margin-top: 0.25rem;
 }
-.modal-btn:hover { background: var(--gray-6); }
-.modal-btn:disabled { background: var(--gray-3); color: var(--gray-5); cursor: not-allowed; }
-
-.modal-cancel {
-  width: 100%;
-  background: none;
-  border: 1px solid var(--gray-3);
-  color: var(--gray-5);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.72rem;
-  padding: 0.65rem;
-  cursor: pointer;
-  margin-top: 0.6rem;
-  transition: all 0.15s;
-  letter-spacing: 0.04em;
-}
-.modal-cancel:hover { border-color: var(--white); color: var(--white); }
-
 .modal-error {
   font-size: 0.68rem;
   color: var(--red);
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem;
   border: 1px solid rgba(255,51,51,0.25);
   background: rgba(255,51,51,0.06);
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
   display: none;
-  letter-spacing: 0.04em;
 }
 .modal-error.show { display: block; }
-.modal-success {
-  font-size: 0.68rem;
-  color: var(--green);
-  padding: 0.5rem 0.75rem;
-  border: 1px solid rgba(0,255,136,0.25);
-  background: rgba(0,255,136,0.06);
-  margin-bottom: 0.75rem;
-  display: none;
-  letter-spacing: 0.04em;
-}
-.modal-success.show { display: block; }
 
-/* KEY REVEAL */
 .key-reveal-card {
-  border: 1px solid rgba(0,255,136,0.3);
-  padding: 1.3rem;
+  border: 1px solid var(--green);
+  padding: 1rem;
   text-align: center;
-  margin-bottom: 1rem;
-  background: rgba(0,255,136,0.04);
-}
-.key-reveal-label {
-  font-size: 0.58rem;
-  letter-spacing: 0.2em;
-  color: var(--green);
-  text-transform: uppercase;
-  margin-bottom: 0.6rem;
+  margin-top: 1rem;
 }
 .key-reveal-value {
   font-family: 'Space Mono', monospace;
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1rem;
   color: var(--green);
-  letter-spacing: 0.1em;
   word-break: break-all;
-  margin-bottom: 0.7rem;
+  margin: 0.5rem 0;
 }
 .btn-copy {
   background: rgba(0,255,136,0.1);
@@ -660,35 +770,9 @@ body::after {
   color: var(--green);
   font-family: 'Space Mono', monospace;
   font-size: 0.68rem;
-  padding: 0.4rem 1.2rem;
+  padding: 0.4rem 1rem;
   cursor: pointer;
-  letter-spacing: 0.06em;
-  transition: all 0.15s;
 }
-.btn-copy:hover { background: rgba(0,255,136,0.2); }
-
-/* PAYMENT WAITING */
-.pay-info-card {
-  border: 1px solid var(--gray-3);
-  padding: 1.2rem;
-  text-align: center;
-  margin-bottom: 1.2rem;
-  background: var(--gray-1);
-}
-.pay-info-name { font-size: 0.72rem; color: var(--gray-5); letter-spacing: 0.08em; }
-.pay-info-price { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 0.08em; color: var(--white); margin-top: 0.2rem; }
-
-/* CHECKOUT CONFIRM */
-.confirm-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0.7rem 0;
-  border-bottom: 1px solid var(--gray-3);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-}
-.confirm-row:last-child { border-bottom: none; }
-.confirm-key { color: var(--gray-5); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; }
-.confirm-val { font-weight: 700; color: var(--white); }
 
 .spinner {
   width: 32px; height: 32px;
@@ -700,68 +784,61 @@ body::after {
 }
 @keyframes spin { to{ transform:rotate(360deg); } }
 
-/* CHECKOUT RESULT */
-.ck-result {
-  font-size: 0.7rem;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid;
-  margin-bottom: 1rem;
-  display: none;
-  letter-spacing: 0.04em;
+.empty-msg {
+  text-align: center;
+  color: var(--gray-4);
+  padding: 3rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--gray-3);
 }
 
-/* BTN ROW */
-.btn-row { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
-.btn-row .modal-btn { margin-top: 0; }
-.btn-row .modal-cancel { margin-top: 0; }
-
-/* TOAST */
 .toast-msg {
   position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
   background: var(--white);
   color: var(--black);
   font-family: 'Space Mono', monospace;
-  font-size: 0.72rem;
-  padding: 0.65rem 1.5rem;
+  font-size: 0.7rem;
+  padding: 0.6rem 1.5rem;
   z-index: 9000;
   opacity: 0;
   transition: opacity 0.2s;
   pointer-events: none;
-  letter-spacing: 0.06em;
   white-space: nowrap;
 }
 .toast-msg.show { opacity: 1; }
 
-/* FOOTER */
 .glass-footer {
-  margin-top: 2.5rem;
+  margin-top: 2rem;
   padding: 1rem;
   border-top: 1px solid var(--gray-3);
   font-size: 0.58rem;
   color: var(--gray-4);
-  letter-spacing: 0.12em;
   text-align: center;
   text-transform: uppercase;
 }
 
 @media(max-width:640px) {
+  .nav-btn { padding: 0 0.7rem; font-size: 0.75rem; }
   .plans-grid, .contacts-grid { grid-template-columns: 1fr; }
-  .nav-btn { padding: 0 0.9rem; font-size: 0.9rem; }
-  .shop-header { padding: 1.2rem; }
-  .modal-box { margin: 0.5rem; }
+  .service-items { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <div class="nav-bar">
   <div class="nav-tabs">
     <button class="nav-btn active" data-tab="shop">SHOP</button>
+    <button class="nav-btn" data-tab="services">SERVICES</button>
+    <button class="nav-btn" data-tab="deposit">DEPOSIT</button>
     <button class="nav-btn" data-tab="orders">ORDERS</button>
     <button class="nav-btn" data-tab="contacts">CONTACTS</button>
   </div>
   <div class="nav-user">
+    <div class="balance-pill" id="balancePill" style="display:none;">
+      <i class="fas fa-coins"></i>
+      <span id="userBalance">₱0</span>
+    </div>
     <div class="user-pill" id="userPill" onclick="openAuthModal()">
       <i class="fas fa-user" id="userPillIcon"></i>
       <span id="userPillText">LOGIN</span>
@@ -771,7 +848,7 @@ body::after {
 
 <div class="app-container">
 
-  <!-- ===== SHOP TAB ===== -->
+  <!-- SHOP TAB -->
   <div id="shopTab" class="tab-section active">
     <div class="shop-header">
       <div class="header-logo">
@@ -780,72 +857,130 @@ body::after {
       </div>
       <div class="header-meta">
         <span>ACTIVATION KEYS</span>
-        <span>GCASH · PAYMONGO</span>
+        <span>USE BALANCE TO BUY</span>
         <span>AUTO-DELIVERED</span>
       </div>
     </div>
 
-    <!-- APK download -->
     <div id="apkDownload" class="apk-banner">
       <div>
         <div class="apk-banner-label">AVAILABLE NOW</div>
         <div class="apk-banner-name" id="apkName">N4XCO APP</div>
       </div>
-      <button class="btn-download" onclick="downloadApk()">
-        ↓ DOWNLOAD APK
-      </button>
+      <button class="btn-download" onclick="downloadApk()">↓ DOWNLOAD APK</button>
     </div>
 
     <div class="section-label">AVAILABLE PLANS</div>
     <div id="plansGrid" class="plans-grid"></div>
-    <div class="glass-footer">SECURE CHECKOUT VIA GCASH · PAYMONGO · KEYS AUTO-DELIVERED</div>
+    <div class="glass-footer">KEYS AUTO-DELIVERED UPON PURCHASE · SUPPORT 24/7</div>
   </div>
 
-  <!-- ===== ORDERS TAB ===== -->
+  <!-- SERVICES TAB -->
+  <div id="servicesTab" class="tab-section">
+    <div class="orders-page-header" style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:0.1em;border-bottom:1px solid var(--gray-3);padding-bottom:1rem;margin-bottom:1.5rem;">OUR SERVICES</div>
+    <div id="servicesContainer" class="services-grid"></div>
+  </div>
+
+  <!-- DEPOSIT TAB -->
+  <div id="depositTab" class="tab-section">
+    <div class="orders-page-header" style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:0.1em;border-bottom:1px solid var(--gray-3);padding-bottom:1rem;margin-bottom:1.5rem;">DEPOSIT FUNDS</div>
+    
+    <div class="deposit-form-card">
+      <div class="deposit-form-title">GCASH DEPOSIT</div>
+      <div class="gcash-info">
+        <div style="font-size:0.7rem;letter-spacing:0.1em;">SEND PAYMENT TO</div>
+        <div class="gcash-number" id="gcashNumber">09123456789</div>
+        <div style="font-size:0.6rem;margin-top:0.3rem;">Scan QR or send to this GCash number</div>
+      </div>
+      
+      <div class="field-group">
+        <label class="field-label">AMOUNT (₱)</label>
+        <div class="amount-buttons">
+          <button type="button" class="amount-btn" data-amount="50">₱50</button>
+          <button type="button" class="amount-btn" data-amount="100">₱100</button>
+          <button type="button" class="amount-btn" data-amount="200">₱200</button>
+          <button type="button" class="amount-btn" data-amount="500">₱500</button>
+        </div>
+        <input type="number" id="depositAmount" class="field-input" placeholder="Enter amount (min ₱50)" min="50">
+      </div>
+      
+      <div class="field-group">
+        <label class="field-label">TELEGRAM ACCOUNT</label>
+        <input type="text" id="depositTelegram" class="field-input" placeholder="@username">
+      </div>
+      
+      <div class="field-group">
+        <label class="field-label">FACEBOOK ACCOUNT</label>
+        <input type="text" id="depositFacebook" class="field-input" placeholder="facebook.com/username or email">
+      </div>
+      
+      <div class="field-group">
+        <label class="field-label">LAST 4 DIGITS OF GCASH REFERENCE NO.</label>
+        <input type="text" id="depositLast4" class="field-input" placeholder="1234" maxlength="4">
+      </div>
+      
+      <div class="field-group">
+        <label class="field-label">NOTES (OPTIONAL)</label>
+        <textarea id="depositNotes" class="field-textarea" placeholder="Additional notes for admin..."></textarea>
+      </div>
+      
+      <div class="field-group">
+        <label class="field-label">SCREENSHOT (OPTIONAL)</label>
+        <input type="file" id="depositScreenshot" accept="image/*" class="field-input">
+      </div>
+      
+      <button class="btn-primary" id="submitDepositBtn">SUBMIT DEPOSIT REQUEST</button>
+      <div id="depositMsg" style="margin-top:1rem;font-size:0.7rem;color:var(--gray-5);"></div>
+    </div>
+    
+    <div class="deposit-history">
+      <div class="section-label">DEPOSIT HISTORY</div>
+      <div id="depositHistory"></div>
+    </div>
+  </div>
+
+  <!-- ORDERS TAB -->
   <div id="ordersTab" class="tab-section">
-    <div class="orders-page-header">MY ORDERS</div>
+    <div class="orders-page-header" style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:0.1em;border-bottom:1px solid var(--gray-3);padding-bottom:1rem;margin-bottom:1.5rem;">MY ORDERS</div>
     <div id="ordersContainer"></div>
   </div>
 
-  <!-- ===== CONTACTS TAB ===== -->
+  <!-- CONTACTS TAB -->
   <div id="contactsTab" class="tab-section">
-    <div class="orders-page-header">CONTACTS</div>
+    <div class="orders-page-header" style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:0.1em;border-bottom:1px solid var(--gray-3);padding-bottom:1rem;margin-bottom:1.5rem;">CONTACTS</div>
     <div class="section-label">REACH US ON TELEGRAM</div>
     <div class="contacts-grid">
       <a class="contact-card" href="https://t.me/JEPFX" target="_blank">
         <div class="contact-icon-wrap"><i class="fab fa-telegram"></i></div>
         <div>
           <div class="contact-title">JEPFX SERVICES</div>
-          <div class="contact-sub">t.me/JEPFX</div>
+          <div style="font-size:0.6rem;color:var(--gray-5);">t.me/JEPFX</div>
         </div>
       </a>
       <a class="contact-card" href="https://t.me/n4xcoall" target="_blank">
         <div class="contact-icon-wrap"><i class="fab fa-telegram"></i></div>
         <div>
           <div class="contact-title">N4XCO CHANNEL</div>
-          <div class="contact-sub">t.me/n4xcoall</div>
+          <div style="font-size:0.6rem;color:var(--gray-5);">t.me/n4xcoall</div>
         </div>
       </a>
       <a class="contact-card" href="https://t.me/zekielsZ" target="_blank">
         <div class="contact-icon-wrap"><i class="fab fa-telegram"></i></div>
         <div>
           <div class="contact-title">N4XCO ACCOUNT</div>
-          <div class="contact-sub">t.me/zekielsZ</div>
+          <div style="font-size:0.6rem;color:var(--gray-5);">t.me/zekielsZ</div>
         </div>
       </a>
     </div>
   </div>
 
-</div><!-- /app-container -->
+</div>
 
-<!-- ===== AUTH MODAL ===== -->
+<!-- AUTH MODAL -->
 <div class="modal-overlay" id="authModal">
   <div class="modal-box">
     <div class="modal-header">
-      <div>
-        <div class="modal-title" id="authModalTitle">N4XCO SHOP</div>
-        <div style="font-size:0.6rem;color:var(--gray-5);letter-spacing:0.08em;margin-top:0.2rem;">LOGIN OR REGISTER TO PURCHASE KEYS</div>
-      </div>
+      <div class="modal-title">N4XCO SHOP</div>
       <button class="modal-close" onclick="closeModal('authModal')"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
@@ -854,108 +989,79 @@ body::after {
         <button class="modal-tab" id="tabRegister" onclick="switchAuthTab('register')">REGISTER</button>
       </div>
       <div id="authError" class="modal-error"></div>
-
-      <!-- Login -->
       <div id="loginForm">
         <label class="modal-label">Username</label>
-        <input type="text" id="loginUser" class="modal-input" placeholder="your_username">
+        <input type="text" id="loginUser" class="modal-input" placeholder="username">
         <label class="modal-label">Password</label>
-        <input type="password" id="loginPass" class="modal-input" placeholder="••••••••">
+        <input type="password" id="loginPass" class="modal-input" placeholder="password">
         <button class="modal-btn" id="loginBtn">LOGIN</button>
       </div>
-
-      <!-- Register -->
       <div id="registerForm" style="display:none;">
         <label class="modal-label">Username</label>
-        <input type="text" id="regUser" class="modal-input" placeholder="choose_username">
+        <input type="text" id="regUser" class="modal-input" placeholder="username (min 3 chars)">
         <label class="modal-label">Password</label>
-        <input type="password" id="regPass" class="modal-input" placeholder="min. 6 characters">
+        <input type="password" id="regPass" class="modal-input" placeholder="password (min 6 chars)">
         <label class="modal-label">Telegram (optional)</label>
-        <input type="text" id="regTelegram" class="modal-input" placeholder="@yourtelegram">
+        <input type="text" id="regTelegram" class="modal-input" placeholder="@username">
+        <label class="modal-label">Facebook (optional)</label>
+        <input type="text" id="regFacebook" class="modal-input" placeholder="facebook username">
         <button class="modal-btn" id="registerBtn">CREATE ACCOUNT</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ===== CHECKOUT MODAL ===== -->
-<div class="modal-overlay" id="checkoutModal">
+<!-- PURCHASE CONFIRM MODAL -->
+<div class="modal-overlay" id="purchaseModal">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-title" id="ckPlanName">CHECKOUT</div>
-      <button class="modal-close" id="ckCloseBtn"><i class="fas fa-times"></i></button>
+      <div class="modal-title" id="purchasePlanName">CONFIRM PURCHASE</div>
+      <button class="modal-close" onclick="closeModal('purchaseModal')"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-
-      <!-- STEP 1: Confirm -->
-      <div id="ckStep1">
-        <div id="ckError" class="modal-error"></div>
-
-        <div style="border:1px solid var(--gray-3);margin-bottom:1.2rem;">
-          <div class="confirm-row" style="padding:0.7rem 1rem;">
-            <span class="confirm-key">Plan</span>
-            <span class="confirm-val" id="ckPlanLabel">—</span>
-          </div>
-          <div class="confirm-row" style="padding:0.7rem 1rem;border-bottom:none;">
-            <span class="confirm-key">Price</span>
-            <span class="confirm-val" id="ckPlanPrice">—</span>
-          </div>
+      <div id="purchaseError" class="modal-error"></div>
+      <div style="border:1px solid var(--gray-3);padding:1rem;margin-bottom:1rem;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+          <span>Plan:</span><span id="purchasePlanLabel">—</span>
         </div>
-
-        <div style="font-size:0.6rem;color:var(--gray-5);letter-spacing:0.08em;margin-bottom:1rem;">
-          BUYING AS: <span id="ckUsername" style="color:var(--white);"></span>
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+          <span>Price:</span><span id="purchasePrice">—</span>
         </div>
-
-        <button class="modal-btn" id="ckPayBtn">PAY VIA GCASH</button>
-        <button class="modal-cancel" id="ckCancelBtn">CANCEL</button>
-      </div>
-
-      <!-- STEP 2: Waiting for payment -->
-      <div id="ckStep2" style="display:none;">
-        <div class="pay-info-card">
-          <div class="pay-info-name" id="ckPayPlan">—</div>
-          <div class="pay-info-price" id="ckPayPrice">—</div>
-          <div style="font-size:0.6rem;color:var(--gray-5);margin-top:0.4rem;letter-spacing:0.08em;">
-            ORDER <span id="ckOrderIdDisplay"></span>
-          </div>
-        </div>
-
-        <div style="font-size:0.6rem;color:var(--gray-5);letter-spacing:0.06em;line-height:1.8;border:1px solid var(--gray-3);padding:0.75rem 1rem;margin-bottom:1rem;background:var(--gray-1);">
-          GCASH PAYMENT PAGE HAS BEEN OPENED.<br>
-          COMPLETE THE PAYMENT, THEN CHECK STATUS.
-        </div>
-
-        <div class="ck-result" id="ckCheckResult"></div>
-
-        <!-- Key reveal -->
-        <div class="key-reveal-card" id="ckKeyReveal" style="display:none;">
-          <div class="key-reveal-label">YOUR ACTIVATION KEY</div>
-          <div class="key-reveal-value" id="ckRevealKey">—</div>
-          <button class="btn-copy" onclick="copyText(document.getElementById('ckRevealKey').textContent)">COPY KEY</button>
-        </div>
-
-        <div class="btn-row">
-          <button class="modal-btn" id="ckCheckBtn" style="flex:1;">CHECK PAYMENT</button>
-          <button class="modal-cancel" id="ckReopenBtn" style="flex:1;margin-top:0;">REOPEN PAGE</button>
+        <div style="display:flex;justify-content:space-between;">
+          <span>Your Balance:</span><span id="purchaseBalance" style="color:var(--green);">—</span>
         </div>
       </div>
-
+      <button class="modal-btn" id="confirmPurchaseBtn">CONFIRM PURCHASE</button>
+      <button class="modal-cancel" style="width:100%;margin-top:0.5rem;background:none;border:1px solid var(--gray-3);color:var(--gray-5);padding:0.6rem;cursor:pointer;" onclick="closeModal('purchaseModal')">CANCEL</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
+<!-- KEY DELIVERY MODAL -->
+<div class="modal-overlay" id="keyModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">KEY DELIVERED!</div>
+      <button class="modal-close" onclick="closeModal('keyModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="key-reveal-card">
+        <div class="key-reveal-value" id="deliveredKey">—</div>
+        <button class="btn-copy" onclick="copyText(document.getElementById('deliveredKey').textContent)">COPY KEY</button>
+      </div>
+      <p style="font-size:0.7rem;color:var(--gray-5);margin-top:1rem;text-align:center;">Key has been saved to your orders</p>
+    </div>
+  </div>
+</div>
+
 <div class="toast-msg" id="toastMsg"></div>
 
 <script>
-// ===== STATE =====
 let userToken = localStorage.getItem('n4xco_token');
 let userName = localStorage.getItem('n4xco_user');
-let storeData = {};
-let activeCheckoutOrderId = null;
-let activeCheckoutUrl = null;
-let statusPollTimer = null;
-let pendingCheckoutPlanId = null;
+let userBalance = 0;
+let storeData = { plans: [], services: [], apk: {} };
+let keyAvailability = {};
 
 // ===== TABS =====
 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -966,35 +1072,52 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById(tab + 'Tab').classList.add('active');
     if (tab === 'orders') loadOrders();
+    if (tab === 'deposit') loadDepositHistory();
   });
 });
 
 // ===== AUTH =====
-function updateUserPill() {
+function updateUserUI() {
   const pill = document.getElementById('userPill');
-  const icon = document.getElementById('userPillIcon');
-  const text = document.getElementById('userPillText');
+  const balancePill = document.getElementById('balancePill');
   if (userToken && userName) {
-    text.textContent = userName.toUpperCase();
-    icon.className = 'fas fa-user-check';
+    document.getElementById('userPillText').textContent = userName.toUpperCase();
+    document.getElementById('userPillIcon').className = 'fas fa-user-check';
     pill.classList.add('logged-in');
     pill.onclick = () => { if(confirm('Log out as ' + userName + '?')) doLogout(); };
+    balancePill.style.display = 'flex';
+    document.getElementById('userBalance').textContent = '₱' + userBalance.toLocaleString();
   } else {
-    text.textContent = 'LOGIN';
-    icon.className = 'fas fa-user';
+    document.getElementById('userPillText').textContent = 'LOGIN';
+    document.getElementById('userPillIcon').className = 'fas fa-user';
     pill.classList.remove('logged-in');
     pill.onclick = openAuthModal;
+    balancePill.style.display = 'none';
   }
 }
 
+async function refreshUserInfo() {
+  if (!userToken) return;
+  try {
+    const res = await fetch('/api/user/info', { headers: { Authorization: 'Bearer ' + userToken } });
+    const data = await res.json();
+    if (data.success) {
+      userBalance = data.balance;
+      document.getElementById('userBalance').textContent = '₱' + userBalance.toLocaleString();
+    }
+  } catch(e) {}
+}
+
 function doLogout() {
-  userToken = null; userName = null;
+  userToken = null; userName = null; userBalance = 0;
   localStorage.removeItem('n4xco_token'); localStorage.removeItem('n4xco_user');
-  updateUserPill(); toast('LOGGED OUT');
+  updateUserUI(); toast('LOGGED OUT');
+  location.reload();
 }
 
 function openAuthModal() {
-  clearErr('authError'); switchAuthTab('login');
+  document.getElementById('authError').classList.remove('show');
+  switchAuthTab('login');
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
   document.getElementById('authModal').classList.add('open');
@@ -1006,56 +1129,51 @@ function switchAuthTab(tab) {
   document.getElementById('tabRegister').classList.toggle('active', !isLogin);
   document.getElementById('loginForm').style.display = isLogin ? '' : 'none';
   document.getElementById('registerForm').style.display = isLogin ? 'none' : '';
-  clearErr('authError');
 }
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const username = document.getElementById('loginUser').value.trim();
   const password = document.getElementById('loginPass').value;
-  if (!username || !password) return showErr('authError', 'ENTER USERNAME AND PASSWORD');
+  if (!username || !password) return showErr('authError', 'Enter username and password');
   document.getElementById('loginBtn').disabled = true;
-  document.getElementById('loginBtn').textContent = 'LOGGING IN...';
   try {
     const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password }) });
     const data = await res.json();
-    if (!res.ok) { showErr('authError', data.message || 'INVALID CREDENTIALS'); return; }
-    userToken = data.token; userName = data.username;
+    if (!res.ok) { showErr('authError', data.message || 'Invalid credentials'); return; }
+    userToken = data.token; userName = data.username; userBalance = data.balance;
     localStorage.setItem('n4xco_token', userToken);
     localStorage.setItem('n4xco_user', userName);
-    updateUserPill();
+    updateUserUI();
     closeModal('authModal');
-    toast('WELCOME BACK, ' + userName.toUpperCase());
-    if (pendingCheckoutPlanId) { const p = pendingCheckoutPlanId; pendingCheckoutPlanId = null; openCheckout(p); }
-  } catch(e) { showErr('authError', 'NETWORK ERROR'); }
-  finally { document.getElementById('loginBtn').disabled = false; document.getElementById('loginBtn').textContent = 'LOGIN'; }
+    toast('Welcome back, ' + userName);
+    loadStore(); // reload to update key availability
+  } catch(e) { showErr('authError', 'Network error'); }
+  finally { document.getElementById('loginBtn').disabled = false; }
 });
 
 document.getElementById('registerBtn').addEventListener('click', async () => {
   const username = document.getElementById('regUser').value.trim();
   const password = document.getElementById('regPass').value;
   const telegram = document.getElementById('regTelegram').value.trim();
-  if (!username || !password) return showErr('authError', 'FILL IN USERNAME AND PASSWORD');
-  if (username.length < 3) return showErr('authError', 'USERNAME MUST BE AT LEAST 3 CHARACTERS');
-  if (password.length < 6) return showErr('authError', 'PASSWORD MUST BE AT LEAST 6 CHARACTERS');
+  const facebook = document.getElementById('regFacebook').value.trim();
+  if (!username || !password) return showErr('authError', 'Fill all required fields');
+  if (username.length < 3) return showErr('authError', 'Username min 3 characters');
+  if (password.length < 6) return showErr('authError', 'Password min 6 characters');
   document.getElementById('registerBtn').disabled = true;
-  document.getElementById('registerBtn').textContent = 'CREATING...';
   try {
-    const res = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password, telegram }) });
+    const res = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password, telegram, facebook }) });
     const data = await res.json();
-    if (!res.ok) { showErr('authError', data.message || 'REGISTRATION FAILED'); return; }
-    userToken = data.token; userName = data.username;
+    if (!res.ok) { showErr('authError', data.message || 'Registration failed'); return; }
+    userToken = data.token; userName = data.username; userBalance = data.balance;
     localStorage.setItem('n4xco_token', userToken);
     localStorage.setItem('n4xco_user', userName);
-    updateUserPill();
+    updateUserUI();
     closeModal('authModal');
-    toast('ACCOUNT CREATED! WELCOME, ' + userName.toUpperCase());
-    if (pendingCheckoutPlanId) { const p = pendingCheckoutPlanId; pendingCheckoutPlanId = null; openCheckout(p); }
-  } catch(e) { showErr('authError', 'NETWORK ERROR'); }
-  finally { document.getElementById('registerBtn').disabled = false; document.getElementById('registerBtn').textContent = 'CREATE ACCOUNT'; }
+    toast('Account created! Welcome, ' + userName);
+    loadStore();
+  } catch(e) { showErr('authError', 'Network error'); }
+  finally { document.getElementById('registerBtn').disabled = false; }
 });
-
-document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
-document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
 
 // ===== STORE =====
 async function loadStore() {
@@ -1063,8 +1181,22 @@ async function loadStore() {
     const res = await fetch('/api/store');
     storeData = await res.json();
     renderPlans();
+    renderServices();
     renderApk();
+    await loadKeyAvailability();
   } catch(e) { console.error('Store load error', e); }
+}
+
+async function loadKeyAvailability() {
+  if (!userToken) return;
+  try {
+    const res = await fetch('/api/admin/keys', { headers: { Authorization: 'Bearer ' + userToken } });
+    const data = await res.json();
+    if (data.success && data.counts) {
+      keyAvailability = {};
+      data.counts.forEach(c => { keyAvailability[c.plan_id] = c.available; });
+    }
+  } catch(e) {}
 }
 
 function renderApk() {
@@ -1082,237 +1214,259 @@ function renderApk() {
   }
 }
 
-function downloadApk() {
-  if (storeData.apk?.link) window.open(storeData.apk.link, '_blank');
-}
+function downloadApk() { if (storeData.apk?.link) window.open(storeData.apk.link, '_blank'); }
 
 function renderPlans() {
   const grid = document.getElementById('plansGrid');
   if (!storeData.plans?.length) {
-    grid.innerHTML = '<div style="color:var(--gray-4);text-align:center;padding:4rem;font-size:0.72rem;letter-spacing:0.1em;border:1px solid var(--gray-3);">NO PLANS AVAILABLE. CHECK BACK SOON.</div>';
+    grid.innerHTML = '<div style="color:var(--gray-4);text-align:center;padding:4rem;border:1px solid var(--gray-3);">NO PLANS AVAILABLE</div>';
     return;
   }
-  grid.innerHTML = storeData.plans.map((p, i) => `
-    <div class="plan-card" onclick="handleBuyClick('${p.id}')">
-      <div class="plan-number">${String(p.days).padStart(2,'0')}</div>
-      <div class="plan-label">${esc(p.label)} PLAN</div>
-      <div class="plan-price">₱${p.price}</div>
-      <div class="plan-price-unit">PHP · ${p.days} DAYS ACCESS</div>
-      <div class="plan-days-line">Valid for ${p.days} day${p.days > 1 ? 's' : ''} from activation</div>
-      <button class="plan-buy-btn">BUY NOW →</button>
+  grid.innerHTML = storeData.plans.map(p => {
+    const available = keyAvailability[p.id] || 0;
+    const disabled = available === 0;
+    return `
+      <div class="plan-card ${disabled ? 'disabled' : ''}" onclick="${disabled ? '' : `showPurchaseModal('${p.id}')`}">
+        <div class="plan-number">${String(p.days).padStart(2,'0')}</div>
+        <div class="plan-label">${esc(p.label)} PLAN</div>
+        <div class="plan-price">₱${p.price}</div>
+        <div class="plan-price-unit">PHP · ${p.days} DAYS</div>
+        <div class="plan-days-line">Valid for ${p.days} day${p.days > 1 ? 's' : ''}</div>
+        <button class="plan-buy-btn" ${disabled ? 'disabled' : ''}>${disabled ? 'OUT OF STOCK' : 'BUY NOW →'}</button>
+        ${disabled ? '<div class="out-of-stock-tag">NO KEYS LEFT</div>' : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderServices() {
+  const container = document.getElementById('servicesContainer');
+  const settings = storeData.shopSettings || {};
+  const categories = [
+    { id: 'android', name: 'ANDROID SERVICES', show: settings.show_android !== 0 },
+    { id: 'boosting', name: 'BOOSTING SERVICES', show: settings.show_boosting !== 0 },
+    { id: 'jepfx', name: 'JEPFX SERVICE TOOL', show: settings.show_jepfx !== 0 },
+    { id: 'module', name: 'MODULE FOR ROOTED', show: settings.show_module !== 0 }
+  ];
+  
+  const servicesByCat = {};
+  (storeData.services || []).forEach(s => {
+    if (!servicesByCat[s.category]) servicesByCat[s.category] = [];
+    servicesByCat[s.category].push(s);
+  });
+  
+  container.innerHTML = categories.filter(cat => cat.show && servicesByCat[cat.id]?.length).map(cat => `
+    <div class="service-category">
+      <div class="category-header" onclick="toggleCategory(this)">
+        <div class="category-title">${cat.name}</div>
+        <div class="category-toggle"><i class="fas fa-chevron-down"></i></div>
+      </div>
+      <div class="category-content">
+        <div class="service-items">
+          ${servicesByCat[cat.id].map(s => `
+            <div class="service-item">
+              <div class="service-item-title">${esc(s.title)}</div>
+              ${s.price > 0 ? `<div class="service-item-price">₱${s.price}</div>` : ''}
+              <div class="service-item-desc">${esc(s.description).replace(/\n/g, '<br>')}</div>
+              ${s.link ? `<a href="${s.link}" target="_blank" class="service-item-link">MORE INFO →</a>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
     </div>
   `).join('');
+  
+  if (!container.innerHTML) container.innerHTML = '<div class="empty-msg">NO SERVICES AVAILABLE</div>';
 }
 
-// ===== CHECKOUT =====
-function handleBuyClick(planId) {
-  if (!userToken || !userName) {
-    pendingCheckoutPlanId = planId;
-    openAuthModal();
-    toast('LOGIN TO PURCHASE');
-    return;
-  }
-  openCheckout(planId);
+function toggleCategory(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.category-toggle i');
+  content.classList.toggle('open');
+  icon.className = content.classList.contains('open') ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
 }
 
-function openCheckout(planId) {
+// ===== PURCHASE =====
+let pendingPurchasePlan = null;
+
+async function showPurchaseModal(planId) {
+  if (!userToken) { openAuthModal(); toast('Login to purchase'); return; }
   const plan = storeData.plans.find(p => p.id === planId);
   if (!plan) return;
-  document.getElementById('ckStep1').style.display = '';
-  document.getElementById('ckStep2').style.display = 'none';
-  document.getElementById('ckKeyReveal').style.display = 'none';
-  document.getElementById('ckCheckResult').style.display = 'none';
-  clearErr('ckError');
-  document.getElementById('ckPlanName').textContent = 'N4XCO ' + plan.label.toUpperCase() + ' KEY';
-  document.getElementById('ckPlanLabel').textContent = plan.label.toUpperCase();
-  document.getElementById('ckPlanPrice').textContent = '₱' + plan.price;
-  document.getElementById('ckUsername').textContent = userName;
-  document.getElementById('ckPayBtn').dataset.planId = planId;
-  document.getElementById('checkoutModal').classList.add('open');
+  if ((keyAvailability[planId] || 0) === 0) { toast('No keys available for this plan'); return; }
+  if (userBalance < plan.price) { toast('Insufficient balance! Please deposit funds first.'); return; }
+  
+  pendingPurchasePlan = plan;
+  document.getElementById('purchasePlanName').textContent = 'CONFIRM ' + plan.label.toUpperCase();
+  document.getElementById('purchasePlanLabel').textContent = plan.label.toUpperCase();
+  document.getElementById('purchasePrice').textContent = '₱' + plan.price;
+  document.getElementById('purchaseBalance').textContent = '₱' + userBalance.toLocaleString();
+  document.getElementById('purchaseError').classList.remove('show');
+  document.getElementById('purchaseModal').classList.add('open');
 }
 
-document.getElementById('ckPayBtn').addEventListener('click', async () => {
-  const planId = document.getElementById('ckPayBtn').dataset.planId;
-  document.getElementById('ckPayBtn').disabled = true;
-  document.getElementById('ckPayBtn').textContent = 'CREATING PAYMENT LINK...';
-  clearErr('ckError');
+document.getElementById('confirmPurchaseBtn').addEventListener('click', async () => {
+  if (!pendingPurchasePlan) return;
+  const btn = document.getElementById('confirmPurchaseBtn');
+  btn.disabled = true;
+  btn.textContent = 'PROCESSING...';
   try {
-    const res = await fetch('/api/checkout', {
+    const res = await fetch('/api/purchase', {
       method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + userToken },
-      body: JSON.stringify({ planId })
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + userToken },
+      body: JSON.stringify({ planId: pendingPurchasePlan.id })
     });
     const data = await res.json();
-    if (!res.ok) { showErr('ckError', data.message || 'CHECKOUT FAILED'); return; }
-    activeCheckoutOrderId = data.orderId;
-    activeCheckoutUrl = data.checkoutUrl;
-    const plan = storeData.plans.find(p => p.id === planId);
-    document.getElementById('ckPayPlan').textContent = plan ? plan.label.toUpperCase() : '';
-    document.getElementById('ckPayPrice').textContent = plan ? '₱' + plan.price : '';
-    document.getElementById('ckOrderIdDisplay').textContent = data.orderId.split('-')[0].toUpperCase();
-    document.getElementById('ckStep1').style.display = 'none';
-    document.getElementById('ckStep2').style.display = '';
-    window.open(activeCheckoutUrl, '_blank');
-    if (statusPollTimer) clearInterval(statusPollTimer);
-    statusPollTimer = setInterval(() => pollOrderStatus(activeCheckoutOrderId), 5000);
-  } catch(e) { showErr('ckError', 'NETWORK ERROR. TRY AGAIN.'); }
-  finally { document.getElementById('ckPayBtn').disabled = false; document.getElementById('ckPayBtn').textContent = 'PAY VIA GCASH'; }
-});
-
-document.getElementById('ckReopenBtn').addEventListener('click', () => {
-  if (activeCheckoutUrl) window.open(activeCheckoutUrl, '_blank');
-});
-
-document.getElementById('ckCheckBtn').addEventListener('click', async () => {
-  if (!activeCheckoutOrderId) return;
-  document.getElementById('ckCheckBtn').textContent = 'CHECKING...';
-  document.getElementById('ckCheckBtn').disabled = true;
-  await pollOrderStatus(activeCheckoutOrderId);
-  document.getElementById('ckCheckBtn').textContent = 'CHECK PAYMENT';
-  document.getElementById('ckCheckBtn').disabled = false;
-});
-
-document.getElementById('ckCancelBtn').addEventListener('click', () => {
-  if (statusPollTimer) clearInterval(statusPollTimer);
-  statusPollTimer = null;
-  closeModal('checkoutModal');
-});
-
-document.getElementById('ckCloseBtn').addEventListener('click', () => {
-  if (activeCheckoutOrderId) return; // don't close mid-payment
-  closeModal('checkoutModal');
-});
-
-async function pollOrderStatus(orderId) {
-  try {
-    const res = await fetch('/api/order/' + orderId);
-    const data = await res.json();
-    if (!data.success) return;
-    const resultEl = document.getElementById('ckCheckResult');
-    resultEl.style.display = '';
-    if (data.status === 'fulfilled' && data.key) {
-      if (statusPollTimer) { clearInterval(statusPollTimer); statusPollTimer = null; }
-      resultEl.style.borderColor = 'rgba(0,255,136,0.3)';
-      resultEl.style.color = 'var(--green)';
-      resultEl.style.background = 'rgba(0,255,136,0.06)';
-      resultEl.textContent = '✓ PAYMENT CONFIRMED!';
-      document.getElementById('ckRevealKey').textContent = data.key;
-      document.getElementById('ckKeyReveal').style.display = '';
-      document.getElementById('ckCheckBtn').style.display = 'none';
-      document.getElementById('ckReopenBtn').style.display = 'none';
-      activeCheckoutOrderId = null;
-      toast('KEY DELIVERED!');
-    } else if (data.status === 'paid') {
-      resultEl.style.borderColor = 'rgba(0,170,255,0.3)';
-      resultEl.style.color = 'var(--blue)';
-      resultEl.style.background = 'rgba(0,170,255,0.06)';
-      resultEl.textContent = '✓ PAID — ASSIGNING KEY, PLEASE WAIT.';
-    } else if (data.status === 'pending') {
-      resultEl.style.borderColor = 'rgba(255,238,0,0.3)';
-      resultEl.style.color = 'var(--yellow)';
-      resultEl.style.background = 'rgba(255,238,0,0.06)';
-      resultEl.textContent = '⏳ PAYMENT NOT DETECTED. MAKE SURE PAYMENT IS COMPLETE.';
-    } else if (data.status === 'cancelled') {
-      resultEl.style.borderColor = 'rgba(255,51,51,0.3)';
-      resultEl.style.color = 'var(--red)';
-      resultEl.style.background = 'rgba(255,51,51,0.06)';
-      resultEl.textContent = '✗ ORDER WAS CANCELLED.';
-      if (statusPollTimer) { clearInterval(statusPollTimer); statusPollTimer = null; }
+    if (!res.ok) {
+      const errEl = document.getElementById('purchaseError');
+      errEl.textContent = data.message || 'Purchase failed';
+      errEl.classList.add('show');
+      return;
     }
-  } catch(e) {}
+    closeModal('purchaseModal');
+    document.getElementById('deliveredKey').textContent = data.key;
+    document.getElementById('keyModal').classList.add('open');
+    userBalance = data.newBalance;
+    document.getElementById('userBalance').textContent = '₱' + userBalance.toLocaleString();
+    await loadKeyAvailability();
+    renderPlans();
+    loadOrders();
+    toast('Purchase successful! Key delivered.');
+  } catch(e) {
+    document.getElementById('purchaseError').textContent = 'Network error';
+    document.getElementById('purchaseError').classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'CONFIRM PURCHASE';
+    pendingPurchasePlan = null;
+  }
+});
+
+// ===== DEPOSIT =====
+document.querySelectorAll('.amount-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('depositAmount').value = btn.dataset.amount;
+  });
+});
+
+document.getElementById('submitDepositBtn').addEventListener('click', async () => {
+  if (!userToken) { openAuthModal(); toast('Login to submit deposit'); return; }
+  
+  const amount = document.getElementById('depositAmount').value;
+  const telegram = document.getElementById('depositTelegram').value.trim();
+  const facebook = document.getElementById('depositFacebook').value.trim();
+  const last4 = document.getElementById('depositLast4').value.trim();
+  const notes = document.getElementById('depositNotes').value;
+  const screenshotFile = document.getElementById('depositScreenshot').files[0];
+  
+  if (!amount || amount < 50) { toast('Amount must be at least ₱50'); return; }
+  if (!telegram) { toast('Telegram account is required'); return; }
+  if (!facebook) { toast('Facebook account is required'); return; }
+  if (!last4 || last4.length !== 4 || !/^\d+$/.test(last4)) { toast('Last 4 digits of reference number required'); return; }
+  
+  const formData = new FormData();
+  formData.append('amount', amount);
+  formData.append('telegram', telegram);
+  formData.append('facebook', facebook);
+  formData.append('last4_digits', last4);
+  formData.append('notes', notes);
+  if (screenshotFile) formData.append('screenshot', screenshotFile);
+  
+  const btn = document.getElementById('submitDepositBtn');
+  btn.disabled = true;
+  btn.textContent = 'SUBMITTING...';
+  
+  try {
+    const res = await fetch('/api/deposit', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + userToken },
+      body: formData
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast('Deposit request submitted! Admin will review.');
+      document.getElementById('depositAmount').value = '';
+      document.getElementById('depositTelegram').value = '';
+      document.getElementById('depositFacebook').value = '';
+      document.getElementById('depositLast4').value = '';
+      document.getElementById('depositNotes').value = '';
+      document.getElementById('depositScreenshot').value = '';
+      loadDepositHistory();
+    } else {
+      toast(data.message || 'Submission failed');
+    }
+  } catch(e) { toast('Network error'); }
+  finally {
+    btn.disabled = false;
+    btn.textContent = 'SUBMIT DEPOSIT REQUEST';
+  }
+});
+
+async function loadDepositHistory() {
+  if (!userToken) return;
+  const container = document.getElementById('depositHistory');
+  try {
+    const res = await fetch('/api/user/deposits', { headers: { Authorization: 'Bearer ' + userToken } });
+    const data = await res.json();
+    if (!data.deposits?.length) {
+      container.innerHTML = '<div class="empty-msg">NO DEPOSIT REQUESTS YET</div>';
+      return;
+    }
+    container.innerHTML = data.deposits.map(d => `
+      <div class="deposit-card">
+        <div>
+          <div style="font-weight:bold;">₱${d.amount}</div>
+          <div style="font-size:0.6rem;color:var(--gray-5);">${new Date(d.created_at).toLocaleString()}</div>
+          <div style="font-size:0.55rem;">Ref: ${d.reference_id}</div>
+        </div>
+        <div>
+          <span class="deposit-status status-${d.status}">${d.status.toUpperCase()}</span>
+          ${d.admin_notes ? `<div style="font-size:0.55rem;color:var(--gray-5);margin-top:0.3rem;">Note: ${esc(d.admin_notes)}</div>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { container.innerHTML = '<div class="empty-msg">FAILED TO LOAD</div>'; }
 }
 
 // ===== ORDERS =====
 async function loadOrders() {
   const container = document.getElementById('ordersContainer');
-  if (!userToken) {
-    container.innerHTML = `<div class="empty-msg">— LOGIN TO SEE YOUR ORDERS —</div>`;
-    return;
-  }
-  container.innerHTML = `<div class="empty-msg"><div class="spinner"></div></div>`;
+  if (!userToken) { container.innerHTML = '<div class="empty-msg">LOGIN TO SEE YOUR ORDERS</div>'; return; }
   try {
-    const res = await fetch('/api/user/orders', { headers:{ Authorization:'Bearer ' + userToken } });
+    const res = await fetch('/api/user/orders', { headers: { Authorization: 'Bearer ' + userToken } });
     const data = await res.json();
-    if (!data.success || !data.orders.length) {
-      container.innerHTML = `<div class="empty-msg">— NO ORDERS YET —</div>`;
-      return;
-    }
-    container.innerHTML = '<div class="orders-wrap">' + data.orders.map(o => {
-      const badge = o.status === 'fulfilled' ? 'badge-fulfilled' :
-                    o.status === 'paid' ? 'badge-paid' :
-                    o.status === 'cancelled' ? 'badge-cancelled' : 'badge-pending';
-      const statusLabel = o.status === 'fulfilled' ? 'KEY DELIVERED' :
-                          o.status === 'paid' ? 'AWAITING KEY' :
-                          o.status === 'cancelled' ? 'CANCELLED' : 'PENDING PAYMENT';
-      return `<div class="order-card">
-        <div class="order-info" style="flex:1;min-width:0;">
+    if (!data.orders?.length) { container.innerHTML = '<div class="empty-msg">NO ORDERS YET</div>'; return; }
+    container.innerHTML = '<div class="orders-wrap">' + data.orders.map(o => `
+      <div class="order-card">
+        <div style="flex:1;">
           <div class="order-plan">${esc(o.plan_label.toUpperCase())}</div>
-          <div class="order-meta">₱${o.price} · ${new Date(o.created_at).toLocaleString()} · #${o.id.split('-')[0].toUpperCase()}</div>
+          <div style="font-size:0.65rem;color:var(--gray-5);">₱${o.price} · ${new Date(o.created_at).toLocaleString()}</div>
           ${o.key_given ? `<div class="order-key">${esc(o.key_given)}</div>` : ''}
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem;flex-shrink:0;">
-          <span class="order-status-badge ${badge}">${statusLabel}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.3rem;">
+          <span class="order-status-badge badge-${o.status}">${o.status.toUpperCase()}</span>
           ${o.key_given ? `<button class="btn-copy-key" onclick="copyText('${esc(o.key_given)}')">COPY KEY</button>` : ''}
-          ${o.status === 'pending' ? `<button class="btn-cancel-order" onclick="cancelOrder('${o.id}')">CANCEL</button>` : ''}
         </div>
-      </div>`;
-    }).join('') + '</div>';
-  } catch(e) { container.innerHTML = `<div class="empty-msg">FAILED TO LOAD. TRY AGAIN.</div>`; }
-}
-
-async function cancelOrder(orderId) {
-  if (!confirm('Cancel this order?')) return;
-  try {
-    const res = await fetch('/api/user/orders/' + orderId + '/cancel', {
-      method:'POST', headers:{ Authorization:'Bearer ' + userToken }
-    });
-    const data = await res.json();
-    if (data.success) { toast('ORDER CANCELLED'); loadOrders(); }
-    else toast(data.message || 'CANNOT CANCEL');
-  } catch(e) { toast('ERROR'); }
+      </div>
+    `).join('') + '</div>';
+  } catch(e) { container.innerHTML = '<div class="empty-msg">FAILED TO LOAD</div>'; }
 }
 
 // ===== UTILS =====
-function esc(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function toast(msg) {
-  const el = document.getElementById('toastMsg');
-  el.textContent = msg; el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 3000);
-}
-
-function copyText(text) {
-  navigator.clipboard.writeText(text).then(() => toast('COPIED!')).catch(() => {});
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
-function showErr(id, msg) {
-  const el = document.getElementById(id);
-  el.textContent = msg; el.classList.add('show');
-}
-function clearErr(id) {
-  const el = document.getElementById(id);
-  if (el) { el.textContent = ''; el.classList.remove('show'); }
-}
+function esc(str) { if (!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg) { const el = document.getElementById('toastMsg'); el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 3000); }
+function copyText(text) { navigator.clipboard.writeText(text).then(() => toast('COPIED!')).catch(() => {}); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.classList.add('show'); }
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', function(e) {
-    if (e.target === this) {
-      if (this.id === 'checkoutModal' && activeCheckoutOrderId) return;
-      this.classList.remove('open');
-    }
-  });
+  m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
 });
 
 // ===== INIT =====
-updateUserPill();
+updateUserUI();
 loadStore();
+if (userToken) { refreshUserInfo(); loadOrders(); }
 </script>
 </body>
 </html>
