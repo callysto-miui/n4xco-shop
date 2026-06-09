@@ -15,6 +15,8 @@ const storage = multer.diskStorage({
       cb(null, path.join(__dirname, 'public/uploads'));
     } else if (file.fieldname === 'qr_code') {
       cb(null, path.join(__dirname, 'public/images'));
+    } else if (file.fieldname === 'logo') {
+      cb(null, path.join(__dirname, 'public/images'));
     } else {
       cb(null, path.join(__dirname, 'public/images'));
     }
@@ -77,12 +79,17 @@ app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public/admin.
 
 // Public store data
 app.get('/api/store', async (req, res) => {
-  const apk = await db.getApkSettings();
-  const plans = await db.getPlans(true);
-  const services = await db.getServices();
-  const shopSettings = await db.getShopSettings();
-  const depositSettings = await db.getDepositSettings();
-  res.json({ apk, plans, services, shopSettings, depositSettings });
+  try {
+    const apk = await db.getApkSettings();
+    const plans = await db.getPlans(true);
+    const services = await db.getServices();
+    const shopSettings = await db.getShopSettings();
+    const depositSettings = await db.getDepositSettings();
+    res.json({ apk, plans, services, shopSettings, depositSettings });
+  } catch (err) {
+    console.error('Store error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // ─── User Register ─────────────────────────────────────────────────────────────
@@ -98,6 +105,7 @@ app.post('/api/register', async (req, res) => {
     res.json({ success: true, token, username, role: 'user', balance: user.balance });
   } catch (e) {
     if (e.message?.includes('UNIQUE')) return res.status(409).json({ success: false, message: 'Username already taken' });
+    console.error('Register error:', e);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -112,30 +120,43 @@ app.post('/api/login', async (req, res) => {
     const token = await db.createToken(username);
     res.json({ success: true, token, username: user.username, role: user.role, balance: user.balance });
   } catch (e) {
+    console.error('Login error:', e);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
 // ─── Get User Info (with balance) ─────────────────────────────────────────────
 app.get('/api/user/info', requireUser, async (req, res) => {
-  const user = await db.getUser(req.sessionUser);
-  res.json({ success: true, username: user.username, balance: user.balance, telegram: user.telegram, facebook: user.facebook });
+  try {
+    const user = await db.getUser(req.sessionUser);
+    res.json({ success: true, username: user.username, balance: user.balance, telegram: user.telegram, facebook: user.facebook });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // ─── User Orders ──────────────────────────────────────────────────────────────
 app.get('/api/user/orders', requireUser, async (req, res) => {
-  const orders = await db.getUserOrders(req.sessionUser);
-  res.json({ success: true, orders });
+  try {
+    const orders = await db.getUserOrders(req.sessionUser);
+    res.json({ success: true, orders });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // Cancel a pending order (user self-service)
 app.post('/api/user/orders/:id/cancel', requireUser, async (req, res) => {
-  const order = await db.getOrder(req.params.id);
-  if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
-  if (order.username !== req.sessionUser) return res.status(403).json({ success: false, message: 'Forbidden' });
-  if (order.status !== 'pending') return res.status(400).json({ success: false, message: 'Only pending orders can be cancelled' });
-  await db.cancelOrder(req.params.id);
-  res.json({ success: true });
+  try {
+    const order = await db.getOrder(req.params.id);
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    if (order.username !== req.sessionUser) return res.status(403).json({ success: false, message: 'Forbidden' });
+    if (order.status !== 'pending') return res.status(400).json({ success: false, message: 'Only pending orders can be cancelled' });
+    await db.cancelOrder(req.params.id);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // ─── Purchase with Balance ────────────────────────────────────────────────────
@@ -143,21 +164,21 @@ app.post('/api/purchase', requireUser, async (req, res) => {
   const { planId } = req.body;
   if (!planId) return res.status(400).json({ success: false, message: 'Plan required' });
 
-  const plans = await db.getPlans(true);
-  const plan = plans.find(p => p.id === planId);
-  if (!plan) return res.status(404).json({ success: false, message: 'Plan not found' });
-
-  const keyAvailable = await db.getKeyAvailable(planId);
-  if (keyAvailable === 0) {
-    return res.status(400).json({ success: false, message: 'No keys available for this plan. Please try again later.' });
-  }
-
-  const user = await db.getUser(req.sessionUser);
-  if (user.balance < plan.price) {
-    return res.status(400).json({ success: false, message: 'Insufficient balance. Please deposit funds first.' });
-  }
-
   try {
+    const plans = await db.getPlans(true);
+    const plan = plans.find(p => p.id === planId);
+    if (!plan) return res.status(404).json({ success: false, message: 'Plan not found' });
+
+    const keyAvailable = await db.getKeyAvailable(planId);
+    if (keyAvailable === 0) {
+      return res.status(400).json({ success: false, message: 'No keys available for this plan. Please try again later.' });
+    }
+
+    const user = await db.getUser(req.sessionUser);
+    if (user.balance < plan.price) {
+      return res.status(400).json({ success: false, message: 'Insufficient balance. Please deposit funds first.' });
+    }
+
     await db.addUserBalance(req.sessionUser, -plan.price);
     const keyRow = await db.popKey(planId);
     if (!keyRow) {
@@ -219,9 +240,13 @@ app.post('/api/deposit', requireUser, (req, res) => {
 
 // ─── User Deposit History ─────────────────────────────────────────────────────
 app.get('/api/user/deposits', requireUser, async (req, res) => {
-  const deposits = await db.getDeposits();
-  const userDeposits = deposits.filter(d => d.username === req.sessionUser);
-  res.json({ success: true, deposits: userDeposits });
+  try {
+    const deposits = await db.getDeposits();
+    const userDeposits = deposits.filter(d => d.username === req.sessionUser);
+    res.json({ success: true, deposits: userDeposits });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -239,6 +264,7 @@ app.post('/api/admin/login', async (req, res) => {
     req.session.adminUser = username;
     res.json({ success: true });
   } catch (e) {
+    console.error('Admin login error:', e);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -254,25 +280,34 @@ app.get('/api/admin/check', (req, res) => {
 
 // Full admin data
 app.get('/api/admin/data', requireAdmin, async (req, res) => {
-  const [apk, plans, keyCounts, orders, users, deposits, services, shopSettings, depositSettings] = await Promise.all([
-    db.getApkSettings(),
-    db.getPlans(),
-    db.getKeyCounts(),
-    db.getOrders(),
-    db.getAllUsers(),
-    db.getDeposits(),
-    db.getAllServices(),
-    db.getShopSettings(),
-    db.getDepositSettings()
-  ]);
-  res.json({ apk, plans, keyCounts, orders, users, deposits, services, shopSettings, depositSettings });
+  try {
+    const [apk, plans, keyCounts, orders, users, deposits, services, shopSettings, depositSettings] = await Promise.all([
+      db.getApkSettings(),
+      db.getPlans(),
+      db.getKeyCounts(),
+      db.getOrders(),
+      db.getAllUsers(),
+      db.getDeposits(),
+      db.getAllServices(),
+      db.getShopSettings(),
+      db.getDepositSettings()
+    ]);
+    res.json({ apk, plans, keyCounts, orders, users, deposits, services, shopSettings, depositSettings });
+  } catch (e) {
+    console.error('Admin data error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // APK settings
 app.post('/api/admin/apk', requireAdmin, async (req, res) => {
-  const current = await db.getApkSettings();
-  await db.updateApkSettings({ ...current, ...req.body });
-  res.json({ success: true });
+  try {
+    const current = await db.getApkSettings();
+    await db.updateApkSettings({ ...current, ...req.body });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // Logo upload
@@ -286,57 +321,100 @@ app.post('/api/admin/logo', requireAdmin, upload.single('logo'), async (req, res
 
 // Deposit Settings (GCash number and QR code)
 app.get('/api/admin/deposit-settings', requireAdmin, async (req, res) => {
-  res.json(await db.getDepositSettings());
-});
-app.post('/api/admin/deposit-settings', requireAdmin, upload.single('qr_code'), async (req, res) => {
-  const { gcash_number } = req.body;
-  let qr_code = req.body.qr_code || '';
-  if (req.file) {
-    qr_code = '/images/' + req.file.filename + '?t=' + Date.now();
+  try {
+    const settings = await db.getDepositSettings();
+    res.json(settings);
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
   }
-  await db.updateDepositSettings({ gcash_number, qr_code });
-  res.json({ success: true });
+});
+
+app.post('/api/admin/deposit-settings', requireAdmin, upload.single('qr_code'), async (req, res) => {
+  try {
+    const { gcash_number } = req.body;
+    let qr_code = req.body.qr_code || '';
+    if (req.file) {
+      qr_code = '/images/' + req.file.filename + '?t=' + Date.now();
+    }
+    await db.updateDepositSettings({ gcash_number, qr_code });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Deposit settings error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // Plans
 app.get('/api/admin/plans', requireAdmin, async (req, res) => {
-  res.json(await db.getPlans());
-});
-app.post('/api/admin/plans', requireAdmin, async (req, res) => {
-  const { plans } = req.body;
-  for (const p of plans) {
-    await db.updatePlan(p.id, { label: p.label, days: p.days, price: p.price, enabled: p.enabled });
+  try {
+    res.json(await db.getPlans());
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
   }
-  res.json({ success: true });
+});
+
+app.post('/api/admin/plans', requireAdmin, async (req, res) => {
+  try {
+    const { plans } = req.body;
+    for (const p of plans) {
+      await db.updatePlan(p.id, { label: p.label, days: p.days, price: p.price, enabled: p.enabled });
+    }
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // Keys
 app.post('/api/admin/keys', requireAdmin, async (req, res) => {
-  const { planId, keys } = req.body;
-  const newKeys = keys.split('\n').map(k => k.trim()).filter(k => k.length > 0);
-  const added = await db.addKeys(planId, newKeys);
-  res.json({ success: true, added });
+  try {
+    const { planId, keys } = req.body;
+    const newKeys = keys.split('\n').map(k => k.trim()).filter(k => k.length > 0);
+    const added = await db.addKeys(planId, newKeys);
+    res.json({ success: true, added });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
+
 app.get('/api/admin/keys', requireAdmin, async (req, res) => {
-  const keys = await db.getAllKeys();
-  const counts = await db.getKeyCounts();
-  res.json({ success: true, keys, counts });
+  try {
+    const keys = await db.getAllKeys();
+    const counts = await db.getKeyCounts();
+    res.json({ success: true, keys, counts });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
+
 app.delete('/api/admin/keys/:id', requireAdmin, async (req, res) => {
-  await db.deleteKey(req.params.id);
-  res.json({ success: true });
+  try {
+    await db.deleteKey(req.params.id);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // Orders
 app.get('/api/admin/orders', requireAdmin, async (req, res) => {
-  const status = req.query.status || null;
-  res.json(await db.getOrders(status));
+  try {
+    const status = req.query.status || null;
+    res.json(await db.getOrders(status));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // Users
 app.get('/api/admin/users', requireAdmin, async (req, res) => {
-  res.json(await db.getAllUsers());
+  try {
+    res.json(await db.getAllUsers());
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
+
 app.post('/api/admin/users', requireAdmin, async (req, res) => {
   const { username, password, email, telegram, facebook, role, balance } = req.body;
   if (!username || !password) return res.status(400).json({ success: false, message: 'Username and password required' });
@@ -349,79 +427,135 @@ app.post('/api/admin/users', requireAdmin, async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
 app.put('/api/admin/users/:id', requireAdmin, async (req, res) => {
-  await db.updateUser(req.params.id, req.body);
-  res.json({ success: true });
+  try {
+    await db.updateUser(req.params.id, req.body);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
+
 app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
-  await db.deleteUser(req.params.id);
-  res.json({ success: true });
+  try {
+    await db.deleteUser(req.params.id);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // Deposits management
 app.get('/api/admin/deposits', requireAdmin, async (req, res) => {
-  const status = req.query.status || null;
-  res.json(await db.getDeposits(status));
+  try {
+    const status = req.query.status || null;
+    res.json(await db.getDeposits(status));
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
+
 app.post('/api/admin/deposits/:id/approve', requireAdmin, async (req, res) => {
-  const { admin_notes } = req.body;
-  const deposit = await db.updateDepositStatus(req.params.id, 'approved', admin_notes || '', req.session.adminUser);
-  res.json({ success: true, deposit });
+  try {
+    const { admin_notes } = req.body;
+    await db.updateDepositStatus(req.params.id, 'approved', admin_notes || '', req.session.adminUser);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
+
 app.post('/api/admin/deposits/:id/reject', requireAdmin, async (req, res) => {
-  const { admin_notes } = req.body;
-  await db.updateDepositStatus(req.params.id, 'rejected', admin_notes || '', req.session.adminUser);
-  res.json({ success: true });
+  try {
+    const { admin_notes } = req.body;
+    await db.updateDepositStatus(req.params.id, 'rejected', admin_notes || '', req.session.adminUser);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
+
 app.delete('/api/admin/deposits/:id', requireAdmin, async (req, res) => {
-  await db.deleteDeposit(req.params.id);
-  res.json({ success: true });
+  try {
+    await db.deleteDeposit(req.params.id);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // Services management
 app.get('/api/admin/services', requireAdmin, async (req, res) => {
-  res.json(await db.getAllServices());
+  try {
+    res.json(await db.getAllServices());
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
+
 app.post('/api/admin/services', requireAdmin, async (req, res) => {
-  await db.createService(req.body);
-  res.json({ success: true });
+  try {
+    await db.createService(req.body);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
+
 app.put('/api/admin/services/:id', requireAdmin, async (req, res) => {
-  await db.updateService(req.params.id, req.body);
-  res.json({ success: true });
+  try {
+    await db.updateService(req.params.id, req.body);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
+
 app.delete('/api/admin/services/:id', requireAdmin, async (req, res) => {
-  await db.deleteService(req.params.id);
-  res.json({ success: true });
+  try {
+    await db.deleteService(req.params.id);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // Shop settings
 app.post('/api/admin/shop-settings', requireAdmin, async (req, res) => {
-  await db.updateShopSettings(req.body);
-  res.json({ success: true });
+  try {
+    await db.updateShopSettings(req.body);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // Stats
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
-  const [orders, users, counts, deposits] = await Promise.all([
-    db.getOrders(),
-    db.getAllUsers(),
-    db.getKeyCounts(),
-    db.getDeposits()
-  ]);
-  const revenue = orders.filter(o => o.status === 'fulfilled').reduce((a, b) => a + b.price, 0);
-  const fulfilled = orders.filter(o => o.status === 'fulfilled').length;
-  const pendingDeposits = deposits.filter(d => d.status === 'pending').length;
-  const totalDeposits = deposits.reduce((a, b) => a + (b.status === 'approved' ? b.amount : 0), 0);
-  res.json({ 
-    totalOrders: orders.length, 
-    fulfilled, 
-    revenue, 
-    totalUsers: users.length, 
-    keyCounts: counts,
-    pendingDeposits,
-    totalDeposits
-  });
+  try {
+    const [orders, users, counts, deposits] = await Promise.all([
+      db.getOrders(),
+      db.getAllUsers(),
+      db.getKeyCounts(),
+      db.getDeposits()
+    ]);
+    const revenue = orders.filter(o => o.status === 'fulfilled').reduce((a, b) => a + b.price, 0);
+    const fulfilled = orders.filter(o => o.status === 'fulfilled').length;
+    const pendingDeposits = deposits.filter(d => d.status === 'pending').length;
+    const totalDeposits = deposits.reduce((a, b) => a + (b.status === 'approved' ? b.amount : 0), 0);
+    res.json({ 
+      totalOrders: orders.length, 
+      fulfilled, 
+      revenue, 
+      totalUsers: users.length, 
+      keyCounts: counts,
+      pendingDeposits,
+      totalDeposits
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 app.listen(PORT, () => console.log(`N4XCO Shop running on port ${PORT}`));
