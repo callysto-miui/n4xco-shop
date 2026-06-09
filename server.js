@@ -8,12 +8,27 @@ const db = require('./database.js');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ─── Multer for logo ───────────────────────────────────────────────────────────
+// ─── Multer for uploads ───────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, 'public/images')),
-  filename: (req, file, cb) => cb(null, 'logo' + path.extname(file.originalname))
+  destination: (req, file, cb) => {
+    if (file.fieldname === 'screenshot') {
+      cb(null, path.join(__dirname, 'public/uploads'));
+    } else {
+      cb(null, path.join(__dirname, 'public/images'));
+    }
+  },
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
-const upload = multer({ storage, limits: { fileSize: 2 * 1024 * 1024 } });
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+
+// Ensure upload directories exist
+const fs = require('fs');
+const dirs = ['./public/uploads', './public/images'];
+dirs.forEach(dir => {
+  if (!fs.existsSync(path.join(__dirname, dir))) {
+    fs.mkdirSync(path.join(__dirname, dir), { recursive: true });
+  }
+});
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(express.json());
@@ -28,9 +43,7 @@ app.use(session({
 
 // ─── Auth middleware ───────────────────────────────────────────────────────────
 async function requireAdmin(req, res, next) {
-  // Check session admin flag (set at login)
   if (req.session?.admin) { req.adminUser = req.session.adminUser; return next(); }
-  // Or check token header
   const auth = req.headers.authorization;
   if (auth?.startsWith('Bearer ')) {
     const token = auth.slice(7);
@@ -64,19 +77,22 @@ app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public/admin.
 app.get('/api/store', async (req, res) => {
   const apk = await db.getApkSettings();
   const plans = await db.getPlans(true);
-  res.json({ apk, plans });
+  const services = await db.getServices();
+  const shopSettings = await db.getShopSettings();
+  res.json({ apk, plans, services, shopSettings });
 });
 
 // ─── User Register ─────────────────────────────────────────────────────────────
 app.post('/api/register', async (req, res) => {
-  const { username, password, telegram } = req.body;
+  const { username, password, telegram, facebook } = req.body;
   if (!username || !password) return res.status(400).json({ success: false, message: 'Username and password required' });
   if (username.length < 3) return res.status(400).json({ success: false, message: 'Username must be at least 3 characters' });
   if (password.length < 6) return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
   try {
-    await db.createUser(username, password, '', telegram || '', 'user');
+    await db.createUser(username, password, '', telegram || '', facebook || '', 'user');
     const token = await db.createToken(username);
-    res.json({ success: true, token, username, role: 'user' });
+    const user = await db.getUser(username);
+    res.json({ success: true, token, username, role: 'user', balance: user.balance });
   } catch (e) {
     if (e.message?.includes('UNIQUE')) return res.status(409).json({ success: false, message: 'Username already taken' });
     res.status(500).json({ success: false, message: 'Server error' });
@@ -91,13 +107,19 @@ app.post('/api/login', async (req, res) => {
     if (!user || !db.verifyPassword(password, user.password))
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     const token = await db.createToken(username);
-    res.json({ success: true, token, username: user.username, role: user.role });
+    res.json({ success: true, token, username: user.username, role: user.role, balance: user.balance });
   } catch (e) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-// ─── User Profile / Orders ─────────────────────────────────────────────────────
+// ─── Get User Info (with balance) ─────────────────────────────────────────────
+app.get('/api/user/info', requireUser, async (req, res) => {
+  const user = await db.getUser(req.sessionUser);
+  res.json({ success: true, username: user.username, balance: user.balance, telegram: user.telegram, facebook: user.facebook });
+});
+
+// ─── User Orders ──────────────────────────────────────────────────────────────
 app.get('/api/user/orders', requireUser, async (req, res) => {
   const orders = await db.getUserOrders(req.sessionUser);
   res.json({ success: true, orders });
@@ -113,8 +135,8 @@ app.post('/api/user/orders/:id/cancel', requireUser, async (req, res) => {
   res.json({ success: true });
 });
 
-// ─── Checkout (requires login) ─────────────────────────────────────────────────
-app.post('/api/checkout', requireUser, async (req, res) => {
+// ─── Purchase with Balance ────────────────────────────────────────────────────
+app.post('/api/purchase', requireUser, async (req, res) => {
   const { planId } = req.body;
   if (!planId) return res.status(400).json({ success: false, message: 'Plan required' });
 
@@ -122,111 +144,94 @@ app.post('/api/checkout', requireUser, async (req, res) => {
   const plan = plans.find(p => p.id === planId);
   if (!plan) return res.status(404).json({ success: false, message: 'Plan not found' });
 
-  const settings = await db.getPaymongoSettings();
-  if (!settings?.secret_key) return res.status(503).json({ success: false, message: 'Payment not configured. Contact admin.' });
+  // Check if key available
+  const keyAvailable = await db.getKeyAvailable(planId);
+  if (keyAvailable === 0) {
+    return res.status(400).json({ success: false, message: 'No keys available for this plan. Please try again later.' });
+  }
+
+  const user = await db.getUser(req.sessionUser);
+  if (user.balance < plan.price) {
+    return res.status(400).json({ success: false, message: 'Insufficient balance. Please deposit funds first.' });
+  }
 
   try {
-    const orderId = uuidv4();
-    const user = await db.getUser(req.sessionUser);
-    const amountCentavos = plan.price * 100;
-
-    const pmRes = await fetch('https://api.paymongo.com/v1/links', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Basic ' + Buffer.from(settings.secret_key + ':').toString('base64')
-      },
-      body: JSON.stringify({
-        data: {
-          attributes: {
-            amount: amountCentavos,
-            description: `N4XCO Key — ${plan.label}`,
-            remarks: `order_id:${orderId}`
-          }
-        }
-      })
-    });
-
-    const pmData = await pmRes.json();
-    if (!pmRes.ok) {
-      const errMsg = pmData?.errors?.[0]?.detail || 'Payment gateway error';
-      return res.status(502).json({ success: false, message: errMsg });
+    // Deduct balance
+    await db.addUserBalance(req.sessionUser, -plan.price);
+    
+    // Get key
+    const keyRow = await db.popKey(planId);
+    if (!keyRow) {
+      // Refund if no key (shouldn't happen but just in case)
+      await db.addUserBalance(req.sessionUser, plan.price);
+      return res.status(400).json({ success: false, message: 'Key temporarily unavailable. Please try again.' });
     }
-
-    const linkData = pmData.data;
-    const checkoutUrl = linkData.attributes.checkout_url;
-    const referenceNum = linkData.attributes.reference_number;
-
+    
+    const orderId = uuidv4();
     await db.createOrder({
       id: orderId,
-      user_id: user?.id,
+      user_id: user.id,
       username: req.sessionUser,
-      telegram: user?.telegram || '',
       plan_id: plan.id,
       plan_label: plan.label,
       price: plan.price,
-      days: plan.days,
-      paymongo_link_id: linkData.id,
-      paymongo_link_url: checkoutUrl,
-      reference_num: referenceNum
+      days: plan.days
     });
-
-    res.json({ success: true, checkoutUrl, orderId, referenceNum });
+    
+    await db.markKeyUsed(keyRow.id, orderId);
+    await db.fulfillOrder(orderId, keyRow.key_val);
+    
+    res.json({ success: true, key: keyRow.key_val, orderId, newBalance: user.balance - plan.price });
   } catch (err) {
-    console.error('Checkout error:', err);
+    console.error('Purchase error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-// ─── Order Status (polls PayMongo if still pending) ───────────────────────────
-app.get('/api/order/:id', async (req, res) => {
-  try {
-    const order = await db.pollPaymongoStatus(req.params.id);
-    if (!order) return res.status(404).json({ success: false });
-    res.json({
-      success: true,
-      status: order.status,
-      key: order.key_given,
-      plan: order.plan_label,
-      price: order.price
-    });
-  } catch (e) {
-    res.status(500).json({ success: false });
-  }
+// ─── Deposit Request ──────────────────────────────────────────────────────────
+const uploadScreenshot = upload.single('screenshot');
+app.post('/api/deposit', requireUser, (req, res) => {
+  uploadScreenshot(req, res, async (err) => {
+    if (err) return res.status(400).json({ success: false, message: 'File upload error: ' + err.message });
+    
+    const { amount, telegram, facebook, last4_digits, notes } = req.body;
+    if (!amount || !telegram || !facebook || !last4_digits) {
+      return res.status(400).json({ success: false, message: 'All fields are required' });
+    }
+    
+    const depositAmount = parseInt(amount);
+    if (isNaN(depositAmount) || depositAmount < 50) {
+      return res.status(400).json({ success: false, message: 'Minimum deposit is ₱50' });
+    }
+    
+    const referenceId = 'DEP-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    const screenshotPath = req.file ? '/uploads/' + req.file.filename : '';
+    
+    try {
+      await db.createDeposit({
+        reference_id: referenceId,
+        username: req.sessionUser,
+        amount: depositAmount,
+        telegram: telegram,
+        facebook: facebook,
+        last4_digits: last4_digits,
+        notes: notes || '',
+        screenshot: screenshotPath
+      });
+      
+      res.json({ success: true, message: 'Deposit request submitted! Admin will review and add credits.', referenceId });
+    } catch (err) {
+      console.error('Deposit error:', err);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  });
 });
 
-// ─── PayMongo Webhook ──────────────────────────────────────────────────────────
-app.post('/api/webhook/paymongo', express.raw({ type: '*/*' }), async (req, res) => {
-  try {
-    let payload;
-    try { payload = JSON.parse(req.body); } catch { payload = {}; }
-
-    const eventType = payload?.data?.attributes?.type;
-    const resource = payload?.data?.attributes?.data;
-
-    if (eventType === 'link.payment.paid') {
-      // Try to extract order_id from remarks
-      const remarks = resource?.attributes?.remarks || resource?.attributes?.description || '';
-      const match = remarks.match(/order_id:([\w-]+)/);
-
-      if (match) {
-        await db.updateOrderPaid(match[1]);
-      } else {
-        // Fallback: match by paymongo link ID
-        const linkId = resource?.id || resource?.attributes?.links?.[0];
-        if (linkId) {
-          const order = await db.getOrders('pending').then(orders =>
-            orders.find(o => o.paymongo_link_id === linkId)
-          ).catch(() => null);
-          if (order) await db.updateOrderPaid(order.id);
-        }
-      }
-    }
-    res.sendStatus(200);
-  } catch (e) {
-    console.error('Webhook error:', e);
-    res.sendStatus(200);
-  }
+// ─── User Deposit History ─────────────────────────────────────────────────────
+app.get('/api/user/deposits', requireUser, async (req, res) => {
+  const deposits = await db.getDeposits();
+  const userDeposits = deposits.filter(d => d.username === req.sessionUser);
+  res.json({ success: true, deposits: userDeposits });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -259,14 +264,17 @@ app.get('/api/admin/check', (req, res) => {
 
 // Full admin data
 app.get('/api/admin/data', requireAdmin, async (req, res) => {
-  const [apk, plans, keyCounts, orders, users] = await Promise.all([
+  const [apk, plans, keyCounts, orders, users, deposits, services, shopSettings] = await Promise.all([
     db.getApkSettings(),
     db.getPlans(),
     db.getKeyCounts(),
     db.getOrders(),
-    db.getAllUsers()
+    db.getAllUsers(),
+    db.getDeposits(),
+    db.getAllServices(),
+    db.getShopSettings()
   ]);
-  res.json({ apk, plans, keyCounts, orders, users });
+  res.json({ apk, plans, keyCounts, orders, users, deposits, services, shopSettings });
 });
 
 // APK settings
@@ -297,20 +305,18 @@ app.post('/api/admin/plans', requireAdmin, async (req, res) => {
   res.json({ success: true });
 });
 
-// Keys — add
+// Keys
 app.post('/api/admin/keys', requireAdmin, async (req, res) => {
   const { planId, keys } = req.body;
   const newKeys = keys.split('\n').map(k => k.trim()).filter(k => k.length > 0);
   const added = await db.addKeys(planId, newKeys);
   res.json({ success: true, added });
 });
-// Keys — list
 app.get('/api/admin/keys', requireAdmin, async (req, res) => {
   const keys = await db.getAllKeys();
   const counts = await db.getKeyCounts();
   res.json({ success: true, keys, counts });
 });
-// Keys — delete
 app.delete('/api/admin/keys/:id', requireAdmin, async (req, res) => {
   await db.deleteKey(req.params.id);
   res.json({ success: true });
@@ -321,26 +327,17 @@ app.get('/api/admin/orders', requireAdmin, async (req, res) => {
   const status = req.query.status || null;
   res.json(await db.getOrders(status));
 });
-app.post('/api/admin/orders/:id/fulfill', requireAdmin, async (req, res) => {
-  const { key } = req.body;
-  if (!key) return res.status(400).json({ success: false, message: 'Key required' });
-  await db.fulfillOrder(req.params.id, key);
-  res.json({ success: true });
-});
-app.post('/api/admin/orders/:id/cancel', requireAdmin, async (req, res) => {
-  await db.cancelOrder(req.params.id);
-  res.json({ success: true });
-});
 
 // Users management
 app.get('/api/admin/users', requireAdmin, async (req, res) => {
   res.json(await db.getAllUsers());
 });
 app.post('/api/admin/users', requireAdmin, async (req, res) => {
-  const { username, password, email, telegram, role } = req.body;
+  const { username, password, email, telegram, facebook, role, balance } = req.body;
   if (!username || !password) return res.status(400).json({ success: false, message: 'Username and password required' });
   try {
-    await db.createUser(username, password, email || '', telegram || '', role || 'user');
+    await db.createUser(username, password, email || '', telegram || '', facebook || '', role || 'user');
+    if (balance) await db.addUserBalance(username, parseInt(balance));
     res.json({ success: true });
   } catch (e) {
     if (e.message?.includes('UNIQUE')) return res.status(409).json({ success: false, message: 'Username already taken' });
@@ -356,26 +353,70 @@ app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
   res.json({ success: true });
 });
 
-// PayMongo settings
-app.get('/api/admin/paymongo', requireAdmin, async (req, res) => {
-  res.json(await db.getPaymongoSettings());
+// Deposits management
+app.get('/api/admin/deposits', requireAdmin, async (req, res) => {
+  const status = req.query.status || null;
+  res.json(await db.getDeposits(status));
 });
-app.post('/api/admin/paymongo', requireAdmin, async (req, res) => {
-  await db.updatePaymongoSettings(req.body);
+app.post('/api/admin/deposits/:id/approve', requireAdmin, async (req, res) => {
+  const { admin_notes } = req.body;
+  const deposit = await db.updateDepositStatus(req.params.id, 'approved', admin_notes || '', req.session.adminUser);
+  res.json({ success: true, deposit });
+});
+app.post('/api/admin/deposits/:id/reject', requireAdmin, async (req, res) => {
+  const { admin_notes } = req.body;
+  await db.updateDepositStatus(req.params.id, 'rejected', admin_notes || '', req.session.adminUser);
+  res.json({ success: true });
+});
+app.delete('/api/admin/deposits/:id', requireAdmin, async (req, res) => {
+  await db.deleteDeposit(req.params.id);
+  res.json({ success: true });
+});
+
+// Services management
+app.get('/api/admin/services', requireAdmin, async (req, res) => {
+  res.json(await db.getAllServices());
+});
+app.post('/api/admin/services', requireAdmin, async (req, res) => {
+  await db.createService(req.body);
+  res.json({ success: true });
+});
+app.put('/api/admin/services/:id', requireAdmin, async (req, res) => {
+  await db.updateService(req.params.id, req.body);
+  res.json({ success: true });
+});
+app.delete('/api/admin/services/:id', requireAdmin, async (req, res) => {
+  await db.deleteService(req.params.id);
+  res.json({ success: true });
+});
+
+// Shop settings (toggle service categories)
+app.post('/api/admin/shop-settings', requireAdmin, async (req, res) => {
+  await db.updateShopSettings(req.body);
   res.json({ success: true });
 });
 
 // Stats
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
-  const [orders, users, counts] = await Promise.all([
+  const [orders, users, counts, deposits] = await Promise.all([
     db.getOrders(),
     db.getAllUsers(),
-    db.getKeyCounts()
+    db.getKeyCounts(),
+    db.getDeposits()
   ]);
-  const revenue = orders.filter(o => o.status === 'fulfilled' || o.status === 'paid').reduce((a, b) => a + b.price, 0);
+  const revenue = orders.filter(o => o.status === 'fulfilled').reduce((a, b) => a + b.price, 0);
   const fulfilled = orders.filter(o => o.status === 'fulfilled').length;
-  const pending = orders.filter(o => o.status === 'paid').length;
-  res.json({ totalOrders: orders.length, fulfilled, pending, revenue, totalUsers: users.length, keyCounts: counts });
+  const pendingDeposits = deposits.filter(d => d.status === 'pending').length;
+  const totalDeposits = deposits.reduce((a, b) => a + (b.status === 'approved' ? b.amount : 0), 0);
+  res.json({ 
+    totalOrders: orders.length, 
+    fulfilled, 
+    revenue, 
+    totalUsers: users.length, 
+    keyCounts: counts,
+    pendingDeposits,
+    totalDeposits
+  });
 });
 
 app.listen(PORT, () => console.log(`N4XCO Shop running on port ${PORT}`));
