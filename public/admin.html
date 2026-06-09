@@ -21,1369 +21,303 @@
   --red: #ff3333;
   --blue: #00aaff;
 }
-
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { height:100%; }
 body {
   background: var(--black);
   color: var(--white);
   font-family: 'Space Mono', monospace;
   font-size: 14px;
 }
-
 body::before {
   content:'';
   position:fixed; inset:0;
   background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.01) 2px, rgba(255,255,255,0.01) 4px);
   pointer-events:none; z-index:9999;
 }
-
-/* ===== LOGIN ===== */
-#login-screen {
-  min-height:100vh; display:flex; align-items:center; justify-content:center;
-  background: var(--black);
-}
-
-.login-box {
-  border: 1px solid var(--g3);
-  padding: 2.5rem;
-  width: 100%; max-width: 360px;
-}
-
-.login-logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.2rem;
-  letter-spacing: 0.1em;
-  color: var(--white);
-  line-height: 1;
-  margin-bottom: 0.2rem;
-}
-
-.login-sub {
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
-  color: var(--g5);
-  text-transform: uppercase;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--g3);
-  padding-bottom: 1rem;
-}
-
-.login-label {
-  font-size: 0.55rem;
-  letter-spacing: 0.18em;
-  color: var(--g5);
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 0.4rem;
-}
-
-.login-input {
-  width:100%;
-  background: var(--g1);
-  border: 1px solid var(--g3);
-  padding: 0.75rem 1rem;
-  color: var(--white);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.82rem;
-  margin-bottom: 1rem;
-  transition: border-color 0.15s;
-}
-.login-input:focus { outline:none; border-color: var(--white); }
-
-.btn-login {
-  width:100%;
-  background: var(--white);
-  color: var(--black);
-  border: none;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.15em;
-  padding: 0.85rem;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.btn-login:hover { background: var(--g6); }
-
-.login-error {
-  font-size: 0.65rem;
-  color: var(--red);
-  margin-top: 0.75rem;
-  letter-spacing: 0.06em;
-  display: none;
-}
-
-/* ===== SHELL ===== */
+#login-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; background: var(--black); }
+.login-box { border: 1px solid var(--g3); padding: 2.5rem; width:100%; max-width:360px; }
+.login-logo { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 0.1em; }
+.btn-login { width:100%; background: var(--white); color: var(--black); border: none; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.15em; padding: 0.85rem; cursor: pointer; }
+.login-input { width:100%; background: var(--g1); border: 1px solid var(--g3); padding: 0.75rem 1rem; color: var(--white); font-family: 'Space Mono', monospace; margin-bottom: 1rem; }
 #admin-shell { display:none; min-height:100vh; flex-direction:column; }
 #admin-shell.visible { display:flex; }
-
-/* HEADER */
-header {
-  height: 48px;
-  border-bottom: 1px solid var(--g3);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 1.5rem;
-  background: var(--black);
-  position: sticky; top:0; z-index:200;
-  flex-shrink: 0;
-}
-
-.header-brand {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.2rem;
-  letter-spacing: 0.12em;
-  color: var(--white);
-  display: flex; align-items: center; gap: 0.8rem;
-}
-
-.admin-badge {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.52rem;
-  letter-spacing: 0.15em;
-  border: 1px solid var(--g4);
-  color: var(--g5);
-  padding: 0.15rem 0.5rem;
-  text-transform: uppercase;
-}
-
-.header-actions { display:flex; gap:0.6rem; align-items:center; }
-
-.btn-sm {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
-  padding: 0.3rem 0.8rem;
-  border: 1px solid var(--g3);
-  background: none;
-  color: var(--g6);
-  cursor: pointer;
-  transition: all 0.15s;
-  text-decoration: none;
-  display: inline-flex; align-items: center; gap: 0.4rem;
-}
-.btn-sm:hover { border-color: var(--white); color: var(--white); }
-.btn-sm.danger:hover { border-color: var(--red); color: var(--red); }
-
-/* LAYOUT */
-.admin-layout {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-}
-
-/* SIDEBAR */
-.sidebar {
-  width: 188px; flex-shrink:0;
-  border-right: 1px solid var(--g3);
-  background: var(--g1);
-  padding: 1rem 0;
-  position: sticky; top:48px;
-  height: calc(100vh - 48px);
-  overflow-y: auto;
-}
-
-.sidebar-section {
-  font-size: 0.52rem;
-  letter-spacing: 0.2em;
-  color: var(--g4);
-  text-transform: uppercase;
-  padding: 0.8rem 1.2rem 0.4rem;
-}
-
-.nav-item {
-  display: flex; align-items: center; gap: 0.7rem;
-  padding: 0.6rem 1.2rem;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.68rem;
-  color: var(--g5);
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  border: none; background: none;
-  width: 100%; text-align: left;
-  transition: all 0.12s;
-  border-left: 2px solid transparent;
-}
-.nav-item:hover { color: var(--white); background: var(--g2); }
-.nav-item.active { color: var(--white); background: var(--g2); border-left-color: var(--white); }
-.nav-item i { width: 14px; text-align: center; }
-
-/* MAIN */
-.main { flex:1; padding: 1.8rem 2rem; min-width:0; overflow-y:auto; }
-
-.panel { display:none; animation: fadeIn 0.2s ease; }
+header { height:48px; border-bottom:1px solid var(--g3); display:flex; align-items:center; justify-content:space-between; padding:0 1.5rem; background:var(--black); position:sticky; top:0; }
+.admin-layout { display:flex; flex:1; }
+.sidebar { width:200px; flex-shrink:0; border-right:1px solid var(--g3); background:var(--g1); padding:1rem 0; height:calc(100vh - 48px); overflow-y:auto; }
+.nav-item { display:flex; align-items:center; gap:0.7rem; padding:0.6rem 1.2rem; font-size:0.68rem; color:var(--g5); cursor:pointer; width:100%; background:none; border-left:2px solid transparent; }
+.nav-item:hover { color:var(--white); background:var(--g2); }
+.nav-item.active { color:var(--white); background:var(--g2); border-left-color:var(--white); }
+.main { flex:1; padding:1.8rem 2rem; overflow-y:auto; }
+.panel { display:none; }
 .panel.active { display:block; }
-@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
-
-/* PANEL HEADER */
-.panel-header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  border-bottom: 1px solid var(--g3);
-  padding-bottom: 1.2rem;
-  margin-bottom: 1.8rem;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.panel-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2rem;
-  letter-spacing: 0.08em;
-  line-height: 1;
-}
-
-.panel-sub {
-  font-size: 0.6rem;
-  color: var(--g5);
-  letter-spacing: 0.08em;
-  margin-top: 0.3rem;
-  text-transform: uppercase;
-}
-
-/* BUTTONS */
-.btn-primary {
-  background: var(--white);
-  color: var(--black);
-  border: none;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 0.82rem;
-  letter-spacing: 0.12em;
-  padding: 0.55rem 1.2rem;
-  cursor: pointer;
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-.btn-primary:hover { background: var(--g6); }
-
-.btn-secondary {
-  background: none;
-  color: var(--g6);
-  border: 1px solid var(--g3);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.68rem;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-  letter-spacing: 0.04em;
-}
-.btn-secondary:hover { border-color: var(--white); color: var(--white); }
-
-.btn-danger {
-  background: none;
-  border: 1px solid rgba(255,51,51,0.3);
-  color: var(--red);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  padding: 0.25rem 0.6rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  letter-spacing: 0.04em;
-}
-.btn-danger:hover { background: rgba(255,51,51,0.1); }
-
-.btn-success {
-  background: none;
-  border: 1px solid rgba(0,255,136,0.3);
-  color: var(--green);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  padding: 0.25rem 0.6rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  letter-spacing: 0.04em;
-}
-.btn-success:hover { background: rgba(0,255,136,0.08); }
-
-/* STAT CARDS */
-.stat-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 0;
-  border: 1px solid var(--g3);
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  padding: 1.2rem 1.5rem;
-  border-right: 1px solid var(--g3);
-  border-bottom: 1px solid var(--g3);
-}
-
-.stat-val {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.2rem;
-  letter-spacing: 0.05em;
-  color: var(--white);
-  line-height: 1;
-}
-
-.stat-lbl {
-  font-size: 0.58rem;
-  color: var(--g5);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-top: 0.3rem;
-}
-
-/* FORM FIELDS */
-.field-group { margin-bottom: 1.1rem; }
-
-.field-label {
-  font-size: 0.55rem;
-  letter-spacing: 0.18em;
-  color: var(--g5);
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 0.4rem;
-}
-
-.field-input {
-  width: 100%;
-  background: var(--g1);
-  border: 1px solid var(--g3);
-  padding: 0.7rem 1rem;
-  color: var(--white);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8rem;
-  transition: border-color 0.15s;
-  letter-spacing: 0.04em;
-}
-.field-input:focus { outline:none; border-color: var(--white); }
-
-.field-textarea {
-  width: 100%;
-  background: var(--g1);
-  border: 1px solid var(--g3);
-  padding: 0.7rem 1rem;
-  color: var(--white);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.78rem;
-  resize: vertical;
-  min-height: 110px;
-  letter-spacing: 0.04em;
-}
-.field-textarea:focus { outline:none; border-color: var(--white); }
-
-.field-select {
-  background: var(--g1);
-  border: 1px solid var(--g3);
-  padding: 0.6rem 0.8rem;
-  color: var(--white);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.75rem;
-}
-
-/* TABLE */
-.table-wrap { overflow-x: auto; border: 1px solid var(--g3); }
-.data-table {
-  width: 100%; border-collapse: collapse; min-width: 500px;
-}
-.data-table th {
-  text-align: left;
-  font-size: 0.55rem;
-  color: var(--g5);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  padding: 0.7rem 1rem;
-  border-bottom: 1px solid var(--g3);
-  background: var(--g1);
-  font-weight: 400;
-}
-.data-table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  font-size: 0.75rem;
-  vertical-align: middle;
-  letter-spacing: 0.02em;
-}
-.data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: var(--g1); }
-
-/* BADGES */
-.badge {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.1em;
-  padding: 0.2rem 0.55rem;
-  border: 1px solid;
-  white-space: nowrap;
-  text-transform: uppercase;
-}
-.badge-pending  { border-color: rgba(255,238,0,0.35); color: var(--yellow); }
-.badge-paid     { border-color: rgba(0,170,255,0.35); color: var(--blue); }
-.badge-fulfilled{ border-color: rgba(0,255,136,0.35); color: var(--green); }
-.badge-cancelled{ border-color: rgba(255,51,51,0.3); color: var(--red); }
-.badge-admin    { border-color: rgba(255,255,255,0.25); color: var(--white); }
-.badge-user     { border-color: rgba(100,100,100,0.4); color: var(--g5); }
-
-/* PLAN EDITOR ROW */
-.plan-row {
-  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--g3);
-  border-top: none;
-  background: var(--g1);
-  transition: background 0.15s;
-}
-.plan-row:first-child { border-top: 1px solid var(--g3); }
-.plan-row:hover { background: var(--g2); }
-
-.plan-row-label {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.08em;
-  min-width: 90px;
-}
-
-.plan-row-input {
-  background: var(--black);
-  border: 1px solid var(--g3);
-  padding: 0.35rem 0.7rem;
-  color: var(--white);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.75rem;
-  width: 85px;
-  transition: border-color 0.15s;
-}
-.plan-row-input:focus { outline:none; border-color: var(--white); }
-
-.toggle-wrap { display:flex; align-items:center; gap:0.4rem; font-size:0.65rem; color: var(--g5); letter-spacing: 0.06em; }
-input[type=checkbox].toggle { width:1rem; height:1rem; accent-color: var(--white); }
-
-/* KEY POOL */
-.key-list { max-height: 280px; overflow-y: auto; border: 1px solid var(--g3); }
-.key-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0.4rem 0.8rem;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.72rem;
-  color: var(--green);
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  letter-spacing: 0.04em;
-}
-.key-item:last-child { border-bottom:none; }
-.key-item.used { color: var(--g4); text-decoration: line-through; }
-
-/* ORDER ROWS */
-.order-row {
-  border: 1px solid var(--g3);
-  border-top: none;
-  padding: 1rem 1.2rem;
-  display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap;
-  transition: background 0.15s;
-}
-.order-row:first-child { border-top: 1px solid var(--g3); }
-.order-row:hover { background: var(--g1); }
-.order-row-info { flex:1; min-width: 0; }
-.order-row-actions { display:flex; flex-direction:column; gap:0.4rem; flex-shrink:0; }
-
-/* FILTER BAR */
-.filter-bar {
-  display: flex; gap: 0.6rem; align-items: center;
-  margin-bottom: 1.2rem; flex-wrap: wrap;
-}
-
-/* KEYS LAYOUT */
-.keys-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-}
-@media(max-width:700px) { .keys-layout { grid-template-columns: 1fr; } }
-
-/* SECTION SUBHEAD */
-.sub-head {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.1em;
-  color: var(--white);
-  margin-bottom: 0.8rem;
-}
-
-/* INFO BOX */
-.info-box {
-  border: 1px solid var(--g3);
-  padding: 1rem 1.2rem;
-  background: var(--g1);
-  font-size: 0.7rem;
-  line-height: 1.8;
-  color: var(--g5);
-  letter-spacing: 0.04em;
-}
-
-/* CODE BLOCK */
-.code-block {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.75rem;
-  color: var(--green);
-  word-break: break-all;
-  letter-spacing: 0.04em;
-  background: var(--black);
-  border: 1px solid var(--g3);
-  padding: 0.7rem 1rem;
-  margin-top: 0.6rem;
-  display: block;
-}
-
-/* MODAL */
-.modal-overlay {
-  position: fixed; inset:0;
-  background: rgba(0,0,0,0.88);
-  backdrop-filter: blur(4px);
-  z-index:500; display:none;
-  align-items:center; justify-content:center;
-}
+.panel-header { display:flex; justify-content:space-between; border-bottom:1px solid var(--g3); padding-bottom:1rem; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem; }
+.panel-title { font-family:'Bebas Neue', sans-serif; font-size:2rem; letter-spacing:0.08em; }
+.btn-primary { background:var(--white); color:var(--black); border:none; font-family:'Bebas Neue', sans-serif; padding:0.5rem 1.2rem; cursor:pointer; }
+.btn-secondary { background:none; color:var(--g6); border:1px solid var(--g3); padding:0.5rem 1rem; cursor:pointer; }
+.btn-danger { background:none; border:1px solid rgba(255,51,51,0.3); color:var(--red); padding:0.25rem 0.6rem; cursor:pointer; }
+.btn-success { background:none; border:1px solid rgba(0,255,136,0.3); color:var(--green); padding:0.25rem 0.6rem; cursor:pointer; }
+.stat-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); border:1px solid var(--g3); margin-bottom:2rem; }
+.stat-card { padding:1rem 1.2rem; border-right:1px solid var(--g3); border-bottom:1px solid var(--g3); }
+.stat-val { font-family:'Bebas Neue', sans-serif; font-size:2rem; }
+.stat-lbl { font-size:0.55rem; color:var(--g5); text-transform:uppercase; letter-spacing:0.1em; }
+.field-group { margin-bottom:1rem; }
+.field-label { font-size:0.55rem; letter-spacing:0.18em; color:var(--g5); text-transform:uppercase; display:block; margin-bottom:0.3rem; }
+.field-input, .field-select, .field-textarea { width:100%; background:var(--g1); border:1px solid var(--g3); padding:0.6rem 1rem; color:var(--white); font-family:'Space Mono', monospace; }
+.field-textarea { min-height:80px; }
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th { text-align:left; font-size:0.55rem; color:var(--g5); padding:0.7rem 1rem; border-bottom:1px solid var(--g3); }
+.data-table td { padding:0.7rem 1rem; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.72rem; }
+.badge { font-size:0.55rem; padding:0.2rem 0.55rem; border:1px solid; text-transform:uppercase; }
+.badge-pending { border-color:var(--yellow); color:var(--yellow); }
+.badge-approved { border-color:var(--green); color:var(--green); }
+.badge-rejected { border-color:var(--red); color:var(--red); }
+.badge-fulfilled { border-color:var(--green); color:var(--green); }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:500; display:none; align-items:center; justify-content:center; }
 .modal-overlay.open { display:flex; }
-
-.modal-box2 {
-  background: var(--black);
-  border: 1px solid var(--g3);
-  width: 100%; max-width: 400px;
-  margin: 1rem;
-  max-height: 88vh; overflow-y: auto;
-  animation: modalIn 0.2s ease;
-}
-@keyframes modalIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
-
-.modal-head {
-  border-bottom: 1px solid var(--g3);
-  padding: 1.2rem 1.5rem;
-}
-
-.m-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.3rem;
-  letter-spacing: 0.1em;
-  line-height: 1;
-}
-
-.m-sub {
-  font-size: 0.6rem;
-  color: var(--g5);
-  letter-spacing: 0.08em;
-  margin-top: 0.2rem;
-  text-transform: uppercase;
-}
-
-.modal-body2 { padding: 1.5rem; }
-
-.m-input {
-  width:100%;
-  background: var(--g1);
-  border: 1px solid var(--g3);
-  padding: 0.7rem 1rem;
-  color: var(--white);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8rem;
-  margin-bottom: 0.75rem;
-  transition: border-color 0.15s;
-}
-.m-input:focus { outline:none; border-color: var(--white); }
-
-.m-select {
-  background: var(--g1);
-  border: 1px solid var(--g3);
-  padding: 0.7rem 1rem;
-  color: var(--white);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8rem;
-  margin-bottom: 0.75rem;
-  width:100%;
-}
-
-.m-err {
-  font-size: 0.65rem;
-  color: var(--red);
-  padding: 0.4rem 0.7rem;
-  border: 1px solid rgba(255,51,51,0.25);
-  background: rgba(255,51,51,0.06);
-  margin-bottom: 0.75rem;
-  display:none;
-  letter-spacing: 0.04em;
-}
-.m-err.show { display:block; }
-
-.m-label {
-  font-size: 0.52rem;
-  letter-spacing: 0.18em;
-  color: var(--g5);
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 0.35rem;
-}
-
+.modal-box { background:var(--black); border:1px solid var(--g3); width:100%; max-width:500px; margin:1rem; }
+.modal-head { border-bottom:1px solid var(--g3); padding:1rem 1.5rem; }
+.modal-body2 { padding:1.5rem; }
+.m-input { width:100%; background:var(--g1); border:1px solid var(--g3); padding:0.6rem 1rem; color:var(--white); margin-bottom:0.8rem; }
 .btn-row { display:flex; gap:0.6rem; }
-.btn-row .btn-primary { flex:1; }
-.btn-row .btn-secondary { flex:1; }
-
-/* TOAST */
-.toast-bar {
-  position: fixed; bottom:1.5rem; right:1.5rem;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.68rem;
-  padding: 0.6rem 1.2rem;
-  z-index:9999; opacity:0;
-  transition:opacity 0.2s;
-  pointer-events:none;
-  letter-spacing: 0.06em;
-  border: 1px solid;
-}
+.toast-bar { position:fixed; bottom:1.5rem; right:1.5rem; font-size:0.68rem; padding:0.6rem 1.2rem; opacity:0; transition:opacity 0.2s; pointer-events:none; border:1px solid; }
 .toast-bar.show { opacity:1; }
-.toast-bar.success { background: rgba(0,255,136,0.06); border-color: rgba(0,255,136,0.3); color: var(--green); }
-.toast-bar.error { background: rgba(255,51,51,0.06); border-color: rgba(255,51,51,0.3); color: var(--red); }
-
-/* RECENT TABLE WRAPPER */
-.section-label {
-  font-size: 0.55rem;
-  letter-spacing: 0.2em;
-  color: var(--g5);
-  text-transform: uppercase;
-  margin-bottom: 0.8rem;
-  margin-top: 1.5rem;
-}
-
-/* MSG */
-.inline-msg {
-  font-size: 0.65rem;
-  letter-spacing: 0.06em;
-  margin-top: 0.6rem;
-  display:none;
-}
-
-@media(max-width:700px) {
-  .sidebar { display:none; }
-  .main { padding: 1rem; }
-  .plan-row { flex-direction:column; align-items:flex-start; }
-}
+.deposit-card, .order-row, .service-row { border:1px solid var(--g3); border-top:none; padding:1rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; }
+.deposit-card:first-child, .order-row:first-child, .service-row:first-child { border-top:1px solid var(--g3); }
+.filter-bar { display:flex; gap:0.6rem; margin-bottom:1rem; flex-wrap:wrap; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">N4XCO</div>
-    <div class="login-sub">ADMIN PANEL · SHOP MANAGEMENT</div>
-    <label class="login-label">Username</label>
-    <input type="text" id="adm-user" class="login-input" placeholder="N4XCO">
-    <label class="login-label">Password</label>
-    <input type="password" id="adm-pass" class="login-input" placeholder="••••••••">
+    <div class="login-sub" style="font-size:0.6rem;color:var(--g5);margin-bottom:1.5rem;">ADMIN PANEL</div>
+    <input type="text" id="adm-user" class="login-input" placeholder="Username">
+    <input type="password" id="adm-pass" class="login-input" placeholder="Password">
     <button class="btn-login" id="adm-login-btn">LOGIN</button>
-    <div class="login-error" id="adm-err"></div>
+    <div id="adm-err" style="color:var(--red);font-size:0.65rem;margin-top:1rem;display:none;"></div>
   </div>
 </div>
 
-<!-- ADMIN SHELL -->
 <div id="admin-shell">
   <header>
-    <div class="header-brand">
-      N4XCO SHOP
-      <span class="admin-badge">ADMIN</span>
-    </div>
+    <div class="header-brand">N4XCO ADMIN</div>
     <div class="header-actions">
-      <a href="/" target="_blank" class="btn-sm"><i class="fas fa-store"></i> VIEW SHOP</a>
-      <button id="logoutBtn" class="btn-sm danger"><i class="fas fa-sign-out-alt"></i> LOGOUT</button>
+      <a href="/" target="_blank" class="btn-secondary" style="font-size:0.6rem;">VIEW SHOP</a>
+      <button id="logoutBtn" class="btn-danger">LOGOUT</button>
     </div>
   </header>
-
   <div class="admin-layout">
-    <!-- SIDEBAR -->
     <div class="sidebar">
-      <div class="sidebar-section">MAIN</div>
+      <div class="sidebar-section" style="font-size:0.5rem;padding:0.5rem 1.2rem;color:var(--g4);">MAIN</div>
       <button class="nav-item active" data-panel="overview"><i class="fas fa-chart-bar"></i> Overview</button>
-      <div class="sidebar-section">STORE</div>
+      <div class="sidebar-section" style="font-size:0.5rem;padding:0.5rem 1.2rem;color:var(--g4);">STORE</div>
       <button class="nav-item" data-panel="apk"><i class="fas fa-mobile-alt"></i> APK Settings</button>
-      <button class="nav-item" data-panel="plans"><i class="fas fa-tags"></i> Plans & Prices</button>
-      <button class="nav-item" data-panel="keys"><i class="fas fa-key"></i> Key Manager</button>
-      <div class="sidebar-section">OPERATIONS</div>
+      <button class="nav-item" data-panel="plans"><i class="fas fa-tags"></i> Plans</button>
+      <button class="nav-item" data-panel="keys"><i class="fas fa-key"></i> Keys</button>
+      <button class="nav-item" data-panel="services"><i class="fas fa-cubes"></i> Services</button>
+      <div class="sidebar-section" style="font-size:0.5rem;padding:0.5rem 1.2rem;color:var(--g4);">FINANCE</div>
+      <button class="nav-item" data-panel="deposits"><i class="fas fa-money-bill-wave"></i> Deposits</button>
+      <div class="sidebar-section" style="font-size:0.5rem;padding:0.5rem 1.2rem;color:var(--g4);">OPERATIONS</div>
       <button class="nav-item" data-panel="orders"><i class="fas fa-receipt"></i> Orders</button>
-      <div class="sidebar-section">SYSTEM</div>
       <button class="nav-item" data-panel="users"><i class="fas fa-users"></i> Users</button>
-      <button class="nav-item" data-panel="paymongo"><i class="fas fa-credit-card"></i> PayMongo</button>
+      <div class="sidebar-section" style="font-size:0.5rem;padding:0.5rem 1.2rem;color:var(--g4);">SETTINGS</div>
+      <button class="nav-item" data-panel="shop-settings"><i class="fas fa-sliders-h"></i> Shop Settings</button>
     </div>
 
     <div class="main">
-
       <!-- OVERVIEW -->
       <div class="panel active" id="panel-overview">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">OVERVIEW</div>
-            <div class="panel-sub">SHOP STATS AT A GLANCE</div>
-          </div>
-          <button class="btn-secondary" onclick="loadStats()"><i class="fas fa-sync-alt"></i> REFRESH</button>
-        </div>
-        <div class="stat-cards" id="statCards">
-          <div class="stat-card"><div class="stat-val">—</div><div class="stat-lbl">LOADING</div></div>
-        </div>
-        <div class="section-label">RECENT ORDERS</div>
+        <div class="panel-header"><div class="panel-title">OVERVIEW</div><button class="btn-secondary" onclick="loadStats()">REFRESH</button></div>
+        <div class="stat-cards" id="statCards"></div>
+        <div class="section-label" style="margin-bottom:0.5rem;">RECENT ORDERS</div>
         <div id="recentOrders"></div>
       </div>
 
-      <!-- APK SETTINGS -->
+      <!-- APK -->
       <div class="panel" id="panel-apk">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">APK SETTINGS</div>
-            <div class="panel-sub">APP NAME, LOGO AND DOWNLOAD LINK</div>
-          </div>
-        </div>
+        <div class="panel-header"><div class="panel-title">APK SETTINGS</div></div>
         <div style="max-width:480px;">
-          <div class="field-group">
-            <label class="field-label">App Name</label>
-            <input type="text" id="apkName" class="field-input" placeholder="N4XCO App">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Download Link</label>
-            <input type="text" id="apkLink" class="field-input" placeholder="https://...">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Logo Image</label>
-            <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
-              <img id="currentLogo" src="" style="height:44px;display:none;border:1px solid var(--g3);">
-              <input type="file" id="logoFile" accept="image/*" style="color:var(--g5);font-size:0.72rem;font-family:'Space Mono',monospace;">
-              <button class="btn-secondary" onclick="uploadLogo()">UPLOAD LOGO</button>
-            </div>
-          </div>
-          <button class="btn-primary" onclick="saveApk()">SAVE APK SETTINGS</button>
-          <div class="inline-msg" id="apkMsg"></div>
+          <div class="field-group"><label class="field-label">App Name</label><input type="text" id="apkName" class="field-input"></div>
+          <div class="field-group"><label class="field-label">Download Link</label><input type="text" id="apkLink" class="field-input"></div>
+          <div class="field-group"><label class="field-label">Logo</label><input type="file" id="logoFile" accept="image/*"><button class="btn-secondary" onclick="uploadLogo()" style="margin-top:0.5rem;">UPLOAD</button></div>
+          <button class="btn-primary" onclick="saveApk()">SAVE</button>
         </div>
       </div>
 
       <!-- PLANS -->
       <div class="panel" id="panel-plans">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">PLANS & PRICES</div>
-            <div class="panel-sub">EDIT PRICES AND ENABLE/DISABLE PLANS</div>
-          </div>
-          <button class="btn-primary" onclick="savePlans()">SAVE PLANS</button>
-        </div>
+        <div class="panel-header"><div class="panel-title">PLANS</div><button class="btn-primary" onclick="savePlans()">SAVE</button></div>
         <div id="plansEditor"></div>
-        <div class="inline-msg" id="plansMsg"></div>
       </div>
 
       <!-- KEYS -->
       <div class="panel" id="panel-keys">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">KEY MANAGER</div>
-            <div class="panel-sub">MANAGE ACTIVATION KEY POOL</div>
-          </div>
+        <div class="panel-header"><div class="panel-title">KEY MANAGER</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;">
+          <div><div class="field-group"><label class="field-label">Plan</label><select id="keyPlan" class="field-select"></select></div>
+          <div class="field-group"><label class="field-label">Keys (one per line)</label><textarea id="keyInput" class="field-textarea" rows="6"></textarea></div>
+          <button class="btn-primary" onclick="addKeys()">+ ADD KEYS</button></div>
+          <div><select id="viewKeyPlan" class="field-select" onchange="renderKeyPool()"></select>
+          <div id="keyPoolStats" style="font-size:0.6rem;margin:0.5rem 0;"></div>
+          <div id="keyPool" class="key-list" style="max-height:300px;overflow-y:auto;border:1px solid var(--g3);"></div></div>
         </div>
-        <div class="keys-layout">
-          <div>
-            <div class="sub-head">ADD KEYS</div>
-            <div class="field-group">
-              <label class="field-label">Plan</label>
-              <select id="keyPlan" class="field-select" style="width:100%;"></select>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Keys (one per line)</label>
-              <textarea id="keyInput" class="field-textarea" placeholder="KEY-XXXX-XXXX&#10;KEY-YYYY-YYYY&#10;..."></textarea>
-            </div>
-            <button class="btn-primary" onclick="addKeys()">+ ADD KEYS</button>
-            <div class="inline-msg" id="keysMsg"></div>
-          </div>
-          <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem;">
-              <div class="sub-head" style="margin-bottom:0;">KEY POOL</div>
-              <select id="viewKeyPlan" class="field-select" onchange="renderKeyPool()" style="font-size:0.7rem;"></select>
-            </div>
-            <div id="keyPoolStats" style="font-size:0.62rem;color:var(--g5);margin-bottom:0.6rem;letter-spacing:0.08em;"></div>
-            <div class="key-list" id="keyPool"></div>
-          </div>
-        </div>
+      </div>
+
+      <!-- SERVICES -->
+      <div class="panel" id="panel-services">
+        <div class="panel-header"><div class="panel-title">SERVICES</div><button class="btn-primary" onclick="openAddServiceModal()">+ ADD SERVICE</button></div>
+        <div id="servicesList"></div>
+      </div>
+
+      <!-- DEPOSITS -->
+      <div class="panel" id="panel-deposits">
+        <div class="panel-header"><div class="panel-title">DEPOSIT REQUESTS</div><button class="btn-secondary" onclick="loadDeposits()">REFRESH</button></div>
+        <div class="filter-bar"><select id="depositFilter" class="field-select" onchange="loadDeposits()"><option value="">ALL</option><option value="pending">PENDING</option><option value="approved">APPROVED</option><option value="rejected">REJECTED</option></select></div>
+        <div id="depositsList"></div>
       </div>
 
       <!-- ORDERS -->
       <div class="panel" id="panel-orders">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">ORDERS</div>
-            <div class="panel-sub">ALL CUSTOMER ORDERS · MANUALLY FULFILL PAID</div>
-          </div>
-          <button class="btn-secondary" onclick="loadOrders()"><i class="fas fa-sync-alt"></i> REFRESH</button>
-        </div>
-        <div class="filter-bar">
-          <select id="orderFilter" class="field-select" onchange="loadOrders()">
-            <option value="">ALL ORDERS</option>
-            <option value="pending">PENDING</option>
-            <option value="paid">PAID (AWAITING KEY)</option>
-            <option value="fulfilled">FULFILLED</option>
-            <option value="cancelled">CANCELLED</option>
-          </select>
-          <input type="text" id="orderSearch" class="field-input" placeholder="Search username..." oninput="filterOrdersUI()" style="flex:1;max-width:220px;">
-        </div>
+        <div class="panel-header"><div class="panel-title">ORDERS</div><button class="btn-secondary" onclick="loadOrders()">REFRESH</button></div>
         <div id="ordersList"></div>
       </div>
 
       <!-- USERS -->
       <div class="panel" id="panel-users">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">USERS</div>
-            <div class="panel-sub">MANAGE REGISTERED ACCOUNTS</div>
-          </div>
-          <button class="btn-primary" onclick="openAddUserModal()">+ ADD USER</button>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>USERNAME</th>
-                <th>TELEGRAM</th>
-                <th>ROLE</th>
-                <th>JOINED</th>
-                <th>ORDERS</th>
-                <th>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody id="usersTable"></tbody>
-          </table>
-        </div>
+        <div class="panel-header"><div class="panel-title">USERS</div><button class="btn-primary" onclick="openAddUserModal()">+ ADD USER</button></div>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>USERNAME</th><th>TELEGRAM</th><th>BALANCE</th><th>ROLE</th><th>ACTIONS</th></tr></thead><tbody id="usersTable"></tbody></table></div>
       </div>
 
-      <!-- PAYMONGO -->
-      <div class="panel" id="panel-paymongo">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">PAYMONGO SETUP</div>
-            <div class="panel-sub">CONFIGURE GCASH PAYMENT GATEWAY</div>
-          </div>
+      <!-- SHOP SETTINGS -->
+      <div class="panel" id="panel-shop-settings">
+        <div class="panel-header"><div class="panel-title">SHOP SETTINGS</div></div>
+        <div style="max-width:400px;">
+          <div class="field-group"><label class="field-label"><input type="checkbox" id="showAndroid"> Show Android Services</label></div>
+          <div class="field-group"><label class="field-label"><input type="checkbox" id="showBoosting"> Show Boosting Services</label></div>
+          <div class="field-group"><label class="field-label"><input type="checkbox" id="showJepfx"> Show JEPFX Tool</label></div>
+          <div class="field-group"><label class="field-label"><input type="checkbox" id="showModule"> Show Module for Rooted</label></div>
+          <button class="btn-primary" onclick="saveShopSettings()">SAVE SETTINGS</button>
         </div>
-        <div style="max-width:520px;">
-          <div class="field-group">
-            <label class="field-label">Secret Key (sk_live_...)</label>
-            <input type="text" id="pmSecret" class="field-input" placeholder="sk_live_...">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Public Key (pk_live_...)</label>
-            <input type="text" id="pmPublic" class="field-input" placeholder="pk_live_...">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Webhook URL (register in PayMongo dashboard)</label>
-            <div id="webhookUrl" class="code-block">—</div>
-          </div>
-          <div class="info-box" style="margin-bottom:1.2rem;">
-            <strong style="color:var(--white);letter-spacing:0.06em;">SETUP STEPS</strong><br>
-            1. Get API keys from PayMongo Dashboard → Developers → API Keys<br>
-            2. Paste your Live Secret Key above<br>
-            3. In PayMongo → Developers → Webhooks, add the URL above<br>
-            4. Select event: <code style="color:var(--green);">link.payment.paid</code><br>
-            5. Prices per plan are set in Plans & Prices
-          </div>
-          <button class="btn-primary" onclick="savePaymongo()">SAVE PAYMONGO SETTINGS</button>
-          <div class="inline-msg" id="pmMsg"></div>
-        </div>
-      </div>
-
-    </div><!-- /main -->
-  </div>
-</div>
-
-<!-- ADD/EDIT USER MODAL -->
-<div class="modal-overlay" id="userModal">
-  <div class="modal-box2">
-    <div class="modal-head">
-      <div class="m-title" id="userModalTitle">ADD USER</div>
-      <div class="m-sub">MANAGE ACCOUNT DETAILS</div>
-    </div>
-    <div class="modal-body2">
-      <div class="m-err" id="userModalErr"></div>
-      <input type="hidden" id="editUserId">
-      <label class="m-label">Username</label>
-      <input type="text" id="newUsername" class="m-input" placeholder="username">
-      <label class="m-label">Password <span style="color:var(--g4);">(leave blank to keep)</span></label>
-      <input type="password" id="newPassword" class="m-input" placeholder="new password">
-      <label class="m-label">Telegram (optional)</label>
-      <input type="text" id="newTelegram" class="m-input" placeholder="@telegram">
-      <label class="m-label">Role</label>
-      <select id="newRole" class="m-select">
-        <option value="user">USER</option>
-        <option value="admin">ADMIN</option>
-      </select>
-      <div class="btn-row">
-        <button class="btn-primary" onclick="saveUser()">SAVE</button>
-        <button class="btn-secondary" onclick="closeModal2('userModal')">CANCEL</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- FULFILL MODAL -->
-<div class="modal-overlay" id="fulfillModal">
-  <div class="modal-box2">
-    <div class="modal-head">
-      <div class="m-title">GIVE KEY</div>
-      <div class="m-sub" id="fulfillSub">ORDER DETAILS</div>
-    </div>
-    <div class="modal-body2">
-      <div class="m-err" id="fulfillErr"></div>
-      <input type="hidden" id="fulfillOrderId">
-      <label class="m-label">Activation Key</label>
-      <input type="text" id="fulfillKey" class="m-input" placeholder="KEY-XXXX-XXXX-XXXX" style="font-family:'Space Mono',monospace;">
-      <div class="btn-row">
-        <button class="btn-primary" onclick="doFulfill()">GIVE KEY</button>
-        <button class="btn-secondary" onclick="closeModal2('fulfillModal')">CANCEL</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- MODALS -->
+<div class="modal-overlay" id="serviceModal"><div class="modal-box"><div class="modal-head"><div class="modal-title" id="serviceModalTitle">ADD SERVICE</div></div><div class="modal-body2">
+  <input type="hidden" id="editServiceId">
+  <label class="field-label">Category</label><select id="serviceCategory" class="field-select"><option value="android">ANDROID</option><option value="boosting">BOOSTING</option><option value="jepfx">JEPFX</option><option value="module">MODULE</option></select>
+  <label class="field-label">Title</label><input type="text" id="serviceTitle" class="field-input">
+  <label class="field-label">Description</label><textarea id="serviceDesc" class="field-textarea" rows="4"></textarea>
+  <label class="field-label">Link (optional)</label><input type="text" id="serviceLink" class="field-input">
+  <label class="field-label">Price (optional)</label><input type="number" id="servicePrice" class="field-input" value="0">
+  <label class="field-label">Order</label><input type="number" id="serviceOrder" class="field-input" value="0">
+  <label class="field-label"><input type="checkbox" id="serviceEnabled" checked> Enabled</label>
+  <div class="btn-row" style="margin-top:1rem;"><button class="btn-primary" onclick="saveService()">SAVE</button><button class="btn-secondary" onclick="closeModal('serviceModal')">CANCEL</button></div>
+</div></div></div>
+
+<div class="modal-overlay" id="userModal"><div class="modal-box"><div class="modal-head"><div class="modal-title" id="userModalTitle">ADD USER</div></div><div class="modal-body2">
+  <input type="hidden" id="editUserId">
+  <label class="field-label">Username</label><input type="text" id="newUsername" class="field-input">
+  <label class="field-label">Password</label><input type="password" id="newPassword" class="field-input">
+  <label class="field-label">Telegram</label><input type="text" id="newTelegram" class="field-input">
+  <label class="field-label">Facebook</label><input type="text" id="newFacebook" class="field-input">
+  <label class="field-label">Balance</label><input type="number" id="newBalance" class="field-input" value="0">
+  <label class="field-label">Role</label><select id="newRole" class="field-select"><option value="user">USER</option><option value="admin">ADMIN</option></select>
+  <div class="btn-row"><button class="btn-primary" onclick="saveUser()">SAVE</button><button class="btn-secondary" onclick="closeModal('userModal')">CANCEL</button></div>
+</div></div></div>
 
 <div id="toastBar" class="toast-bar"></div>
 
 <script>
-let adminData = { plans:[], keyCounts:[], orders:[], users:[], apk:{} };
-let allOrders = [];
-let allUsers = [];
+let adminData = {};
+let allOrders = [], allDeposits = [], allServices = [];
 
-// ===== LOGIN =====
 document.getElementById('adm-login-btn').addEventListener('click', async () => {
   const username = document.getElementById('adm-user').value.trim();
   const password = document.getElementById('adm-pass').value;
-  const errEl = document.getElementById('adm-err');
-  errEl.style.display = 'none';
-  document.getElementById('adm-login-btn').textContent = 'LOGGING IN...';
-  try {
-    const res = await fetch('/api/admin/login', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ username, password })
-    });
-    const data = await res.json();
-    if (!res.ok) { errEl.textContent = (data.message || 'INVALID CREDENTIALS').toUpperCase(); errEl.style.display = 'block'; return; }
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-shell').classList.add('visible');
-    initAdmin();
-  } catch(e) { errEl.textContent = 'NETWORK ERROR'; errEl.style.display = 'block'; }
-  finally { document.getElementById('adm-login-btn').textContent = 'LOGIN'; }
+  const res = await fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password }) });
+  if (res.ok) { document.getElementById('login-screen').style.display = 'none'; document.getElementById('admin-shell').classList.add('visible'); initAdmin(); }
+  else { document.getElementById('adm-err').textContent = 'INVALID CREDENTIALS'; document.getElementById('adm-err').style.display = 'block'; }
 });
 
-document.getElementById('adm-pass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('adm-login-btn').click(); });
+document.getElementById('logoutBtn').addEventListener('click', async () => { await fetch('/api/admin/logout',{method:'POST'}); location.reload(); });
 
-(async () => {
-  try {
-    const res = await fetch('/api/admin/check');
-    const data = await res.json();
-    if (data.admin) {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('admin-shell').classList.add('visible');
-      initAdmin();
-    }
-  } catch(e) {}
-})();
-
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-  await fetch('/api/admin/logout', { method:'POST' });
-  location.reload();
-});
-
-// ===== SIDEBAR NAV =====
 document.querySelectorAll('.nav-item[data-panel]').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
     document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+    if (btn.dataset.panel === 'deposits') loadDeposits();
     if (btn.dataset.panel === 'orders') loadOrders();
     if (btn.dataset.panel === 'users') loadUsers();
-    if (btn.dataset.panel === 'paymongo') loadPaymongo();
+    if (btn.dataset.panel === 'services') loadServices();
+    if (btn.dataset.panel === 'shop-settings') loadShopSettings();
     if (btn.dataset.panel === 'keys') loadKeys();
-    if (btn.dataset.panel === 'apk') loadApk();
   });
 });
 
-// ===== INIT =====
-async function initAdmin() {
-  await loadStats();
-  loadApk();
-  loadPlans();
-}
+async function initAdmin() { await loadStats(); loadApk(); loadPlans(); loadKeys(); loadShopSettings(); }
 
-// ===== STATS =====
 async function loadStats() {
-  try {
-    const [statsRes, ordersRes] = await Promise.all([
-      fetch('/api/admin/stats'),
-      fetch('/api/admin/orders')
-    ]);
-    const stats = await statsRes.json();
-    const orders = await ordersRes.json();
-    allOrders = orders;
-
-    document.getElementById('statCards').innerHTML = `
-      <div class="stat-card"><div class="stat-val">₱${(stats.revenue||0).toLocaleString()}</div><div class="stat-lbl">TOTAL REVENUE</div></div>
-      <div class="stat-card"><div class="stat-val">${stats.fulfilled||0}</div><div class="stat-lbl">KEYS DELIVERED</div></div>
-      <div class="stat-card"><div class="stat-val" style="color:var(--yellow);">${stats.pending||0}</div><div class="stat-lbl">AWAITING KEY</div></div>
-      <div class="stat-card"><div class="stat-val">${stats.totalOrders||0}</div><div class="stat-lbl">TOTAL ORDERS</div></div>
-      <div class="stat-card"><div class="stat-val">${stats.totalUsers||0}</div><div class="stat-lbl">USERS</div></div>
-    `;
-
-    const recent = orders.slice(0,8);
-    document.getElementById('recentOrders').innerHTML = recent.length
-      ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>USER</th><th>PLAN</th><th>PRICE</th><th>STATUS</th><th>DATE</th></tr></thead><tbody>' +
-        recent.map(o => `<tr>
-          <td>${esc(o.username)}</td>
-          <td>${esc(o.plan_label)}</td>
-          <td>₱${o.price}</td>
-          <td><span class="badge badge-${o.status}">${o.status.toUpperCase()}</span></td>
-          <td style="font-size:0.68rem;color:var(--g5);">${new Date(o.created_at).toLocaleDateString()}</td>
-        </tr>`).join('') + '</tbody></table></div>'
-      : '<div style="color:var(--g5);font-size:0.72rem;padding:1.5rem;border:1px solid var(--g3);letter-spacing:0.08em;">NO ORDERS YET.</div>';
-  } catch(e) { console.error(e); }
+  const res = await fetch('/api/admin/stats'); const stats = await res.json();
+  const ordersRes = await fetch('/api/admin/orders'); allOrders = await ordersRes.json();
+  document.getElementById('statCards').innerHTML = `
+    <div class="stat-card"><div class="stat-val">₱${(stats.revenue||0).toLocaleString()}</div><div class="stat-lbl">REVENUE</div></div>
+    <div class="stat-card"><div class="stat-val">${stats.fulfilled||0}</div><div class="stat-lbl">KEYS SOLD</div></div>
+    <div class="stat-card"><div class="stat-val">${stats.pendingDeposits||0}</div><div class="stat-lbl">PENDING DEPOSITS</div></div>
+    <div class="stat-card"><div class="stat-val">₱${(stats.totalDeposits||0).toLocaleString()}</div><div class="stat-lbl">TOTAL DEPOSITS</div></div>
+    <div class="stat-card"><div class="stat-val">${stats.totalUsers||0}</div><div class="stat-lbl">USERS</div></div>
+  `;
+  const recent = allOrders.slice(0,6);
+  document.getElementById('recentOrders').innerHTML = recent.length ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>USER</th><th>PLAN</th><th>PRICE</th><th>STATUS</th></tr></thead><tbody>' + recent.map(o => `<tr><td>${o.username}</td><td>${o.plan_label}</td><td>₱${o.price}</td><td><span class="badge badge-${o.status}">${o.status}</span></td></tr>`).join('') + '</tbody></table></div>' : '<div class="empty-msg">NO ORDERS</div>';
 }
 
-// ===== APK =====
-async function loadApk() {
-  try {
-    const res = await fetch('/api/store');
-    const data = await res.json();
-    if (data.apk) {
-      document.getElementById('apkName').value = data.apk.name || '';
-      document.getElementById('apkLink').value = data.apk.link || '';
-      if (data.apk.logo) {
-        const img = document.getElementById('currentLogo');
-        img.src = data.apk.logo; img.style.display = '';
-      }
-    }
-  } catch(e) {}
-}
+async function loadApk() { const res = await fetch('/api/store'); const data = await res.json(); document.getElementById('apkName').value = data.apk?.name || ''; document.getElementById('apkLink').value = data.apk?.link || ''; }
+async function saveApk() { await fetch('/api/admin/apk', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name:document.getElementById('apkName').value, link:document.getElementById('apkLink').value }) }); toast('SAVED'); }
+async function uploadLogo() { const file = document.getElementById('logoFile').files[0]; if(!file) return; const fd=new FormData(); fd.append('logo',file); await fetch('/api/admin/logo', { method:'POST', body:fd }); toast('LOGO UPLOADED'); }
 
-async function saveApk() {
-  const name = document.getElementById('apkName').value.trim();
-  const link = document.getElementById('apkLink').value.trim();
-  const msg = document.getElementById('apkMsg');
-  try {
-    const res = await fetch('/api/admin/apk', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ name, link })
-    });
-    if (res.ok) { showMsg(msg,'APK SETTINGS SAVED','var(--green)'); showToast('SAVED!'); }
-    else showMsg(msg,'SAVE FAILED','var(--red)');
-  } catch(e) { showMsg(msg,'NETWORK ERROR','var(--red)'); }
-}
+async function loadPlans() { const res = await fetch('/api/admin/plans'); const plans = await res.json(); adminData.plans = plans; renderPlansEditor(plans); const opts = plans.map(p => `<option value="${p.id}">${p.label}</option>`).join(''); document.getElementById('keyPlan').innerHTML = opts; document.getElementById('viewKeyPlan').innerHTML = opts; }
+function renderPlansEditor(plans) { document.getElementById('plansEditor').innerHTML = plans.map(p => `<div class="plan-row" style="display:flex;gap:1rem;padding:0.8rem;border:1px solid var(--g3);border-top:none;"><div style="width:100px;">${p.label}</div><input type="number" id="plan-price-${p.id}" value="${p.price}" style="width:80px;"><input type="number" id="plan-days-${p.id}" value="${p.days}" style="width:70px;"><label><input type="checkbox" id="plan-en-${p.id}" ${p.enabled?'checked':''}> Enabled</label></div>`).join(''); }
+async function savePlans() { const plans = adminData.plans.map(p => ({ id:p.id, label:p.label, price:parseInt(document.getElementById('plan-price-'+p.id).value), days:parseInt(document.getElementById('plan-days-'+p.id).value), enabled:document.getElementById('plan-en-'+p.id).checked })); await fetch('/api/admin/plans', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ plans }) }); toast('PLANS SAVED'); }
 
-async function uploadLogo() {
-  const file = document.getElementById('logoFile').files[0];
-  if (!file) return showToast('SELECT A FILE FIRST','error');
-  const form = new FormData(); form.append('logo', file);
-  try {
-    const res = await fetch('/api/admin/logo', { method:'POST', body:form });
-    const data = await res.json();
-    if (data.success) {
-      const img = document.getElementById('currentLogo');
-      img.src = data.logo + '&t=' + Date.now(); img.style.display = '';
-      showToast('LOGO UPLOADED!');
-    } else showToast(data.message || 'UPLOAD FAILED','error');
-  } catch(e) { showToast('UPLOAD ERROR','error'); }
-}
-
-// ===== PLANS =====
-async function loadPlans() {
-  try {
-    const res = await fetch('/api/admin/plans');
-    const plans = await res.json();
-    adminData.plans = plans;
-    renderPlansEditor(plans);
-    const opts = plans.map(p => `<option value="${p.id}">${p.label.toUpperCase()}</option>`).join('');
-    document.getElementById('keyPlan').innerHTML = opts;
-    document.getElementById('viewKeyPlan').innerHTML = opts;
-    loadKeys();
-  } catch(e) {}
-}
-
-function renderPlansEditor(plans) {
-  document.getElementById('plansEditor').innerHTML = plans.map(p => `
-    <div class="plan-row">
-      <div class="plan-row-label">${esc(p.label)}</div>
-      <div style="display:flex;align-items:center;gap:0.5rem;">
-        <span style="font-size:0.65rem;color:var(--g5);">₱</span>
-        <input type="number" value="${p.price}" id="plan-price-${p.id}" min="1" class="plan-row-input" title="Price">
-      </div>
-      <div style="display:flex;align-items:center;gap:0.5rem;">
-        <span style="font-size:0.65rem;color:var(--g5);">DAYS</span>
-        <input type="number" value="${p.days}" id="plan-days-${p.id}" min="1" class="plan-row-input" style="width:70px;" title="Days">
-      </div>
-      <div class="toggle-wrap">
-        <input type="checkbox" class="toggle" id="plan-en-${p.id}" ${p.enabled ? 'checked' : ''}>
-        <label for="plan-en-${p.id}">ENABLED</label>
-      </div>
-    </div>
-  `).join('');
-}
-
-async function savePlans() {
-  const plans = adminData.plans.map(p => ({
-    id: p.id, label: p.label,
-    price: parseInt(document.getElementById('plan-price-'+p.id).value) || p.price,
-    days: parseInt(document.getElementById('plan-days-'+p.id).value) || p.days,
-    enabled: document.getElementById('plan-en-'+p.id).checked
-  }));
-  const msg = document.getElementById('plansMsg');
-  try {
-    const res = await fetch('/api/admin/plans', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ plans })
-    });
-    if (res.ok) { showMsg(msg,'PLANS SAVED','var(--green)'); showToast('PLANS SAVED!'); }
-    else showMsg(msg,'SAVE FAILED','var(--red)');
-  } catch(e) { showMsg(msg,'ERROR','var(--red)'); }
-}
-
-// ===== KEYS =====
 let allKeysData = [];
+async function loadKeys() { const res = await fetch('/api/admin/keys'); const data = await res.json(); allKeysData = data.keys || []; renderKeyPool(); }
+function renderKeyPool() { const planId = document.getElementById('viewKeyPlan').value; const planKeys = allKeysData.filter(k => k.plan_id === planId); const available = planKeys.filter(k => !k.used).length; document.getElementById('keyPoolStats').textContent = `${available} AVAILABLE · ${planKeys.length} TOTAL`; document.getElementById('keyPool').innerHTML = planKeys.map(k => `<div class="key-item" style="display:flex;justify-content:space-between;padding:0.4rem;border-bottom:1px solid var(--g3);"><span style="color:${k.used?'var(--g4)':'var(--green)'}">${k.key_val}${k.used?' (used)':''}</span>${!k.used?`<button class="btn-danger" onclick="deleteKey(${k.id})">✕</button>`:''}</div>`).join(''); }
+async function addKeys() { const planId = document.getElementById('keyPlan').value; const keys = document.getElementById('keyInput').value; await fetch('/api/admin/keys', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ planId, keys }) }); document.getElementById('keyInput').value = ''; loadKeys(); toast('KEYS ADDED'); }
+async function deleteKey(id) { await fetch('/api/admin/keys/'+id, { method:'DELETE' }); loadKeys(); toast('DELETED'); }
 
-async function loadKeys() {
-  try {
-    const res = await fetch('/api/admin/keys');
-    const data = await res.json();
-    allKeysData = data.keys || [];
-    renderKeyPool();
-  } catch(e) {}
-}
+async function loadServices() { const res = await fetch('/api/admin/services'); allServices = await res.json(); renderServices(); }
+function renderServices() { const container = document.getElementById('servicesList'); if(!allServices.length){ container.innerHTML='<div class="empty-msg">NO SERVICES</div>'; return; } container.innerHTML = allServices.map(s => `<div class="service-row"><div><div style="font-weight:bold;">${s.category.toUpperCase()} · ${s.title}</div><div style="font-size:0.65rem;color:var(--g5);">${s.description.substring(0,100)}${s.description.length>100?'...':''}</div>${s.price>0?`<div>₱${s.price}</div>`:''}</div><div><button class="btn-secondary" onclick="editService(${s.id})">EDIT</button><button class="btn-danger" onclick="deleteService(${s.id})">DELETE</button></div></div>`).join(''); }
+function openAddServiceModal() { document.getElementById('serviceModalTitle').textContent='ADD SERVICE'; document.getElementById('editServiceId').value=''; document.getElementById('serviceCategory').value='android'; document.getElementById('serviceTitle').value=''; document.getElementById('serviceDesc').value=''; document.getElementById('serviceLink').value=''; document.getElementById('servicePrice').value='0'; document.getElementById('serviceOrder').value='0'; document.getElementById('serviceEnabled').checked=true; document.getElementById('serviceModal').classList.add('open'); }
+function editService(id){ const s=allServices.find(x=>x.id==id); document.getElementById('serviceModalTitle').textContent='EDIT SERVICE'; document.getElementById('editServiceId').value=s.id; document.getElementById('serviceCategory').value=s.category; document.getElementById('serviceTitle').value=s.title; document.getElementById('serviceDesc').value=s.description; document.getElementById('serviceLink').value=s.link||''; document.getElementById('servicePrice').value=s.price; document.getElementById('serviceOrder').value=s.order; document.getElementById('serviceEnabled').checked=s.enabled==1; document.getElementById('serviceModal').classList.add('open'); }
+async function saveService() { const id=document.getElementById('editServiceId').value; const data={ category:document.getElementById('serviceCategory').value, title:document.getElementById('serviceTitle').value, description:document.getElementById('serviceDesc').value, link:document.getElementById('serviceLink').value, price:parseInt(document.getElementById('servicePrice').value)||0, order:parseInt(document.getElementById('serviceOrder').value)||0, enabled:document.getElementById('serviceEnabled').checked }; const url=id?`/api/admin/services/${id}`:'/api/admin/services'; const method=id?'PUT':'POST'; await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); closeModal('serviceModal'); loadServices(); toast('SAVED'); }
+async function deleteService(id){ if(confirm('Delete this service?')){ await fetch(`/api/admin/services/${id}`,{method:'DELETE'}); loadServices(); toast('DELETED'); } }
 
-function renderKeyPool() {
-  const planId = document.getElementById('viewKeyPlan').value;
-  const planKeys = allKeysData.filter(k => k.plan_id === planId);
-  const available = planKeys.filter(k => !k.used).length;
-  document.getElementById('keyPoolStats').textContent = `${available} AVAILABLE · ${planKeys.length} TOTAL`;
-  document.getElementById('keyPool').innerHTML = planKeys.length
-    ? planKeys.map(k => `
-        <div class="key-item ${k.used ? 'used' : ''}">
-          <span>${esc(k.key_val)}${k.used ? ' (used)' : ''}</span>
-          ${!k.used ? `<button class="btn-danger" style="padding:0.12rem 0.45rem;font-size:0.55rem;" onclick="deleteKey(${k.id})">✕</button>` : ''}
-        </div>`).join('')
-    : '<div style="color:var(--g4);font-size:0.68rem;padding:1rem;letter-spacing:0.08em;">NO KEYS FOR THIS PLAN.</div>';
-}
+async function loadDeposits(){ const status=document.getElementById('depositFilter').value||''; const res=await fetch(`/api/admin/deposits${status?'?status='+status:''}`); allDeposits=await res.json(); renderDeposits(); }
+function renderDeposits(){ const container=document.getElementById('depositsList'); if(!allDeposits.length){ container.innerHTML='<div class="empty-msg">NO DEPOSITS</div>'; return; } container.innerHTML=allDeposits.map(d=>`<div class="deposit-card"><div><div><strong>${d.username}</strong> · ₱${d.amount}</div><div style="font-size:0.6rem;color:var(--g5);">${new Date(d.created_at).toLocaleString()}</div><div style="font-size:0.55rem;">Ref: ${d.reference_id}</div><div>TG: ${d.telegram} | FB: ${d.facebook} | Last4: ${d.last4_digits}</div>${d.notes?`<div style="font-size:0.6rem;">Note: ${d.notes}</div>`:''}</div><div><span class="badge badge-${d.status}">${d.status}</span><div style="margin-top:0.5rem;">${d.status==='pending'?`<button class="btn-success" onclick="approveDeposit(${d.id})">APPROVE</button><button class="btn-danger" onclick="rejectDeposit(${d.id})">REJECT</button>`:''}</div></div></div>`).join(''); }
+async function approveDeposit(id){ const notes=prompt('Admin notes (optional):'); await fetch(`/api/admin/deposits/${id}/approve`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_notes:notes||''})}); loadDeposits(); loadStats(); toast('Deposit approved, balance added'); }
+async function rejectDeposit(id){ const notes=prompt('Reason for rejection:'); await fetch(`/api/admin/deposits/${id}/reject`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_notes:notes||''})}); loadDeposits(); toast('Deposit rejected'); }
 
-async function addKeys() {
-  const planId = document.getElementById('keyPlan').value;
-  const keys = document.getElementById('keyInput').value;
-  const msg = document.getElementById('keysMsg');
-  if (!keys.trim()) { showMsg(msg,'ENTER AT LEAST ONE KEY','var(--red)'); return; }
-  try {
-    const res = await fetch('/api/admin/keys', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ planId, keys })
-    });
-    const data = await res.json();
-    if (data.success) {
-      showMsg(msg,`ADDED ${data.added} KEY(S)`,'var(--green)');
-      document.getElementById('keyInput').value = '';
-      loadKeys();
-    } else showMsg(msg,'FAILED TO ADD','var(--red)');
-  } catch(e) { showMsg(msg,'ERROR','var(--red)'); }
-}
+async function loadOrders(){ const res=await fetch('/api/admin/orders'); allOrders=await res.json(); renderOrders(); }
+function renderOrders(){ const container=document.getElementById('ordersList'); if(!allOrders.length){ container.innerHTML='<div class="empty-msg">NO ORDERS</div>'; return; } container.innerHTML=allOrders.map(o=>`<div class="order-row"><div><div><strong>${o.username}</strong> · ${o.plan_label} · ₱${o.price}</div><div style="font-size:0.6rem;">${new Date(o.created_at).toLocaleString()}</div>${o.key_given?`<div style="color:var(--green);">Key: ${o.key_given}</div>`:''}</div><div><span class="badge badge-${o.status}">${o.status}</span></div></div>`).join(''); }
 
-async function deleteKey(id) {
-  if (!confirm('Delete this key from the pool?')) return;
-  await fetch('/api/admin/keys/' + id, { method:'DELETE' });
-  loadKeys(); showToast('KEY DELETED');
-}
+async function loadUsers(){ const res=await fetch('/api/admin/users'); const users=await res.json(); renderUsers(users); }
+function renderUsers(users){ const tb=document.getElementById('usersTable'); tb.innerHTML=users.map(u=>`<tr><td>${u.username}</td><td>${u.telegram||'-'}</td><td><span style="color:var(--green);">₱${u.balance||0}</span></td><td><span class="badge badge-${u.role}">${u.role}</span></td><td><button class="btn-secondary" onclick="editUser(${u.id},'${u.username}','${u.telegram||''}','${u.facebook||''}',${u.balance||0},'${u.role}')">EDIT</button>${u.username!=='N4XCO'?`<button class="btn-danger" onclick="deleteUser(${u.id})">DEL</button>`:''}</td></tr>`).join(''); }
+function openAddUserModal(){ document.getElementById('userModalTitle').textContent='ADD USER'; document.getElementById('editUserId').value=''; document.getElementById('newUsername').value=''; document.getElementById('newPassword').value=''; document.getElementById('newTelegram').value=''; document.getElementById('newFacebook').value=''; document.getElementById('newBalance').value='0'; document.getElementById('newRole').value='user'; document.getElementById('userModal').classList.add('open'); }
+function editUser(id,username,telegram,facebook,balance,role){ document.getElementById('userModalTitle').textContent='EDIT USER'; document.getElementById('editUserId').value=id; document.getElementById('newUsername').value=username; document.getElementById('newPassword').value=''; document.getElementById('newTelegram').value=telegram; document.getElementById('newFacebook').value=facebook; document.getElementById('newBalance').value=balance; document.getElementById('newRole').value=role; document.getElementById('userModal').classList.add('open'); }
+async function saveUser(){ const id=document.getElementById('editUserId').value; const data={ username:document.getElementById('newUsername').value, password:document.getElementById('newPassword').value||undefined, telegram:document.getElementById('newTelegram').value, facebook:document.getElementById('newFacebook').value, balance:parseInt(document.getElementById('newBalance').value)||0, role:document.getElementById('newRole').value }; const url=id?`/api/admin/users/${id}`:'/api/admin/users'; const method=id?'PUT':'POST'; await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); closeModal('userModal'); loadUsers(); toast('SAVED'); }
+async function deleteUser(id){ if(confirm('Delete user?')){ await fetch(`/api/admin/users/${id}`,{method:'DELETE'}); loadUsers(); toast('DELETED'); } }
 
-// ===== ORDERS =====
-async function loadOrders() {
-  const status = document.getElementById('orderFilter').value;
-  const listEl = document.getElementById('ordersList');
-  listEl.innerHTML = '<div style="color:var(--g5);padding:2rem;letter-spacing:0.1em;font-size:0.68rem;">LOADING...</div>';
-  try {
-    const url = '/api/admin/orders' + (status ? '?status='+status : '');
-    const res = await fetch(url);
-    allOrders = await res.json();
-    filterOrdersUI();
-  } catch(e) { listEl.innerHTML = '<div style="color:var(--g5);padding:2rem;">FAILED TO LOAD.</div>'; }
-}
+async function loadShopSettings(){ const res=await fetch('/api/admin/data'); const data=await res.json(); const settings=data.shopSettings||{}; document.getElementById('showAndroid').checked=settings.show_android!==0; document.getElementById('showBoosting').checked=settings.show_boosting!==0; document.getElementById('showJepfx').checked=settings.show_jepfx!==0; document.getElementById('showModule').checked=settings.show_module!==0; }
+async function saveShopSettings(){ await fetch('/api/admin/shop-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ show_android:document.getElementById('showAndroid').checked, show_boosting:document.getElementById('showBoosting').checked, show_jepfx:document.getElementById('showJepfx').checked, show_module:document.getElementById('showModule').checked })}); toast('SETTINGS SAVED'); }
 
-function filterOrdersUI() {
-  const search = document.getElementById('orderSearch').value.toLowerCase();
-  const filtered = search ? allOrders.filter(o => o.username.toLowerCase().includes(search) || o.id.includes(search)) : allOrders;
-  renderOrdersList(filtered);
-}
+function toast(msg){ const el=document.getElementById('toastBar'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),3000); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
-function renderOrdersList(orders) {
-  const el = document.getElementById('ordersList');
-  if (!orders.length) { el.innerHTML = '<div style="color:var(--g5);padding:2rem;letter-spacing:0.1em;font-size:0.68rem;">NO ORDERS FOUND.</div>'; return; }
-  el.innerHTML = orders.map(o => `
-    <div class="order-row">
-      <div class="order-row-info">
-        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.35rem;">
-          <strong style="font-size:0.78rem;letter-spacing:0.04em;">${esc(o.username.toUpperCase())}</strong>
-          <span class="badge badge-${o.status}">${o.status.toUpperCase()}</span>
-          <span style="font-size:0.6rem;color:var(--g5);letter-spacing:0.06em;">#${o.id.split('-')[0].toUpperCase()}</span>
-        </div>
-        <div style="font-size:0.68rem;color:var(--g5);letter-spacing:0.04em;">${esc(o.plan_label.toUpperCase())} · ₱${o.price} · ${new Date(o.created_at).toLocaleString()}</div>
-        ${o.telegram ? `<div style="font-size:0.65rem;color:var(--blue);margin-top:0.25rem;letter-spacing:0.04em;"><i class="fab fa-telegram"></i> ${esc(o.telegram)}</div>` : ''}
-        ${o.key_given ? `<div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--green);margin-top:0.4rem;letter-spacing:0.06em;">${esc(o.key_given)}</div>` : ''}
-      </div>
-      <div class="order-row-actions">
-        ${o.status === 'paid' ? `<button class="btn-success" onclick="openFulfillModal('${o.id}','${esc(o.username)}','${esc(o.plan_label)}')">GIVE KEY</button>` : ''}
-        ${o.status === 'pending' ? `<button class="btn-danger" onclick="adminCancelOrder('${o.id}')">CANCEL</button>` : ''}
-      </div>
-    </div>
-  `).join('');
-}
-
-function openFulfillModal(orderId, username, plan) {
-  document.getElementById('fulfillOrderId').value = orderId;
-  document.getElementById('fulfillSub').textContent = username.toUpperCase() + ' · ' + plan.toUpperCase();
-  document.getElementById('fulfillKey').value = '';
-  document.getElementById('fulfillErr').classList.remove('show');
-  document.getElementById('fulfillModal').classList.add('open');
-}
-
-async function doFulfill() {
-  const orderId = document.getElementById('fulfillOrderId').value;
-  const key = document.getElementById('fulfillKey').value.trim();
-  const errEl = document.getElementById('fulfillErr');
-  if (!key) { errEl.textContent = 'ENTER A KEY'; errEl.classList.add('show'); return; }
-  try {
-    const res = await fetch('/api/admin/orders/' + orderId + '/fulfill', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key })
-    });
-    if (res.ok) { closeModal2('fulfillModal'); showToast('KEY GIVEN!'); loadOrders(); loadStats(); }
-    else { errEl.textContent = 'FAILED'; errEl.classList.add('show'); }
-  } catch(e) { errEl.textContent = 'ERROR'; errEl.classList.add('show'); }
-}
-
-async function adminCancelOrder(orderId) {
-  if (!confirm('Cancel this order?')) return;
-  await fetch('/api/admin/orders/' + orderId + '/cancel', { method:'POST' });
-  loadOrders(); showToast('ORDER CANCELLED');
-}
-
-// ===== USERS =====
-async function loadUsers() {
-  try {
-    const res = await fetch('/api/admin/users');
-    allUsers = await res.json();
-    renderUsersTable();
-  } catch(e) {}
-}
-
-function renderUsersTable() {
-  const tb = document.getElementById('usersTable');
-  if (!allUsers.length) { tb.innerHTML = '<tr><td colspan="6" style="color:var(--g5);text-align:center;padding:2rem;letter-spacing:0.1em;font-size:0.68rem;">NO USERS.</td></tr>'; return; }
-  tb.innerHTML = allUsers.map(u => `
-    <tr>
-      <td style="font-weight:700;letter-spacing:0.04em;">${esc(u.username.toUpperCase())}</td>
-      <td style="color:var(--blue);font-size:0.7rem;">${u.telegram ? esc(u.telegram) : '<span style="color:var(--g4);">—</span>'}</td>
-      <td><span class="badge badge-${u.role}">${u.role.toUpperCase()}</span></td>
-      <td style="font-size:0.65rem;color:var(--g5);">${new Date(u.created_at).toLocaleDateString()}</td>
-      <td style="color:var(--g5);">—</td>
-      <td>
-        <div style="display:flex;gap:0.4rem;">
-          <button class="btn-secondary" style="font-size:0.6rem;padding:0.25rem 0.6rem;" onclick="openEditUserModal(${u.id},'${esc(u.username)}','${esc(u.telegram||'')}','${u.role}')">EDIT</button>
-          ${u.username !== 'N4XCO' ? `<button class="btn-danger" onclick="deleteUser(${u.id},'${esc(u.username)}')">DELETE</button>` : ''}
-        </div>
-      </td>
-    </tr>
-  `).join('');
-}
-
-function openAddUserModal() {
-  document.getElementById('userModalTitle').textContent = 'ADD USER';
-  document.getElementById('editUserId').value = '';
-  document.getElementById('newUsername').value = '';
-  document.getElementById('newPassword').value = '';
-  document.getElementById('newTelegram').value = '';
-  document.getElementById('newRole').value = 'user';
-  document.getElementById('userModalErr').classList.remove('show');
-  document.getElementById('userModal').classList.add('open');
-}
-
-function openEditUserModal(id, username, telegram, role) {
-  document.getElementById('userModalTitle').textContent = 'EDIT USER';
-  document.getElementById('editUserId').value = id;
-  document.getElementById('newUsername').value = username;
-  document.getElementById('newPassword').value = '';
-  document.getElementById('newTelegram').value = telegram;
-  document.getElementById('newRole').value = role;
-  document.getElementById('userModalErr').classList.remove('show');
-  document.getElementById('userModal').classList.add('open');
-}
-
-async function saveUser() {
-  const id = document.getElementById('editUserId').value;
-  const username = document.getElementById('newUsername').value.trim();
-  const password = document.getElementById('newPassword').value;
-  const telegram = document.getElementById('newTelegram').value.trim();
-  const role = document.getElementById('newRole').value;
-  const errEl = document.getElementById('userModalErr');
-  if (!username) { errEl.textContent = 'USERNAME REQUIRED'; errEl.classList.add('show'); return; }
-  try {
-    let res;
-    if (id) {
-      res = await fetch('/api/admin/users/' + id, {
-        method:'PUT', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ username, password: password || undefined, telegram, role })
-      });
-    } else {
-      if (!password) { errEl.textContent = 'PASSWORD REQUIRED FOR NEW USER'; errEl.classList.add('show'); return; }
-      res = await fetch('/api/admin/users', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ username, password, telegram, role })
-      });
-    }
-    const data = await res.json();
-    if (res.ok) { closeModal2('userModal'); loadUsers(); showToast(id ? 'USER UPDATED' : 'USER ADDED'); }
-    else { errEl.textContent = (data.message || 'ERROR').toUpperCase(); errEl.classList.add('show'); }
-  } catch(e) { errEl.textContent = 'NETWORK ERROR'; errEl.classList.add('show'); }
-}
-
-async function deleteUser(id, username) {
-  if (!confirm('Delete user "' + username + '"? This cannot be undone.')) return;
-  await fetch('/api/admin/users/' + id, { method:'DELETE' });
-  loadUsers(); showToast('USER DELETED');
-}
-
-// ===== PAYMONGO =====
-async function loadPaymongo() {
-  try {
-    const res = await fetch('/api/admin/paymongo');
-    const data = await res.json();
-    document.getElementById('pmSecret').value = data?.secret_key || '';
-    document.getElementById('pmPublic').value = data?.public_key || '';
-    document.getElementById('webhookUrl').textContent = window.location.origin + '/api/webhook/paymongo';
-  } catch(e) {}
-}
-
-async function savePaymongo() {
-  const secret_key = document.getElementById('pmSecret').value.trim();
-  const public_key = document.getElementById('pmPublic').value.trim();
-  const msg = document.getElementById('pmMsg');
-  try {
-    const res = await fetch('/api/admin/paymongo', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ secret_key, public_key })
-    });
-    if (res.ok) { showMsg(msg,'PAYMONGO SETTINGS SAVED','var(--green)'); showToast('SAVED!'); }
-    else showMsg(msg,'SAVE FAILED','var(--red)');
-  } catch(e) { showMsg(msg,'ERROR','var(--red)'); }
-}
-
-// ===== UTILS =====
-function esc(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function showToast(msg, type='success') {
-  const el = document.getElementById('toastBar');
-  el.textContent = msg; el.className = 'toast-bar ' + type + ' show';
-  setTimeout(() => el.classList.remove('show'), 3000);
-}
-
-function showMsg(el, msg, color) {
-  if (typeof el === 'string') el = document.getElementById(el);
-  el.textContent = msg; el.style.color = color; el.style.display = 'block';
-  setTimeout(() => { el.style.display = 'none'; }, 3500);
-}
-
-function closeModal2(id) { document.getElementById(id).classList.remove('open'); }
-
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
-});
+(async () => { const res = await fetch('/api/admin/check'); const data = await res.json(); if(data.admin){ document.getElementById('login-screen').style.display='none'; document.getElementById('admin-shell').classList.add('visible'); initAdmin(); } })();
 </script>
 </body>
 </html>
