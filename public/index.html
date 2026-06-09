@@ -23,11 +23,8 @@
   --blue: #00aaff;
   --orange: #ff8800;
 }
-
 * { margin:0; padding:0; box-sizing:border-box; }
-
 html { scroll-behavior: smooth; }
-
 body {
   background: var(--black);
   color: var(--white);
@@ -35,22 +32,14 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 }
-
 body::before {
   content:'';
   position: fixed;
   inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(255,255,255,0.012) 2px,
-    rgba(255,255,255,0.012) 4px
-  );
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.012) 2px, rgba(255,255,255,0.012) 4px);
   pointer-events: none;
   z-index: 9999;
 }
-
 body::after {
   content: '';
   position: fixed;
@@ -60,7 +49,6 @@ body::after {
   pointer-events: none;
   z-index: 9998;
 }
-
 .nav-bar {
   position: sticky; top: 0; z-index: 500;
   display: flex; align-items: stretch; justify-content: space-between;
@@ -69,12 +57,10 @@ body::after {
   height: 52px;
   flex-wrap: wrap;
 }
-
 .nav-tabs {
   display: flex; align-items: stretch;
   flex-wrap: wrap;
 }
-
 .nav-btn {
   background: none;
   border: none;
@@ -89,7 +75,6 @@ body::after {
   position: relative;
   white-space: nowrap;
 }
-
 .nav-btn::after {
   content: '';
   position: absolute;
@@ -98,20 +83,17 @@ body::after {
   background: var(--white);
   transition: width 0.2s;
 }
-
 .nav-btn.active {
   color: var(--white);
   background: var(--gray-1);
 }
 .nav-btn.active::after { width: 100%; }
 .nav-btn:hover { color: var(--white); background: var(--gray-1); }
-
 .nav-user {
   display: flex; align-items: center; padding: 0 1rem;
   border-left: 1px solid var(--gray-3);
   gap: 0.8rem;
 }
-
 .user-pill {
   font-family: 'Space Mono', monospace;
   font-size: 0.68rem;
@@ -124,10 +106,8 @@ body::after {
   display: flex; align-items: center; gap: 0.5rem;
   letter-spacing: 0.04em;
 }
-
 .user-pill:hover { border-color: var(--white); color: var(--white); }
 .user-pill.logged-in { border-color: var(--green); color: var(--green); }
-
 .balance-pill {
   font-family: 'Space Mono', monospace;
   font-size: 0.68rem;
@@ -139,18 +119,14 @@ body::after {
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
-
 .app-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
 }
-
 .tab-section { display: none; animation: fadeIn 0.2s ease; }
 .tab-section.active { display: block; }
-
 @keyframes fadeIn { from{ opacity:0; } to{ opacity:1; } }
-
 .shop-header {
   border: 1px solid var(--gray-3);
   padding: 2rem 2.5rem;
@@ -163,7 +139,6 @@ body::after {
   position: relative;
   overflow: hidden;
 }
-
 .shop-header::before {
   content: 'N4XCO';
   position: absolute;
@@ -177,7 +152,6 @@ body::after {
   user-select: none;
   line-height: 1;
 }
-
 .header-logo {
   font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(2rem, 5vw, 3.2rem);
@@ -188,7 +162,6 @@ body::after {
   align-items: center;
   gap: 1rem;
 }
-
 .header-logo img {
   height: 48px;
   width: 48px;
@@ -196,7 +169,6 @@ body::after {
   border: 1px solid var(--gray-3);
   display: none;
 }
-
 .header-meta {
   font-size: 0.65rem;
   color: var(--gray-5);
@@ -204,7 +176,6 @@ body::after {
   line-height: 1.8;
   text-align: right;
 }
-
 .apk-banner {
   display: none;
   border: 1px solid var(--gray-3);
@@ -217,14 +188,12 @@ body::after {
   flex-wrap: wrap;
   background: var(--gray-1);
 }
-
 .apk-banner-label {
   font-size: 0.6rem;
   letter-spacing: 0.15em;
   color: var(--gray-5);
   text-transform: uppercase;
 }
-
 .apk-banner-name {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.1rem;
@@ -232,7 +201,6 @@ body::after {
   color: var(--white);
   margin-top: 0.1rem;
 }
-
 .btn-download {
   font-family: 'Bebas Neue', sans-serif;
   letter-spacing: 0.12em;
@@ -246,7 +214,6 @@ body::after {
   white-space: nowrap;
 }
 .btn-download:hover { background: var(--gray-6); }
-
 .section-label {
   font-size: 0.58rem;
   letter-spacing: 0.2em;
@@ -263,14 +230,12 @@ body::after {
   height: 1px;
   background: var(--gray-3);
 }
-
 .plans-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 0;
   border: 1px solid var(--gray-3);
 }
-
 .plan-card {
   padding: 1.5rem;
   border-right: 1px solid var(--gray-3);
@@ -280,9 +245,8 @@ body::after {
   position: relative;
   overflow: hidden;
 }
-
 .plan-card.disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 .plan-card.disabled .plan-buy-btn {
@@ -290,9 +254,16 @@ body::after {
   color: var(--gray-5);
   cursor: not-allowed;
 }
-.plan-card.disabled:hover { background: transparent; }
-.plan-card.disabled .plan-buy-btn:hover { background: var(--gray-3); color: var(--gray-5); }
-
+.plan-card.disabled .plan-buy-btn:hover {
+  background: var(--gray-3);
+  color: var(--gray-5);
+}
+.plan-card.disabled:hover {
+  background: transparent;
+}
+.plan-card.disabled:hover::before {
+  height: 0;
+}
 .plan-card::before {
   content: '';
   position: absolute;
@@ -303,7 +274,6 @@ body::after {
 }
 .plan-card:not(.disabled):hover { background: var(--gray-1); }
 .plan-card:not(.disabled):hover::before { height: 100%; }
-
 .plan-number {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 4rem;
@@ -315,7 +285,6 @@ body::after {
   user-select: none;
   letter-spacing: -0.05em;
 }
-
 .plan-label {
   font-size: 0.6rem;
   letter-spacing: 0.2em;
@@ -323,7 +292,6 @@ body::after {
   text-transform: uppercase;
   margin-bottom: 0.5rem;
 }
-
 .plan-price {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 2.4rem;
@@ -331,21 +299,18 @@ body::after {
   color: var(--white);
   line-height: 1;
 }
-
 .plan-price-unit {
   font-family: 'Space Mono', monospace;
   font-size: 0.6rem;
   color: var(--gray-5);
   letter-spacing: 0.1em;
 }
-
 .plan-days-line {
   font-size: 0.62rem;
   color: var(--gray-5);
   margin: 0.6rem 0 1.2rem;
   letter-spacing: 0.05em;
 }
-
 .plan-buy-btn {
   width: 100%;
   background: none;
@@ -359,33 +324,16 @@ body::after {
   transition: all 0.15s;
 }
 .plan-buy-btn:hover { background: var(--white); color: var(--black); border-color: var(--white); }
-
-.out-of-stock-tag {
-  font-size: 0.55rem;
-  color: var(--red);
-  border: 1px solid rgba(255,51,51,0.3);
-  background: rgba(255,51,51,0.1);
-  padding: 0.2rem 0.4rem;
-  border-radius: 0;
-  display: inline-block;
-  margin-top: 0.5rem;
-  letter-spacing: 0.08em;
-}
-
-/* SERVICES SECTION */
 .services-grid {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   border: 1px solid var(--gray-3);
 }
-
 .service-category {
   border-bottom: 1px solid var(--gray-3);
 }
-
 .service-category:last-child { border-bottom: none; }
-
 .category-header {
   display: flex;
   align-items: center;
@@ -396,43 +344,35 @@ body::after {
   transition: background 0.15s;
 }
 .category-header:hover { background: var(--gray-2); }
-
 .category-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.2rem;
   letter-spacing: 0.1em;
   color: var(--white);
 }
-
 .category-toggle {
   font-size: 1rem;
   color: var(--gray-5);
   transition: transform 0.2s;
 }
-
 .category-content {
   display: none;
   padding: 1rem 1.5rem;
   background: var(--black);
 }
-
 .category-content.open { display: block; }
-
 .service-items {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
 }
-
 .service-item {
   border: 1px solid var(--gray-3);
   padding: 1rem;
   transition: all 0.15s;
   background: var(--gray-1);
 }
-
 .service-item:hover { border-color: var(--gray-5); }
-
 .service-item-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1rem;
@@ -440,14 +380,12 @@ body::after {
   color: var(--white);
   margin-bottom: 0.3rem;
 }
-
 .service-item-price {
   font-size: 0.8rem;
   color: var(--green);
   font-weight: bold;
   margin-bottom: 0.5rem;
 }
-
 .service-item-desc {
   font-size: 0.65rem;
   color: var(--gray-5);
@@ -455,7 +393,6 @@ body::after {
   margin-bottom: 0.8rem;
   white-space: pre-line;
 }
-
 .service-item-link {
   display: inline-block;
   font-size: 0.6rem;
@@ -466,22 +403,18 @@ body::after {
   transition: all 0.15s;
 }
 .service-item-link:hover { background: rgba(0,170,255,0.1); border-color: var(--blue); }
-
-/* DEPOSIT FORM */
 .deposit-form-card {
   border: 1px solid var(--gray-3);
   padding: 1.5rem;
   background: var(--gray-1);
   margin-bottom: 2rem;
 }
-
 .deposit-form-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.3rem;
   letter-spacing: 0.1em;
   margin-bottom: 1rem;
 }
-
 .gcash-info {
   background: rgba(0,170,255,0.1);
   border: 1px solid rgba(0,170,255,0.3);
@@ -495,7 +428,6 @@ body::after {
   color: var(--blue);
   letter-spacing: 0.05em;
 }
-
 .field-group { margin-bottom: 1rem; }
 .field-label {
   font-size: 0.58rem;
@@ -517,7 +449,6 @@ body::after {
 }
 .field-input:focus, .field-textarea:focus { outline: none; border-color: var(--white); }
 .field-textarea { min-height: 80px; resize: vertical; }
-
 .amount-buttons {
   display: flex;
   gap: 0.5rem;
@@ -535,7 +466,6 @@ body::after {
   transition: all 0.15s;
 }
 .amount-btn:hover { border-color: var(--white); color: var(--white); }
-
 .btn-primary {
   background: var(--white);
   color: var(--black);
@@ -550,61 +480,50 @@ body::after {
 }
 .btn-primary:hover { background: var(--gray-6); }
 .btn-primary:disabled { background: var(--gray-3); color: var(--gray-5); cursor: not-allowed; }
-
-.deposit-history {
-  margin-top: 2rem;
-}
+.deposit-history { margin-top: 2rem; }
 .deposit-card {
   border: 1px solid var(--gray-3);
   border-top: none;
   padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 .deposit-card:first-child { border-top: 1px solid var(--gray-3); }
-
 .deposit-status {
   font-size: 0.6rem;
   padding: 0.2rem 0.6rem;
   border: 1px solid;
+  display: inline-block;
 }
-.status-pending { border-color: var(--yellow); color: var(--yellow); }
-.status-approved { border-color: var(--green); color: var(--green); }
-.status-rejected { border-color: var(--red); color: var(--red); }
-
-/* ORDERS */
+.status-pending { border-color: var(--yellow); color: var(--yellow); background: rgba(255,238,0,0.05); }
+.status-approved { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.05); }
+.status-rejected { border-color: var(--red); color: var(--red); background: rgba(255,51,51,0.05); }
 .orders-wrap { display: flex; flex-direction: column; }
 .order-card {
   border: 1px solid var(--gray-3);
   border-top: none;
   padding: 1rem 1.5rem;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
   flex-wrap: wrap;
+  gap: 0.5rem;
 }
 .order-card:first-child { border-top: 1px solid var(--gray-3); }
-.order-plan { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.08em; }
+.order-plan { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; }
 .order-key {
   font-family: 'Space Mono', monospace;
   font-size: 0.7rem;
   color: var(--green);
+  margin-top: 0.5rem;
   word-break: break-all;
 }
 .order-status-badge {
   font-size: 0.6rem;
-  padding: 0.25rem 0.7rem;
+  padding: 0.2rem 0.7rem;
   border: 1px solid;
   text-transform: uppercase;
 }
 .badge-pending { border-color: var(--yellow); color: var(--yellow); }
 .badge-fulfilled { border-color: var(--green); color: var(--green); }
 .badge-cancelled { border-color: var(--red); color: var(--red); }
-
 .btn-copy-key, .btn-cancel-order {
   background: none;
   border: 1px solid;
@@ -618,8 +537,6 @@ body::after {
 .btn-copy-key:hover { background: rgba(0,255,136,0.1); }
 .btn-cancel-order { border-color: rgba(255,51,51,0.3); color: var(--red); }
 .btn-cancel-order:hover { background: rgba(255,51,51,0.1); }
-
-/* CONTACTS */
 .contacts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -651,8 +568,26 @@ body::after {
   letter-spacing: 0.1em;
   color: var(--white);
 }
-
-/* MODALS */
+.contact-admin-card {
+  border: 1px solid var(--orange);
+  background: rgba(255, 136, 0, 0.05);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+.contact-admin-btn {
+  background: var(--orange);
+  color: var(--black);
+  border: none;
+  padding: 0.5rem 1rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: opacity 0.15s;
+}
+.contact-admin-btn:hover { opacity: 0.8; }
 .modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.92);
@@ -663,7 +598,6 @@ body::after {
   backdrop-filter: blur(4px);
 }
 .modal-overlay.open { display: flex; }
-
 .modal-box {
   background: var(--black);
   border: 1px solid var(--gray-3);
@@ -672,7 +606,6 @@ body::after {
   max-height: 92vh; overflow-y: auto;
 }
 @keyframes modalIn { from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
-
 .modal-header {
   border-bottom: 1px solid var(--gray-3);
   padding: 1.2rem 1.5rem;
@@ -693,7 +626,6 @@ body::after {
   cursor: pointer;
 }
 .modal-body { padding: 1.5rem; }
-
 .modal-tabs {
   display: flex;
   border-bottom: 1px solid var(--gray-3);
@@ -709,7 +641,6 @@ body::after {
   border-bottom: 2px solid transparent;
 }
 .modal-tab.active { color: var(--white); border-bottom-color: var(--white); }
-
 .modal-input {
   width: 100%;
   background: var(--gray-1);
@@ -740,6 +671,15 @@ body::after {
   padding: 0.7rem;
   cursor: pointer;
 }
+.modal-cancel {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--gray-3);
+  color: var(--gray-5);
+  padding: 0.6rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
 .modal-error {
   font-size: 0.68rem;
   color: var(--red);
@@ -750,7 +690,6 @@ body::after {
   display: none;
 }
 .modal-error.show { display: block; }
-
 .key-reveal-card {
   border: 1px solid var(--green);
   padding: 1rem;
@@ -773,7 +712,6 @@ body::after {
   padding: 0.4rem 1rem;
   cursor: pointer;
 }
-
 .spinner {
   width: 32px; height: 32px;
   border: 2px solid var(--gray-3);
@@ -783,7 +721,6 @@ body::after {
   margin: 1rem auto;
 }
 @keyframes spin { to{ transform:rotate(360deg); } }
-
 .empty-msg {
   text-align: center;
   color: var(--gray-4);
@@ -791,7 +728,6 @@ body::after {
   font-size: 0.75rem;
   border: 1px solid var(--gray-3);
 }
-
 .toast-msg {
   position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
   background: var(--white);
@@ -806,7 +742,6 @@ body::after {
   white-space: nowrap;
 }
 .toast-msg.show { opacity: 1; }
-
 .glass-footer {
   margin-top: 2rem;
   padding: 1rem;
@@ -816,7 +751,6 @@ body::after {
   text-align: center;
   text-transform: uppercase;
 }
-
 @media(max-width:640px) {
   .nav-btn { padding: 0 0.7rem; font-size: 0.75rem; }
   .plans-grid, .contacts-grid { grid-template-columns: 1fr; }
@@ -861,7 +795,6 @@ body::after {
         <span>AUTO-DELIVERED</span>
       </div>
     </div>
-
     <div id="apkDownload" class="apk-banner">
       <div>
         <div class="apk-banner-label">AVAILABLE NOW</div>
@@ -869,7 +802,6 @@ body::after {
       </div>
       <button class="btn-download" onclick="downloadApk()">↓ DOWNLOAD APK</button>
     </div>
-
     <div class="section-label">AVAILABLE PLANS</div>
     <div id="plansGrid" class="plans-grid"></div>
     <div class="glass-footer">KEYS AUTO-DELIVERED UPON PURCHASE · SUPPORT 24/7</div>
@@ -884,7 +816,6 @@ body::after {
   <!-- DEPOSIT TAB -->
   <div id="depositTab" class="tab-section">
     <div class="orders-page-header" style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:0.1em;border-bottom:1px solid var(--gray-3);padding-bottom:1rem;margin-bottom:1.5rem;">DEPOSIT FUNDS</div>
-    
     <div class="deposit-form-card">
       <div class="deposit-form-title">GCASH DEPOSIT</div>
       <div class="gcash-info">
@@ -892,7 +823,6 @@ body::after {
         <div class="gcash-number" id="gcashNumber">09123456789</div>
         <div style="font-size:0.6rem;margin-top:0.3rem;">Scan QR or send to this GCash number</div>
       </div>
-      
       <div class="field-group">
         <label class="field-label">AMOUNT (₱)</label>
         <div class="amount-buttons">
@@ -903,36 +833,29 @@ body::after {
         </div>
         <input type="number" id="depositAmount" class="field-input" placeholder="Enter amount (min ₱50)" min="50">
       </div>
-      
       <div class="field-group">
         <label class="field-label">TELEGRAM ACCOUNT</label>
         <input type="text" id="depositTelegram" class="field-input" placeholder="@username">
       </div>
-      
       <div class="field-group">
         <label class="field-label">FACEBOOK ACCOUNT</label>
         <input type="text" id="depositFacebook" class="field-input" placeholder="facebook.com/username or email">
       </div>
-      
       <div class="field-group">
         <label class="field-label">LAST 4 DIGITS OF GCASH REFERENCE NO.</label>
         <input type="text" id="depositLast4" class="field-input" placeholder="1234" maxlength="4">
       </div>
-      
       <div class="field-group">
         <label class="field-label">NOTES (OPTIONAL)</label>
         <textarea id="depositNotes" class="field-textarea" placeholder="Additional notes for admin..."></textarea>
       </div>
-      
       <div class="field-group">
         <label class="field-label">SCREENSHOT (OPTIONAL)</label>
         <input type="file" id="depositScreenshot" accept="image/*" class="field-input">
       </div>
-      
       <button class="btn-primary" id="submitDepositBtn">SUBMIT DEPOSIT REQUEST</button>
       <div id="depositMsg" style="margin-top:1rem;font-size:0.7rem;color:var(--gray-5);"></div>
     </div>
-    
     <div class="deposit-history">
       <div class="section-label">DEPOSIT HISTORY</div>
       <div id="depositHistory"></div>
@@ -948,6 +871,20 @@ body::after {
   <!-- CONTACTS TAB -->
   <div id="contactsTab" class="tab-section">
     <div class="orders-page-header" style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:0.1em;border-bottom:1px solid var(--gray-3);padding-bottom:1rem;margin-bottom:1.5rem;">CONTACTS</div>
+    <div class="contact-admin-card">
+      <div style="display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;">
+        <i class="fas fa-headset" style="font-size:1.5rem;color:var(--orange);"></i>
+        <div>
+          <div style="font-size:0.7rem;letter-spacing:0.1em;color:var(--orange);">DIDN'T RECEIVE YOUR KEY?</div>
+          <div style="font-size:0.6rem;color:var(--gray-5);">If you paid but didn't receive a key, contact an admin immediately with your Order ID.</div>
+        </div>
+        <div style="margin-left:auto;">
+          <a href="https://t.me/zekielsZ" target="_blank" class="contact-admin-btn">
+            <i class="fab fa-telegram"></i> CONTACT ADMIN
+          </a>
+        </div>
+      </div>
+    </div>
     <div class="section-label">REACH US ON TELEGRAM</div>
     <div class="contacts-grid">
       <a class="contact-card" href="https://t.me/JEPFX" target="_blank">
@@ -973,7 +910,6 @@ body::after {
       </a>
     </div>
   </div>
-
 </div>
 
 <!-- AUTH MODAL -->
@@ -1021,18 +957,12 @@ body::after {
     <div class="modal-body">
       <div id="purchaseError" class="modal-error"></div>
       <div style="border:1px solid var(--gray-3);padding:1rem;margin-bottom:1rem;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
-          <span>Plan:</span><span id="purchasePlanLabel">—</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
-          <span>Price:</span><span id="purchasePrice">—</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;">
-          <span>Your Balance:</span><span id="purchaseBalance" style="color:var(--green);">—</span>
-        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Plan:</span><span id="purchasePlanLabel">—</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Price:</span><span id="purchasePrice">—</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Your Balance:</span><span id="purchaseBalance" style="color:var(--green);">—</span></div>
       </div>
       <button class="modal-btn" id="confirmPurchaseBtn">CONFIRM PURCHASE</button>
-      <button class="modal-cancel" style="width:100%;margin-top:0.5rem;background:none;border:1px solid var(--gray-3);color:var(--gray-5);padding:0.6rem;cursor:pointer;" onclick="closeModal('purchaseModal')">CANCEL</button>
+      <button class="modal-cancel" onclick="closeModal('purchaseModal')">CANCEL</button>
     </div>
   </div>
 </div>
@@ -1063,7 +993,6 @@ let userBalance = 0;
 let storeData = { plans: [], services: [], apk: {} };
 let keyAvailability = {};
 
-// ===== TABS =====
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const tab = btn.dataset.tab;
@@ -1076,7 +1005,6 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   });
 });
 
-// ===== AUTH =====
 function updateUserUI() {
   const pill = document.getElementById('userPill');
   const balancePill = document.getElementById('balancePill');
@@ -1118,8 +1046,6 @@ function doLogout() {
 function openAuthModal() {
   document.getElementById('authError').classList.remove('show');
   switchAuthTab('login');
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
   document.getElementById('authModal').classList.add('open');
 }
 
@@ -1146,7 +1072,9 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     updateUserUI();
     closeModal('authModal');
     toast('Welcome back, ' + userName);
-    loadStore(); // reload to update key availability
+    loadStore();
+    loadOrders();
+    loadDepositHistory();
   } catch(e) { showErr('authError', 'Network error'); }
   finally { document.getElementById('loginBtn').disabled = false; }
 });
@@ -1175,7 +1103,6 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
   finally { document.getElementById('registerBtn').disabled = false; }
 });
 
-// ===== STORE =====
 async function loadStore() {
   try {
     const res = await fetch('/api/store');
@@ -1183,7 +1110,7 @@ async function loadStore() {
     renderPlans();
     renderServices();
     renderApk();
-    await loadKeyAvailability();
+    if (userToken) await loadKeyAvailability();
   } catch(e) { console.error('Store load error', e); }
 }
 
@@ -1195,6 +1122,7 @@ async function loadKeyAvailability() {
     if (data.success && data.counts) {
       keyAvailability = {};
       data.counts.forEach(c => { keyAvailability[c.plan_id] = c.available; });
+      renderPlans();
     }
   } catch(e) {}
 }
@@ -1232,8 +1160,7 @@ function renderPlans() {
         <div class="plan-price">₱${p.price}</div>
         <div class="plan-price-unit">PHP · ${p.days} DAYS</div>
         <div class="plan-days-line">Valid for ${p.days} day${p.days > 1 ? 's' : ''}</div>
-        <button class="plan-buy-btn" ${disabled ? 'disabled' : ''}>${disabled ? 'OUT OF STOCK' : 'BUY NOW →'}</button>
-        ${disabled ? '<div class="out-of-stock-tag">NO KEYS LEFT</div>' : ''}
+        <button class="plan-buy-btn" ${disabled ? 'disabled' : ''}>${disabled ? 'SOLD OUT' : 'BUY NOW →'}</button>
       </div>
     `;
   }).join('');
@@ -1248,13 +1175,11 @@ function renderServices() {
     { id: 'jepfx', name: 'JEPFX SERVICE TOOL', show: settings.show_jepfx !== 0 },
     { id: 'module', name: 'MODULE FOR ROOTED', show: settings.show_module !== 0 }
   ];
-  
   const servicesByCat = {};
   (storeData.services || []).forEach(s => {
     if (!servicesByCat[s.category]) servicesByCat[s.category] = [];
     servicesByCat[s.category].push(s);
   });
-  
   container.innerHTML = categories.filter(cat => cat.show && servicesByCat[cat.id]?.length).map(cat => `
     <div class="service-category">
       <div class="category-header" onclick="toggleCategory(this)">
@@ -1275,7 +1200,6 @@ function renderServices() {
       </div>
     </div>
   `).join('');
-  
   if (!container.innerHTML) container.innerHTML = '<div class="empty-msg">NO SERVICES AVAILABLE</div>';
 }
 
@@ -1286,7 +1210,6 @@ function toggleCategory(header) {
   icon.className = content.classList.contains('open') ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
 }
 
-// ===== PURCHASE =====
 let pendingPurchasePlan = null;
 
 async function showPurchaseModal(planId) {
@@ -1295,7 +1218,6 @@ async function showPurchaseModal(planId) {
   if (!plan) return;
   if ((keyAvailability[planId] || 0) === 0) { toast('No keys available for this plan'); return; }
   if (userBalance < plan.price) { toast('Insufficient balance! Please deposit funds first.'); return; }
-  
   pendingPurchasePlan = plan;
   document.getElementById('purchasePlanName').textContent = 'CONFIRM ' + plan.label.toUpperCase();
   document.getElementById('purchasePlanLabel').textContent = plan.label.toUpperCase();
@@ -1342,7 +1264,6 @@ document.getElementById('confirmPurchaseBtn').addEventListener('click', async ()
   }
 });
 
-// ===== DEPOSIT =====
 document.querySelectorAll('.amount-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.getElementById('depositAmount').value = btn.dataset.amount;
@@ -1351,19 +1272,16 @@ document.querySelectorAll('.amount-btn').forEach(btn => {
 
 document.getElementById('submitDepositBtn').addEventListener('click', async () => {
   if (!userToken) { openAuthModal(); toast('Login to submit deposit'); return; }
-  
   const amount = document.getElementById('depositAmount').value;
   const telegram = document.getElementById('depositTelegram').value.trim();
   const facebook = document.getElementById('depositFacebook').value.trim();
   const last4 = document.getElementById('depositLast4').value.trim();
   const notes = document.getElementById('depositNotes').value;
   const screenshotFile = document.getElementById('depositScreenshot').files[0];
-  
   if (!amount || amount < 50) { toast('Amount must be at least ₱50'); return; }
   if (!telegram) { toast('Telegram account is required'); return; }
   if (!facebook) { toast('Facebook account is required'); return; }
   if (!last4 || last4.length !== 4 || !/^\d+$/.test(last4)) { toast('Last 4 digits of reference number required'); return; }
-  
   const formData = new FormData();
   formData.append('amount', amount);
   formData.append('telegram', telegram);
@@ -1371,11 +1289,9 @@ document.getElementById('submitDepositBtn').addEventListener('click', async () =
   formData.append('last4_digits', last4);
   formData.append('notes', notes);
   if (screenshotFile) formData.append('screenshot', screenshotFile);
-  
   const btn = document.getElementById('submitDepositBtn');
   btn.disabled = true;
   btn.textContent = 'SUBMITTING...';
-  
   try {
     const res = await fetch('/api/deposit', {
       method: 'POST',
@@ -1403,56 +1319,65 @@ document.getElementById('submitDepositBtn').addEventListener('click', async () =
 });
 
 async function loadDepositHistory() {
-  if (!userToken) return;
   const container = document.getElementById('depositHistory');
+  if (!container) return;
+  if (!userToken) {
+    container.innerHTML = '<div class="empty-msg">LOGIN TO VIEW DEPOSIT HISTORY</div>';
+    return;
+  }
   try {
     const res = await fetch('/api/user/deposits', { headers: { Authorization: 'Bearer ' + userToken } });
     const data = await res.json();
-    if (!data.deposits?.length) {
+    if (!data.success || !data.deposits?.length) {
       container.innerHTML = '<div class="empty-msg">NO DEPOSIT REQUESTS YET</div>';
       return;
     }
     container.innerHTML = data.deposits.map(d => `
       <div class="deposit-card">
-        <div>
-          <div style="font-weight:bold;">₱${d.amount}</div>
-          <div style="font-size:0.6rem;color:var(--gray-5);">${new Date(d.created_at).toLocaleString()}</div>
-          <div style="font-size:0.55rem;">Ref: ${d.reference_id}</div>
-        </div>
-        <div>
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+          <span style="font-weight:bold;">₱${d.amount}</span>
           <span class="deposit-status status-${d.status}">${d.status.toUpperCase()}</span>
-          ${d.admin_notes ? `<div style="font-size:0.55rem;color:var(--gray-5);margin-top:0.3rem;">Note: ${esc(d.admin_notes)}</div>` : ''}
         </div>
+        <div style="font-size:0.6rem;color:var(--gray-5);margin-top:0.3rem;">${new Date(d.created_at).toLocaleString()}</div>
+        <div style="font-size:0.55rem;color:var(--gray-5);">Ref: ${d.reference_id}</div>
+        ${d.admin_notes ? `<div style="font-size:0.55rem;color:var(--gray-4);margin-top:0.3rem;">Admin: ${esc(d.admin_notes)}</div>` : ''}
       </div>
     `).join('');
-  } catch(e) { container.innerHTML = '<div class="empty-msg">FAILED TO LOAD</div>'; }
+  } catch(e) {
+    console.error('Deposit history error:', e);
+    container.innerHTML = '<div class="empty-msg">FAILED TO LOAD HISTORY</div>';
+  }
 }
 
-// ===== ORDERS =====
 async function loadOrders() {
   const container = document.getElementById('ordersContainer');
+  if (!container) return;
   if (!userToken) { container.innerHTML = '<div class="empty-msg">LOGIN TO SEE YOUR ORDERS</div>'; return; }
+  container.innerHTML = '<div class="empty-msg"><div class="spinner"></div></div>';
   try {
     const res = await fetch('/api/user/orders', { headers: { Authorization: 'Bearer ' + userToken } });
     const data = await res.json();
-    if (!data.orders?.length) { container.innerHTML = '<div class="empty-msg">NO ORDERS YET</div>'; return; }
+    if (!data.success || !data.orders?.length) { container.innerHTML = '<div class="empty-msg">NO ORDERS YET</div>'; return; }
     container.innerHTML = '<div class="orders-wrap">' + data.orders.map(o => `
       <div class="order-card">
         <div style="flex:1;">
           <div class="order-plan">${esc(o.plan_label.toUpperCase())}</div>
-          <div style="font-size:0.65rem;color:var(--gray-5);">₱${o.price} · ${new Date(o.created_at).toLocaleString()}</div>
+          <div style="font-size:0.6rem;color:var(--gray-5);margin-top:0.2rem;">₱${o.price} · ${new Date(o.created_at).toLocaleString()}</div>
+          <div style="font-size:0.55rem;color:var(--gray-5);">Order ID: ${o.id.split('-')[0].toUpperCase()}</div>
           ${o.key_given ? `<div class="order-key">${esc(o.key_given)}</div>` : ''}
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.3rem;">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem;">
           <span class="order-status-badge badge-${o.status}">${o.status.toUpperCase()}</span>
           ${o.key_given ? `<button class="btn-copy-key" onclick="copyText('${esc(o.key_given)}')">COPY KEY</button>` : ''}
         </div>
       </div>
     `).join('') + '</div>';
-  } catch(e) { container.innerHTML = '<div class="empty-msg">FAILED TO LOAD</div>'; }
+  } catch(e) {
+    console.error('Orders error:', e);
+    container.innerHTML = '<div class="empty-msg">FAILED TO LOAD ORDERS</div>';
+  }
 }
 
-// ===== UTILS =====
 function esc(str) { if (!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function toast(msg) { const el = document.getElementById('toastMsg'); el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 3000); }
 function copyText(text) { navigator.clipboard.writeText(text).then(() => toast('COPIED!')).catch(() => {}); }
@@ -1463,10 +1388,9 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
 });
 
-// ===== INIT =====
 updateUserUI();
 loadStore();
-if (userToken) { refreshUserInfo(); loadOrders(); }
+if (userToken) { refreshUserInfo(); loadOrders(); loadDepositHistory(); }
 </script>
 </body>
 </html>
