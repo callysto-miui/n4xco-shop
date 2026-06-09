@@ -13,6 +13,8 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     if (file.fieldname === 'screenshot') {
       cb(null, path.join(__dirname, 'public/uploads'));
+    } else if (file.fieldname === 'qr_code') {
+      cb(null, path.join(__dirname, 'public/images'));
     } else {
       cb(null, path.join(__dirname, 'public/images'));
     }
@@ -79,7 +81,8 @@ app.get('/api/store', async (req, res) => {
   const plans = await db.getPlans(true);
   const services = await db.getServices();
   const shopSettings = await db.getShopSettings();
-  res.json({ apk, plans, services, shopSettings });
+  const depositSettings = await db.getDepositSettings();
+  res.json({ apk, plans, services, shopSettings, depositSettings });
 });
 
 // ─── User Register ─────────────────────────────────────────────────────────────
@@ -144,7 +147,6 @@ app.post('/api/purchase', requireUser, async (req, res) => {
   const plan = plans.find(p => p.id === planId);
   if (!plan) return res.status(404).json({ success: false, message: 'Plan not found' });
 
-  // Check if key available
   const keyAvailable = await db.getKeyAvailable(planId);
   if (keyAvailable === 0) {
     return res.status(400).json({ success: false, message: 'No keys available for this plan. Please try again later.' });
@@ -156,17 +158,12 @@ app.post('/api/purchase', requireUser, async (req, res) => {
   }
 
   try {
-    // Deduct balance
     await db.addUserBalance(req.sessionUser, -plan.price);
-    
-    // Get key
     const keyRow = await db.popKey(planId);
     if (!keyRow) {
-      // Refund if no key (shouldn't happen but just in case)
       await db.addUserBalance(req.sessionUser, plan.price);
       return res.status(400).json({ success: false, message: 'Key temporarily unavailable. Please try again.' });
     }
-    
     const orderId = uuidv4();
     await db.createOrder({
       id: orderId,
@@ -177,10 +174,8 @@ app.post('/api/purchase', requireUser, async (req, res) => {
       price: plan.price,
       days: plan.days
     });
-    
     await db.markKeyUsed(keyRow.id, orderId);
     await db.fulfillOrder(orderId, keyRow.key_val);
-    
     res.json({ success: true, key: keyRow.key_val, orderId, newBalance: user.balance - plan.price });
   } catch (err) {
     console.error('Purchase error:', err);
@@ -193,20 +188,16 @@ const uploadScreenshot = upload.single('screenshot');
 app.post('/api/deposit', requireUser, (req, res) => {
   uploadScreenshot(req, res, async (err) => {
     if (err) return res.status(400).json({ success: false, message: 'File upload error: ' + err.message });
-    
     const { amount, telegram, facebook, last4_digits, notes } = req.body;
     if (!amount || !telegram || !facebook || !last4_digits) {
       return res.status(400).json({ success: false, message: 'All fields are required' });
     }
-    
     const depositAmount = parseInt(amount);
     if (isNaN(depositAmount) || depositAmount < 50) {
       return res.status(400).json({ success: false, message: 'Minimum deposit is ₱50' });
     }
-    
     const referenceId = 'DEP-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6).toUpperCase();
     const screenshotPath = req.file ? '/uploads/' + req.file.filename : '';
-    
     try {
       await db.createDeposit({
         reference_id: referenceId,
@@ -218,7 +209,6 @@ app.post('/api/deposit', requireUser, (req, res) => {
         notes: notes || '',
         screenshot: screenshotPath
       });
-      
       res.json({ success: true, message: 'Deposit request submitted! Admin will review and add credits.', referenceId });
     } catch (err) {
       console.error('Deposit error:', err);
@@ -238,7 +228,7 @@ app.get('/api/user/deposits', requireUser, async (req, res) => {
 //  ADMIN ROUTES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Admin login (session-based for admin panel)
+// Admin login
 app.post('/api/admin/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -264,7 +254,7 @@ app.get('/api/admin/check', (req, res) => {
 
 // Full admin data
 app.get('/api/admin/data', requireAdmin, async (req, res) => {
-  const [apk, plans, keyCounts, orders, users, deposits, services, shopSettings] = await Promise.all([
+  const [apk, plans, keyCounts, orders, users, deposits, services, shopSettings, depositSettings] = await Promise.all([
     db.getApkSettings(),
     db.getPlans(),
     db.getKeyCounts(),
@@ -272,9 +262,10 @@ app.get('/api/admin/data', requireAdmin, async (req, res) => {
     db.getAllUsers(),
     db.getDeposits(),
     db.getAllServices(),
-    db.getShopSettings()
+    db.getShopSettings(),
+    db.getDepositSettings()
   ]);
-  res.json({ apk, plans, keyCounts, orders, users, deposits, services, shopSettings });
+  res.json({ apk, plans, keyCounts, orders, users, deposits, services, shopSettings, depositSettings });
 });
 
 // APK settings
@@ -291,6 +282,20 @@ app.post('/api/admin/logo', requireAdmin, upload.single('logo'), async (req, res
   const current = await db.getApkSettings();
   await db.updateApkSettings({ ...current, logo });
   res.json({ success: true, logo });
+});
+
+// Deposit Settings (GCash number and QR code)
+app.get('/api/admin/deposit-settings', requireAdmin, async (req, res) => {
+  res.json(await db.getDepositSettings());
+});
+app.post('/api/admin/deposit-settings', requireAdmin, upload.single('qr_code'), async (req, res) => {
+  const { gcash_number } = req.body;
+  let qr_code = req.body.qr_code || '';
+  if (req.file) {
+    qr_code = '/images/' + req.file.filename + '?t=' + Date.now();
+  }
+  await db.updateDepositSettings({ gcash_number, qr_code });
+  res.json({ success: true });
 });
 
 // Plans
@@ -328,7 +333,7 @@ app.get('/api/admin/orders', requireAdmin, async (req, res) => {
   res.json(await db.getOrders(status));
 });
 
-// Users management
+// Users
 app.get('/api/admin/users', requireAdmin, async (req, res) => {
   res.json(await db.getAllUsers());
 });
@@ -390,7 +395,7 @@ app.delete('/api/admin/services/:id', requireAdmin, async (req, res) => {
   res.json({ success: true });
 });
 
-// Shop settings (toggle service categories)
+// Shop settings
 app.post('/api/admin/shop-settings', requireAdmin, async (req, res) => {
   await db.updateShopSettings(req.body);
   res.json({ success: true });
