@@ -16,7 +16,6 @@
   --gray-4: #444444;
   --gray-5: #888888;
   --gray-6: #aaaaaa;
-  --accent: #ffffff;
   --green: #00ff88;
   --yellow: #ffee00;
   --red: #ff3333;
@@ -427,6 +426,16 @@ body::after {
   font-weight: bold;
   color: var(--blue);
   letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.gcash-qr {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+.gcash-qr img {
+  max-width: 150px;
+  border: 1px solid var(--gray-3);
+  cursor: pointer;
 }
 .field-group { margin-bottom: 1rem; }
 .field-label {
@@ -820,8 +829,12 @@ body::after {
       <div class="deposit-form-title">GCASH DEPOSIT</div>
       <div class="gcash-info">
         <div style="font-size:0.7rem;letter-spacing:0.1em;">SEND PAYMENT TO</div>
-        <div class="gcash-number" id="gcashNumber">09123456789</div>
-        <div style="font-size:0.6rem;margin-top:0.3rem;">Scan QR or send to this GCash number</div>
+        <div class="gcash-number" id="gcashNumber" onclick="copyText(document.getElementById('gcashNumber').textContent)">09123456789</div>
+        <div style="font-size:0.6rem;margin-top:0.3rem;">Click number to copy</div>
+        <div class="gcash-qr" id="gcashQrContainer" style="display:none;">
+          <img id="gcashQr" src="" alt="GCash QR Code" style="max-width:150px; margin-top:0.5rem;">
+          <div style="font-size:0.55rem;margin-top:0.3rem;">Scan QR code</div>
+        </div>
       </div>
       <div class="field-group">
         <label class="field-label">AMOUNT (₱)</label>
@@ -990,7 +1003,7 @@ body::after {
 let userToken = localStorage.getItem('n4xco_token');
 let userName = localStorage.getItem('n4xco_user');
 let userBalance = 0;
-let storeData = { plans: [], services: [], apk: {} };
+let storeData = { plans: [], services: [], apk: {}, depositSettings: {} };
 let keyAvailability = {};
 
 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -1110,8 +1123,22 @@ async function loadStore() {
     renderPlans();
     renderServices();
     renderApk();
+    renderDepositSettings();
     if (userToken) await loadKeyAvailability();
   } catch(e) { console.error('Store load error', e); }
+}
+
+function renderDepositSettings() {
+  const settings = storeData.depositSettings || {};
+  if (settings.gcash_number) {
+    document.getElementById('gcashNumber').textContent = settings.gcash_number;
+  }
+  if (settings.qr_code) {
+    const qrContainer = document.getElementById('gcashQrContainer');
+    const qrImg = document.getElementById('gcashQr');
+    qrImg.src = settings.qr_code;
+    qrContainer.style.display = 'block';
+  }
 }
 
 async function loadKeyAvailability() {
