@@ -22,13 +22,15 @@ const query = (sql, params = []) => new Promise((res, rej) =>
 db.serialize(() => {
   db.run('PRAGMA foreign_keys = ON');
 
-  // Users table
+  // Users table with balance
   db.run(`CREATE TABLE IF NOT EXISTS users (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     username   TEXT NOT NULL UNIQUE,
     password   TEXT NOT NULL,
     email      TEXT DEFAULT '',
     telegram   TEXT DEFAULT '',
+    facebook   TEXT DEFAULT '',
+    balance    INTEGER DEFAULT 0,
     role       TEXT DEFAULT 'user',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
@@ -42,7 +44,7 @@ db.serialize(() => {
     expires_at DATETIME NOT NULL
   )`);
 
-  // Plans table (mirrors store.json but in DB)
+  // Plans table
   db.run(`CREATE TABLE IF NOT EXISTS plans (
     id      TEXT PRIMARY KEY,
     label   TEXT NOT NULL,
@@ -62,25 +64,50 @@ db.serialize(() => {
     used_at  DATETIME DEFAULT NULL
   )`);
 
-  // Orders table
+  // Orders table (purchases using balance)
   db.run(`CREATE TABLE IF NOT EXISTS orders (
     id                 TEXT PRIMARY KEY,
     user_id            INTEGER DEFAULT NULL,
     username           TEXT NOT NULL,
-    telegram           TEXT DEFAULT '',
     plan_id            TEXT NOT NULL,
     plan_label         TEXT NOT NULL,
     price              INTEGER NOT NULL,
     days               INTEGER NOT NULL,
     status             TEXT DEFAULT 'pending',
-    paymongo_link_id   TEXT DEFAULT '',
-    paymongo_link_url  TEXT DEFAULT '',
-    reference_num      TEXT DEFAULT '',
     key_given          TEXT DEFAULT NULL,
     created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
-    paid_at            DATETIME DEFAULT NULL,
-    fulfilled_at       DATETIME DEFAULT NULL,
-    cancelled_at       DATETIME DEFAULT NULL
+    fulfilled_at       DATETIME DEFAULT NULL
+  )`);
+
+  // Deposit requests table
+  db.run(`CREATE TABLE IF NOT EXISTS deposits (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    reference_id    TEXT UNIQUE NOT NULL,
+    username        TEXT NOT NULL,
+    amount          INTEGER NOT NULL,
+    telegram        TEXT NOT NULL,
+    facebook        TEXT NOT NULL,
+    last4_digits    TEXT NOT NULL,
+    notes           TEXT DEFAULT '',
+    screenshot      TEXT DEFAULT '',
+    status          TEXT DEFAULT 'pending',
+    admin_notes     TEXT DEFAULT '',
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    processed_at    DATETIME DEFAULT NULL,
+    processed_by    TEXT DEFAULT NULL
+  )`);
+
+  // Services table (for Android, Boosting, etc.)
+  db.run(`CREATE TABLE IF NOT EXISTS services (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    category    TEXT NOT NULL,
+    title       TEXT NOT NULL,
+    description TEXT NOT NULL,
+    link        TEXT DEFAULT '',
+    price       INTEGER DEFAULT 0,
+    "order"     INTEGER DEFAULT 0,
+    enabled     INTEGER DEFAULT 1,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
   // APK settings
@@ -92,14 +119,16 @@ db.serialize(() => {
   )`);
   db.run(`INSERT OR IGNORE INTO apk_settings (id, name) VALUES (1, 'N4XCO App')`);
 
-  // PayMongo settings
-  db.run(`CREATE TABLE IF NOT EXISTS paymongo_settings (
-    id         INTEGER PRIMARY KEY,
-    secret_key TEXT DEFAULT '',
-    public_key TEXT DEFAULT '',
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  // Shop settings (for service categories visibility)
+  db.run(`CREATE TABLE IF NOT EXISTS shop_settings (
+    id          INTEGER PRIMARY KEY,
+    show_android   INTEGER DEFAULT 1,
+    show_boosting  INTEGER DEFAULT 1,
+    show_jepfx     INTEGER DEFAULT 1,
+    show_module    INTEGER DEFAULT 1,
+    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
-  db.run(`INSERT OR IGNORE INTO paymongo_settings (id) VALUES (1)`);
+  db.run(`INSERT OR IGNORE INTO shop_settings (id) VALUES (1)`);
 
   // Seed default plans
   const plans = [
@@ -115,10 +144,34 @@ db.serialize(() => {
     db.run(`INSERT OR IGNORE INTO plans (id, label, days, price) VALUES (?,?,?,?)`, [id, label, days, price]);
   });
 
+  // Seed default services
+  const services = [
+    // Android Services
+    ['android', '🔰 REMOTE SERVICE', '⚠️REMOTE SERVICE⚠️\n🔰Root\n🔰Rent tools\n🔰Custom ROM\n🔰Instant unlock BL (Mtk devices only)\n🔰Stock logo\n🔰Root\n🔰Mi cloud remove\n🔰Reflash\n🔰FRP bypass\n🔰Unbrick\n\n‼️REQUIREMENTS‼️\n🌐PC or Laptop\n🌐Original charger\n🌐Internet', '', 0, 1],
+    ['android', 'ANDROID SERVICES', 'Custom ROM · Instant unlock BL · Stock logo · Root · Mi cloud remove · Reflash · FRP bypass · Unbrick', '', 0, 2],
+    // Boosting Services
+    ['boosting', 'Instagram Services', 'Likes · Followers · Views', '', 100, 1],
+    ['boosting', 'Telegram Services', 'Subscribers · Reactions · Views', '', 100, 2],
+    ['boosting', 'Facebook Services', 'Post shares · Views · Followers', '', 100, 3],
+    ['boosting', 'TikTok Services', 'Followers · Likes · Views', '', 100, 4],
+    // JEPFX Service Tool
+    ['jepfx', '03 Hours', 'JEPFX Service Tool Access', 'https://t.me/n4xcoinfos/28', 50, 1],
+    ['jepfx', '06 Hours', 'JEPFX Service Tool Access', 'https://t.me/n4xcoinfos/28', 80, 2],
+    ['jepfx', '01 Day', 'JEPFX Service Tool Access', 'https://t.me/n4xcoinfos/28', 100, 3],
+    ['jepfx', '07 Days', 'JEPFX Service Tool Access', 'https://t.me/n4xcoinfos/28', 150, 4],
+    ['jepfx', 'LIFETIME', 'JEPFX Service Tool Access', 'https://t.me/n4xcoinfos/28', 500, 5],
+    // Module for Rooted
+    ['module', 'MODULE FOR ROOTED', 'One time payment · Full features access', 'https://t.me/n4xcoinfos/25', 160, 1],
+  ];
+  services.forEach(([cat, title, desc, link, price, order]) => {
+    db.run(`INSERT OR IGNORE INTO services (category, title, description, link, price, "order") VALUES (?,?,?,?,?,?)`, 
+      [cat, title, desc, link, price, order]);
+  });
+
   // Seed default admin
   const adminHash = bcrypt.hashSync('N4XCO_0', 10);
-  db.run(`INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)`,
-    ['N4XCO', adminHash, 'admin']);
+  db.run(`INSERT OR IGNORE INTO users (username, password, role, balance) VALUES (?, ?, ?, ?)`,
+    ['N4XCO', adminHash, 'admin', 0]);
 
   // Cleanup expired tokens
   db.run(`DELETE FROM tokens WHERE expires_at <= datetime('now')`);
@@ -131,7 +184,7 @@ const dbFuncs = {
   verifyPassword: (plain, hash) => bcrypt.compareSync(plain, hash),
   createToken: async (username) => {
     const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     await run('INSERT INTO tokens (token, username, expires_at) VALUES (?,?,?)', [token, username, expires]);
     return token;
   },
@@ -142,25 +195,27 @@ const dbFuncs = {
   deleteToken: (token) => run('DELETE FROM tokens WHERE token=?', [token]),
 
   // ==================== USERS ====================
-  getAllUsers: () => query('SELECT id, username, email, telegram, role, created_at FROM users ORDER BY id'),
-  createUser: async (username, password, email = '', telegram = '', role = 'user') => {
+  getAllUsers: () => query('SELECT id, username, email, telegram, facebook, balance, role, created_at FROM users ORDER BY id'),
+  createUser: async (username, password, email = '', telegram = '', facebook = '', role = 'user') => {
     const hash = bcrypt.hashSync(password, 10);
-    return run('INSERT INTO users (username, password, email, telegram, role) VALUES (?,?,?,?,?)',
-      [username, hash, email, telegram, role]);
+    return run('INSERT INTO users (username, password, email, telegram, facebook, role, balance) VALUES (?,?,?,?,?,?,?)',
+      [username, hash, email, telegram, facebook, role, 0]);
   },
   updateUser: (id, data) => {
     if (data.password) {
       const hash = bcrypt.hashSync(data.password, 10);
-      return run('UPDATE users SET username=?, password=?, email=?, telegram=?, role=? WHERE id=?',
-        [data.username, hash, data.email || '', data.telegram || '', data.role || 'user', id]);
+      return run('UPDATE users SET username=?, password=?, email=?, telegram=?, facebook=?, role=?, balance=? WHERE id=?',
+        [data.username, hash, data.email || '', data.telegram || '', data.facebook || '', data.role || 'user', data.balance || 0, id]);
     }
-    return run('UPDATE users SET username=?, email=?, telegram=?, role=? WHERE id=?',
-      [data.username, data.email || '', data.telegram || '', data.role || 'user', id]);
+    return run('UPDATE users SET username=?, email=?, telegram=?, facebook=?, role=?, balance=? WHERE id=?',
+      [data.username, data.email || '', data.telegram || '', data.facebook || '', data.role || 'user', data.balance || 0, id]);
   },
   deleteUser: (id) => run(`DELETE FROM users WHERE id=? AND username != 'N4XCO'`, [id]),
   getUserOrders: (username) => query(
     `SELECT * FROM orders WHERE username=? ORDER BY created_at DESC`, [username]
   ),
+  updateUserBalance: (username, newBalance) => run('UPDATE users SET balance=? WHERE username=?', [newBalance, username]),
+  addUserBalance: (username, amount) => run('UPDATE users SET balance = balance + ? WHERE username=?', [amount, username]),
 
   // ==================== PLANS ====================
   getPlans: (enabledOnly = false) => {
@@ -185,6 +240,7 @@ const dbFuncs = {
     );
     return rows;
   },
+  getKeyAvailable: (planId) => get('SELECT COUNT(*) as count FROM keys_pool WHERE plan_id=? AND used=0', [planId]).then(r => r?.count || 0),
   getAllKeys: () => query('SELECT * FROM keys_pool ORDER BY plan_id, id'),
   getKeysByPlan: (planId) => query('SELECT * FROM keys_pool WHERE plan_id=? ORDER BY id', [planId]),
   popKey: async (planId) => {
@@ -197,73 +253,80 @@ const dbFuncs = {
   ),
   deleteKey: (id) => run('DELETE FROM keys_pool WHERE id=?', [id]),
 
-  // ==================== ORDERS ====================
+  // ==================== ORDERS (Purchase with balance) ====================
   createOrder: (data) => run(
-    `INSERT INTO orders (id, user_id, username, telegram, plan_id, plan_label, price, days, paymongo_link_id, paymongo_link_url, reference_num)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-    [data.id, data.user_id || null, data.username, data.telegram || '', data.plan_id, data.plan_label, data.price, data.days,
-     data.paymongo_link_id || '', data.paymongo_link_url || '', data.reference_num || '']
+    `INSERT INTO orders (id, user_id, username, plan_id, plan_label, price, days, status)
+     VALUES (?,?,?,?,?,?,?,?)`,
+    [data.id, data.user_id || null, data.username, data.plan_id, data.plan_label, data.price, data.days, 'pending']
   ),
   getOrder: (id) => get('SELECT * FROM orders WHERE id=?', [id]),
   getOrders: (status) => {
     if (status) return query('SELECT * FROM orders WHERE status=? ORDER BY created_at DESC', [status]);
     return query('SELECT * FROM orders ORDER BY created_at DESC');
   },
-  updateOrderPaid: async (orderId) => {
-    const order = await get('SELECT * FROM orders WHERE id=?', [orderId]);
-    if (!order || order.status !== 'pending') return order;
-    // Try to auto-assign a key
-    const keyRow = await get('SELECT * FROM keys_pool WHERE plan_id=? AND used=0 ORDER BY id ASC LIMIT 1', [order.plan_id]);
-    if (keyRow) {
-      await run('UPDATE keys_pool SET used=1, order_id=?, used_at=datetime("now") WHERE id=?', [orderId, keyRow.id]);
-      await run('UPDATE orders SET status=?, key_given=?, paid_at=datetime("now"), fulfilled_at=datetime("now") WHERE id=?',
-        ['fulfilled', keyRow.key_val, orderId]);
-      return { ...order, status: 'fulfilled', key_given: keyRow.key_val };
-    } else {
-      await run('UPDATE orders SET status=?, paid_at=datetime("now") WHERE id=?', ['paid', orderId]);
-      return { ...order, status: 'paid' };
-    }
-  },
   fulfillOrder: async (orderId, key) => {
     await run('UPDATE orders SET status=?, key_given=?, fulfilled_at=datetime("now") WHERE id=?',
       ['fulfilled', key, orderId]);
   },
   cancelOrder: (orderId) => run(
-    'UPDATE orders SET status=?, cancelled_at=datetime("now") WHERE id=?', ['cancelled', orderId]
+    'UPDATE orders SET status=?, fulfilled_at=datetime("now") WHERE id=?', ['cancelled', orderId]
   ),
-  pollPaymongoStatus: async (orderId) => {
-    // Used by the status endpoint to actively check PayMongo
-    const order = await get('SELECT * FROM orders WHERE id=?', [orderId]);
-    if (!order) return null;
-    if (order.status !== 'pending') return order;
-    const settings = await get('SELECT * FROM paymongo_settings WHERE id=1');
-    if (!settings?.secret_key || !order.paymongo_link_id) return order;
-    try {
-      const resp = await fetch(`https://api.paymongo.com/v1/links/${order.paymongo_link_id}`, {
-        headers: { Authorization: 'Basic ' + Buffer.from(settings.secret_key + ':').toString('base64') }
-      });
-      const pmData = await resp.json();
-      const pmStatus = pmData?.data?.attributes?.status;
-      const payments = pmData?.data?.attributes?.payments || [];
-      if (pmStatus === 'paid' || payments.some(p => p.attributes?.status === 'paid')) {
-        return dbFuncs.updateOrderPaid(orderId);
-      }
-    } catch (e) { console.error('Poll error:', e.message); }
-    return order;
+
+  // ==================== DEPOSITS ====================
+  createDeposit: (data) => run(
+    `INSERT INTO deposits (reference_id, username, amount, telegram, facebook, last4_digits, notes, screenshot)
+     VALUES (?,?,?,?,?,?,?,?)`,
+    [data.reference_id, data.username, data.amount, data.telegram, data.facebook, data.last4_digits, data.notes || '', data.screenshot || '']
+  ),
+  getDeposits: (status = null) => {
+    if (status) return query('SELECT * FROM deposits WHERE status=? ORDER BY created_at DESC', [status]);
+    return query('SELECT * FROM deposits ORDER BY created_at DESC');
   },
+  getDeposit: (id) => get('SELECT * FROM deposits WHERE id=?', [id]),
+  updateDepositStatus: async (id, status, adminNotes = '', processedBy = '') => {
+    await run('UPDATE deposits SET status=?, admin_notes=?, processed_at=datetime("now"), processed_by=? WHERE id=?',
+      [status, adminNotes, processedBy, id]);
+    // If approved, add balance to user
+    if (status === 'approved') {
+      const deposit = await get('SELECT * FROM deposits WHERE id=?', [id]);
+      if (deposit) {
+        await run('UPDATE users SET balance = balance + ? WHERE username=?', [deposit.amount, deposit.username]);
+        return deposit;
+      }
+    }
+    return null;
+  },
+  deleteDeposit: (id) => run('DELETE FROM deposits WHERE id=?', [id]),
+
+  // ==================== SERVICES ====================
+  getServices: (category = null) => {
+    if (category) return query('SELECT * FROM services WHERE category=? AND enabled=1 ORDER BY "order" ASC', [category]);
+    return query('SELECT * FROM services WHERE enabled=1 ORDER BY category, "order" ASC');
+  },
+  getAllServices: () => query('SELECT * FROM services ORDER BY category, "order" ASC'),
+  getService: (id) => get('SELECT * FROM services WHERE id=?', [id]),
+  createService: (data) => run(
+    'INSERT INTO services (category, title, description, link, price, "order", enabled) VALUES (?,?,?,?,?,?,?)',
+    [data.category, data.title, data.description, data.link || '', data.price || 0, data.order || 0, data.enabled ? 1 : 0]
+  ),
+  updateService: (id, data) => run(
+    'UPDATE services SET category=?, title=?, description=?, link=?, price=?, "order"=?, enabled=? WHERE id=?',
+    [data.category, data.title, data.description, data.link || '', data.price || 0, data.order || 0, data.enabled ? 1 : 0, id]
+  ),
+  deleteService: (id) => run('DELETE FROM services WHERE id=?', [id]),
+
+  // ==================== SHOP SETTINGS ====================
+  getShopSettings: () => get('SELECT * FROM shop_settings WHERE id=1'),
+  updateShopSettings: (data) => run(
+    'UPDATE shop_settings SET show_android=?, show_boosting=?, show_jepfx=?, show_module=?, updated_at=CURRENT_TIMESTAMP WHERE id=1',
+    [data.show_android ? 1 : 0, data.show_boosting ? 1 : 0, data.show_jepfx ? 1 : 0, data.show_module ? 1 : 0]
+  ),
 
   // ==================== APK SETTINGS ====================
   getApkSettings: () => get('SELECT * FROM apk_settings WHERE id=1'),
   updateApkSettings: (data) => run(
     'UPDATE apk_settings SET name=?, logo=?, link=? WHERE id=1',
     [data.name, data.logo || '', data.link || '']
-  ),
-
-  // ==================== PAYMONGO ====================
-  getPaymongoSettings: () => get('SELECT * FROM paymongo_settings WHERE id=1'),
-  updatePaymongoSettings: (data) => run(
-    'UPDATE paymongo_settings SET secret_key=?, public_key=?, updated_at=CURRENT_TIMESTAMP WHERE id=1',
-    [data.secret_key || '', data.public_key || '']
   ),
 };
 
