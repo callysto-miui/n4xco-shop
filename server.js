@@ -85,10 +85,28 @@ app.get('/api/store', async (req, res) => {
     const services = await db.getServices();
     const shopSettings = await db.getShopSettings();
     const depositSettings = await db.getDepositSettings();
-    res.json({ apk, plans, services, shopSettings, depositSettings });
+    const paymentMethods = await db.getPaymentMethods(true);
+    res.json({ apk, plans, services, shopSettings, depositSettings, paymentMethods });
   } catch (err) {
     console.error('Store error:', err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Validate a promo code (public, used by checkout UI)
+app.post('/api/promo/validate', async (req, res) => {
+  try {
+    const { code } = req.body || {};
+    if (!code) return res.json({ valid: false, message: 'Code required' });
+    const p = await db.getPromoByCode(code);
+    if (!p || !p.enabled) return res.json({ valid: false, message: 'Invalid code' });
+    if (p.expires_at && new Date(p.expires_at) < new Date())
+      return res.json({ valid: false, message: 'Code expired' });
+    if (p.max_uses > 0 && p.uses >= p.max_uses)
+      return res.json({ valid: false, message: 'Code usage limit reached' });
+    res.json({ valid: true, code: p.code, discount_type: p.discount_type, discount_value: p.discount_value });
+  } catch (e) {
+    res.status(500).json({ valid: false, message: 'Server error' });
   }
 });
 
@@ -161,7 +179,7 @@ app.post('/api/user/orders/:id/cancel', requireUser, async (req, res) => {
 
 // ─── Purchase with Balance ────────────────────────────────────────────────────
 app.post('/api/purchase', requireUser, async (req, res) => {
-  const { planId } = req.body;
+  const { planId, promoCode } = req.body;
   if (!planId) return res.status(400).json({ success: false, message: 'Plan required' });
 
   try {
@@ -174,15 +192,31 @@ app.post('/api/purchase', requireUser, async (req, res) => {
       return res.status(400).json({ success: false, message: 'No keys available for this plan. Please try again later.' });
     }
 
+    // Apply promo code if provided
+    let finalPrice = plan.price;
+    let appliedPromo = null;
+    if (promoCode) {
+      const p = await db.getPromoByCode(promoCode);
+      if (p && p.enabled
+          && (!p.expires_at || new Date(p.expires_at) >= new Date())
+          && (p.max_uses === 0 || p.uses < p.max_uses)) {
+        if (p.discount_type === 'flat') finalPrice = Math.max(0, plan.price - p.discount_value);
+        else finalPrice = Math.max(0, Math.round(plan.price * (100 - p.discount_value) / 100));
+        appliedPromo = p;
+      } else {
+        return res.status(400).json({ success: false, message: 'Promo code is invalid or expired' });
+      }
+    }
+
     const user = await db.getUser(req.sessionUser);
-    if (user.balance < plan.price) {
+    if (user.balance < finalPrice) {
       return res.status(400).json({ success: false, message: 'Insufficient balance. Please deposit funds first.' });
     }
 
-    await db.addUserBalance(req.sessionUser, -plan.price);
+    await db.addUserBalance(req.sessionUser, -finalPrice);
     const keyRow = await db.popKey(planId);
     if (!keyRow) {
-      await db.addUserBalance(req.sessionUser, plan.price);
+      await db.addUserBalance(req.sessionUser, finalPrice);
       return res.status(400).json({ success: false, message: 'Key temporarily unavailable. Please try again.' });
     }
     const orderId = uuidv4();
@@ -191,13 +225,14 @@ app.post('/api/purchase', requireUser, async (req, res) => {
       user_id: user.id,
       username: req.sessionUser,
       plan_id: plan.id,
-      plan_label: plan.label,
-      price: plan.price,
+      plan_label: plan.label + (appliedPromo ? ` (promo ${appliedPromo.code})` : ''),
+      price: finalPrice,
       days: plan.days
     });
     await db.markKeyUsed(keyRow.id, orderId);
     await db.fulfillOrder(orderId, keyRow.key_val);
-    res.json({ success: true, key: keyRow.key_val, orderId, newBalance: user.balance - plan.price });
+    if (appliedPromo) await db.incrementPromoUses(appliedPromo.id);
+    res.json({ success: true, key: keyRow.key_val, orderId, newBalance: user.balance - finalPrice, paid: finalPrice });
   } catch (err) {
     console.error('Purchase error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -558,4 +593,83 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   }
 });
 
+// ─── Payment Methods (admin) ───────────────────────────────────────────────────
+app.get('/api/admin/payment-methods', requireAdmin, async (req, res) => {
+  try { res.json(await db.getPaymentMethods()); }
+  catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/admin/payment-methods', requireAdmin, upload.single('qr_code'), async (req, res) => {
+  try {
+    const body = { ...req.body, enabled: req.body.enabled == 1 || req.body.enabled === 'true' || req.body.enabled === true };
+    if (req.file) body.qr_code = '/images/' + req.file.filename;
+    await db.createPaymentMethod(body);
+    res.json({ success: true });
+  } catch (e) { console.error(e); res.status(500).json({ success: false, message: 'Server error' }); }
+});
+app.put('/api/admin/payment-methods/:id', requireAdmin, upload.single('qr_code'), async (req, res) => {
+  try {
+    const body = { ...req.body, enabled: req.body.enabled == 1 || req.body.enabled === 'true' || req.body.enabled === true };
+    if (req.file) body.qr_code = '/images/' + req.file.filename;
+    else if (!body.qr_code) {
+      const cur = await db.getPaymentMethod(req.params.id);
+      body.qr_code = cur ? cur.qr_code : '';
+    }
+    await db.updatePaymentMethod(req.params.id, body);
+    res.json({ success: true });
+  } catch (e) { console.error(e); res.status(500).json({ success: false, message: 'Server error' }); }
+});
+app.delete('/api/admin/payment-methods/:id', requireAdmin, async (req, res) => {
+  try { await db.deletePaymentMethod(req.params.id); res.json({ success: true }); }
+  catch (e) { res.status(500).json({ success: false, message: 'Server error' }); }
+});
+
+// ─── Promo codes (admin) ───────────────────────────────────────────────────────
+app.get('/api/admin/promo-codes', requireAdmin, async (req, res) => {
+  try { res.json(await db.getPromoCodes()); }
+  catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+app.post('/api/admin/promo-codes', requireAdmin, async (req, res) => {
+  try { await db.createPromoCode(req.body); res.json({ success: true }); }
+  catch (e) {
+    if (e.message?.includes('UNIQUE')) return res.status(409).json({ success: false, message: 'Code already exists' });
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+app.put('/api/admin/promo-codes/:id', requireAdmin, async (req, res) => {
+  try { await db.updatePromoCode(req.params.id, req.body); res.json({ success: true }); }
+  catch (e) { res.status(500).json({ success: false, message: 'Server error' }); }
+});
+app.delete('/api/admin/promo-codes/:id', requireAdmin, async (req, res) => {
+  try { await db.deletePromoCode(req.params.id); res.json({ success: true }); }
+  catch (e) { res.status(500).json({ success: false, message: 'Server error' }); }
+});
+
+// ─── Dashboard analytics ──────────────────────────────────────────────────────
+app.get('/api/admin/dashboard', requireAdmin, async (req, res) => {
+  try {
+    const days = Math.min(parseInt(req.query.days) || 14, 90);
+    const [salesByDay, topPlans, orders, users, deposits, counts] = await Promise.all([
+      db.getSalesByDay(days), db.getTopPlans(5),
+      db.getOrders(), db.getAllUsers(), db.getDeposits(), db.getKeyCounts()
+    ]);
+    const fulfilled = orders.filter(o => o.status === 'fulfilled');
+    const revenue = fulfilled.reduce((a, b) => a + b.price, 0);
+    const today = new Date().toISOString().slice(0, 10);
+    const todayRevenue = fulfilled.filter(o => (o.fulfilled_at || o.created_at || '').slice(0, 10) === today)
+                                   .reduce((a, b) => a + b.price, 0);
+    const lowStock = counts.filter(c => (c.available || 0) <= 3);
+    res.json({
+      summary: {
+        revenue, todayRevenue,
+        totalOrders: orders.length,
+        fulfilledOrders: fulfilled.length,
+        totalUsers: users.length,
+        pendingDeposits: deposits.filter(d => d.status === 'pending').length,
+      },
+      salesByDay, topPlans, lowStock
+    });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
+});
+
 app.listen(PORT, () => console.log(`N4XCO Shop running on port ${PORT}`));
+
