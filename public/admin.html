@@ -1,21 +1,624 @@
-{
-  "name": "n4xco-shop",
-  "version": "2.0.0",
-  "description": "N4XCO Shop - APK & Key Store",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "express-session": "^1.17.3",
-    "sqlite3": "^5.1.7",
-    "bcryptjs": "^2.4.3",
-    "multer": "^1.4.5-lts.1",
-    "uuid": "^9.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>N4XCO Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{--bg:#0b1020;--panel:#121a33;--panel2:#0f1730;--line:#22305e;--text:#e7ecff;--muted:#9fb0d8;--brand:#6c8cff;--brand2:#8a5cff;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444}
+  *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Inter,Roboto,sans-serif}
+  a{color:var(--brand)}button,input,select,textarea{font:inherit;color:inherit}
+  button{cursor:pointer;background:linear-gradient(135deg,var(--brand),var(--brand2));border:0;color:#fff;border-radius:10px;padding:9px 14px;font-weight:600}
+  button.secondary{background:#1c2750;border:1px solid var(--line)}
+  button.danger{background:#3a1622;border:1px solid #6b2030;color:#ffd1d8}
+  button.ghost{background:transparent;border:1px solid var(--line)}
+  input,select,textarea{background:#0c1430;border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%}
+  textarea{min-height:80px;resize:vertical}
+  label{display:block;font-size:12px;color:var(--muted);margin:6px 0 4px}
+  .row{display:grid;gap:10px}
+  .row.cols-2{grid-template-columns:1fr 1fr}.row.cols-3{grid-template-columns:repeat(3,1fr)}.row.cols-4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:760px){.row.cols-2,.row.cols-3,.row.cols-4{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .card h2{margin:0 0 12px;font-size:16px;letter-spacing:.3px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;background:#1e2a55;color:#cfd9ff;border:1px solid var(--line)}
+  .badge.ok{background:#0f2e1d;border-color:#1c5a37;color:#a8efc4}
+  .badge.warn{background:#3a2710;border-color:#6a4a18;color:#ffd699}
+  .badge.bad{background:#3a1622;border-color:#6b2030;color:#ffd1d8}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.3px;text-transform:uppercase}
+  tr:hover td{background:#0e1632}
+  .scroll{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:12px}
+  /* shell */
+  .shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+  aside{background:var(--panel2);border-right:1px solid var(--line);padding:18px}
+  aside h1{font-size:18px;margin:0 0 18px;display:flex;align-items:center;gap:8px}
+  .navbtn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:1px solid transparent;color:var(--muted);padding:10px 12px;border-radius:10px;margin-bottom:4px;font-weight:500}
+  .navbtn.active{background:#1a234b;color:#fff;border-color:var(--line)}
+  main{padding:22px;max-width:1200px;width:100%}
+  .stat{background:linear-gradient(160deg,#152057,#0e1632);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .stat .v{font-size:22px;font-weight:700;margin-top:2px}
+  .stat .l{font-size:12px;color:var(--muted)}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .toolbar .grow{flex:1}
+  .toast{position:fixed;bottom:20px;right:20px;background:#0e1632;border:1px solid var(--line);border-left:3px solid var(--brand);padding:12px 14px;border-radius:10px;z-index:99;max-width:320px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .toast.ok{border-left-color:var(--ok)}.toast.bad{border-left-color:var(--bad)}
+  /* login */
+  .login{min-height:100vh;display:grid;place-items:center;background:radial-gradient(1200px 600px at 50% -10%,#1b2861 0%,#0b1020 60%)}
+  .login .box{width:360px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px}
+  .hide{display:none}
+  .pill{padding:3px 8px;border-radius:8px;background:#1a234b;border:1px solid var(--line);font-size:11px}
+  .chart-wrap{position:relative;height:260px}
+  small.dim{color:var(--muted)}
+  .right{text-align:right}
+  .qr{height:54px;width:54px;border-radius:8px;border:1px solid var(--line);object-fit:cover;background:#0c1430}
+</style>
+</head>
+<body>
+
+<!-- ───── LOGIN ───── -->
+<div id="loginView" class="login">
+  <div class="box">
+    <h1 style="margin:0 0 6px">N4XCO Admin</h1>
+    <small class="dim">Sign in to manage your shop</small>
+    <div style="height:14px"></div>
+    <label>Username</label><input id="li_user" autocomplete="username" />
+    <label>Password</label><input id="li_pass" type="password" autocomplete="current-password" />
+    <div style="height:14px"></div>
+    <button id="li_btn" style="width:100%">Sign in</button>
+    <div id="li_err" style="color:#ff8a9b;font-size:12px;margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- ───── APP SHELL ───── -->
+<div id="appView" class="shell hide">
+  <aside>
+    <h1>⚡ N4XCO</h1>
+    <button class="navbtn active" data-tab="dashboard">📊 Dashboard</button>
+    <button class="navbtn" data-tab="payments">💳 Payment methods</button>
+    <button class="navbtn" data-tab="plans">📦 Plans</button>
+    <button class="navbtn" data-tab="keys">🔑 Keys</button>
+    <button class="navbtn" data-tab="orders">🧾 Orders</button>
+    <button class="navbtn" data-tab="deposits">💰 Deposits</button>
+    <button class="navbtn" data-tab="promos">🏷️ Promo codes</button>
+    <button class="navbtn" data-tab="users">👥 Users</button>
+    <button class="navbtn" data-tab="services">🛠️ Services</button>
+    <button class="navbtn" data-tab="settings">⚙️ Settings</button>
+    <div style="height:14px"></div>
+    <button class="ghost" id="logoutBtn" style="width:100%">Sign out</button>
+    <div style="margin-top:14px;font-size:12px;color:var(--muted)">Signed in as <span id="meTag">—</span></div>
+  </aside>
+  <main>
+    <!-- DASHBOARD -->
+    <section data-view="dashboard">
+      <h2 style="margin:0 0 12px">Dashboard</h2>
+      <div class="row cols-4" id="statRow"></div>
+      <div class="row cols-2" style="margin-top:14px">
+        <div class="card"><h2>Revenue (last 14 days)</h2><div class="chart-wrap"><canvas id="revChart"></canvas></div></div>
+        <div class="card"><h2>Top selling plans</h2><div id="topPlans"></div></div>
+      </div>
+      <div class="card"><h2>Low stock alert</h2><div id="lowStock"><small class="dim">Loading…</small></div></div>
+    </section>
+
+    <!-- PAYMENTS -->
+    <section data-view="payments" class="hide">
+      <h2 style="margin:0 0 12px">Payment methods</h2>
+      <div class="card">
+        <h2>Quick GCash number</h2>
+        <small class="dim">Legacy primary GCash used by the deposit screen (kept for backwards compatibility).</small>
+        <div class="row cols-2" style="margin-top:10px">
+          <div><label>GCash number</label><input id="gcashNum" placeholder="09xxxxxxxxx" /></div>
+          <div><label>QR code image (optional)</label><input id="gcashQr" type="file" accept="image/*" /></div>
+        </div>
+        <div style="margin-top:10px"><button id="saveGcash">Save GCash</button></div>
+        <div id="gcashPreview" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h2 style="margin:0">All payment methods</h2>
+          <button id="addPM">+ Add method</button>
+        </div>
+        <small class="dim">Add multiple options like GCash, Maya, PayPal, BPI, GoTyme, etc. Enabled methods appear on the deposit page.</small>
+        <div class="scroll" style="margin-top:10px"><table>
+          <thead><tr><th>QR</th><th>Name</th><th>Account</th><th>Number</th><th>Status</th><th></th></tr></thead>
+          <tbody id="pmBody"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <!-- PLANS -->
+    <section data-view="plans" class="hide">
+      <h2 style="margin:0 0 12px">Plans</h2>
+      <div class="card"><div class="scroll"><table>
+        <thead><tr><th>ID</th><th>Label</th><th>Days</th><th>Price ₱</th><th>Enabled</th></tr></thead>
+        <tbody id="plansBody"></tbody>
+      </table></div>
+      <div style="margin-top:10px"><button id="savePlans">Save all plans</button></div>
+      </div>
+    </section>
+
+    <!-- KEYS -->
+    <section data-view="keys" class="hide">
+      <h2 style="margin:0 0 12px">Keys pool</h2>
+      <div class="card">
+        <div class="row cols-2">
+          <div><label>Plan</label><select id="keyPlan"></select></div>
+          <div><label>Keys (one per line)</label><textarea id="keyList" placeholder="KEY-1&#10;KEY-2"></textarea></div>
+        </div>
+        <div style="margin-top:10px"><button id="addKeys">Add keys</button></div>
+      </div>
+      <div class="card"><h2>Stock</h2><div id="keyCounts"></div></div>
+      <div class="card"><h2>All keys</h2><div class="scroll"><table>
+        <thead><tr><th>Plan</th><th>Key</th><th>Status</th><th>Added</th><th></th></tr></thead>
+        <tbody id="allKeysBody"></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- ORDERS -->
+    <section data-view="orders" class="hide">
+      <h2 style="margin:0 0 12px">Orders</h2>
+      <div class="card"><div class="scroll"><table>
+        <thead><tr><th>ID</th><th>User</th><th>Plan</th><th>Price</th><th>Status</th><th>Created</th><th>Key</th></tr></thead>
+        <tbody id="ordersBody"></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- DEPOSITS -->
+    <section data-view="deposits" class="hide">
+      <h2 style="margin:0 0 12px">Deposit requests</h2>
+      <div class="card"><div class="scroll"><table>
+        <thead><tr><th>Ref</th><th>User</th><th>₱</th><th>Last 4</th><th>Status</th><th>Screenshot</th><th></th></tr></thead>
+        <tbody id="depBody"></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- PROMOS -->
+    <section data-view="promos" class="hide">
+      <h2 style="margin:0 0 12px">Promo codes</h2>
+      <div class="card">
+        <div class="row cols-4">
+          <div><label>Code</label><input id="pc_code" placeholder="WELCOME10" /></div>
+          <div><label>Type</label><select id="pc_type"><option value="percent">% percent off</option><option value="flat">Flat ₱ off</option></select></div>
+          <div><label>Value</label><input id="pc_val" type="number" value="10" /></div>
+          <div><label>Max uses (0 = ∞)</label><input id="pc_max" type="number" value="0" /></div>
+        </div>
+        <div class="row cols-2" style="margin-top:10px">
+          <div><label>Expires (optional)</label><input id="pc_exp" type="datetime-local" /></div>
+          <div style="display:flex;align-items:end;gap:8px"><label style="display:flex;align-items:center;gap:6px;margin:0"><input id="pc_en" type="checkbox" checked style="width:auto"> Enabled</label><button id="addPromo" style="margin-left:auto">Create code</button></div>
+        </div>
+      </div>
+      <div class="card"><div class="scroll"><table>
+        <thead><tr><th>Code</th><th>Discount</th><th>Uses</th><th>Expires</th><th>Status</th><th></th></tr></thead>
+        <tbody id="promoBody"></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- USERS -->
+    <section data-view="users" class="hide">
+      <h2 style="margin:0 0 12px">Users</h2>
+      <div class="card">
+        <div class="row cols-4">
+          <div><label>Username</label><input id="u_name" /></div>
+          <div><label>Password</label><input id="u_pass" type="password" /></div>
+          <div><label>Role</label><select id="u_role"><option value="user">user</option><option value="admin">admin</option></select></div>
+          <div><label>Starting balance</label><input id="u_bal" type="number" value="0" /></div>
+        </div>
+        <div style="margin-top:10px"><button id="addUser">Add user</button></div>
+      </div>
+      <div class="card"><div class="scroll"><table>
+        <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Balance</th><th>Telegram</th><th></th></tr></thead>
+        <tbody id="usersBody"></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- SERVICES -->
+    <section data-view="services" class="hide">
+      <h2 style="margin:0 0 12px">Services</h2>
+      <div class="card"><div class="scroll"><table>
+        <thead><tr><th>Cat</th><th>Title</th><th>Price</th><th>Order</th><th>Enabled</th><th></th></tr></thead>
+        <tbody id="svcBody"></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section data-view="settings" class="hide">
+      <h2 style="margin:0 0 12px">Settings</h2>
+      <div class="card">
+        <h2>APK app</h2>
+        <div class="row cols-3">
+          <div><label>Name</label><input id="apk_name" /></div>
+          <div><label>Download link</label><input id="apk_link" /></div>
+          <div><label>Logo upload</label><input id="apk_logo" type="file" accept="image/*" /></div>
+        </div>
+        <div style="margin-top:10px"><button id="saveApk">Save APK</button></div>
+      </div>
+      <div class="card">
+        <h2>Shop sections</h2>
+        <div class="row cols-4">
+          <label><input type="checkbox" id="ss_android" style="width:auto"> Android</label>
+          <label><input type="checkbox" id="ss_boosting" style="width:auto"> Boosting</label>
+          <label><input type="checkbox" id="ss_jepfx" style="width:auto"> JEPFX</label>
+          <label><input type="checkbox" id="ss_module" style="width:auto"> Module</label>
+        </div>
+        <div style="margin-top:10px"><button id="saveShop">Save sections</button></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast hide"></div>
+
+<script>
+let TOKEN = localStorage.getItem('n4xco_admin_token') || '';
+const $ = (s, p=document) => p.querySelector(s);
+const $$ = (s, p=document) => [...p.querySelectorAll(s)];
+
+function toast(msg, kind='ok'){ const t=$('#toast'); t.textContent=msg; t.className='toast '+kind; setTimeout(()=>t.classList.add('hide'),2600); t.classList.remove('hide'); }
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function pesos(n){return '₱'+(Number(n||0)).toLocaleString()}
+function fmtDate(d){if(!d)return '—';const x=new Date(d);return isNaN(x)?d:x.toLocaleString()}
+
+async function api(path, opts={}){
+  const headers = opts.headers || {};
+  if(TOKEN && !headers.Authorization) headers.Authorization = 'Bearer '+TOKEN;
+  if(opts.body && !(opts.body instanceof FormData) && !headers['Content-Type']){
+    headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(opts.body);
   }
+  const res = await fetch(path, { ...opts, headers, credentials:'include' });
+  const json = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(json.message || json.error || ('HTTP '+res.status));
+  return json;
 }
+
+// ───── LOGIN ─────
+async function tryAutoLogin(){
+  try{
+    const r = await fetch('/api/admin/check', { credentials:'include' });
+    const j = await r.json();
+    if(j.admin){ enterApp(j.username); return true; }
+  }catch{}
+  return false;
+}
+$('#li_btn').onclick = async () => {
+  const username = $('#li_user').value.trim();
+  const password = $('#li_pass').value;
+  $('#li_err').textContent = '';
+  try{
+    await api('/api/admin/login', { method:'POST', body:{ username, password } });
+    enterApp(username);
+  }catch(e){ $('#li_err').textContent = e.message; }
+};
+$('#li_pass').addEventListener('keydown', e => { if(e.key==='Enter') $('#li_btn').click(); });
+
+function enterApp(name){
+  $('#loginView').classList.add('hide');
+  $('#appView').classList.remove('hide');
+  $('#meTag').textContent = name || 'admin';
+  switchTab('dashboard');
+}
+$('#logoutBtn').onclick = async () => {
+  await fetch('/api/admin/logout', { method:'POST', credentials:'include' });
+  localStorage.removeItem('n4xco_admin_token');
+  location.reload();
+};
+
+// ───── NAV ─────
+$$('.navbtn').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+function switchTab(name){
+  $$('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  $$('section[data-view]').forEach(s=>s.classList.toggle('hide', s.dataset.view!==name));
+  ({dashboard:loadDashboard, payments:loadPayments, plans:loadPlans, keys:loadKeys,
+    orders:loadOrders, deposits:loadDeposits, promos:loadPromos, users:loadUsers,
+    services:loadServices, settings:loadSettings}[name] || (()=>{}))();
+}
+
+// ───── DASHBOARD ─────
+let revChart;
+async function loadDashboard(){
+  const d = await api('/api/admin/dashboard?days=14');
+  const s = d.summary;
+  $('#statRow').innerHTML = [
+    ['Revenue (all-time)', pesos(s.revenue)],
+    ['Revenue today',      pesos(s.todayRevenue)],
+    ['Fulfilled orders',   s.fulfilledOrders+' / '+s.totalOrders],
+    ['Users',              s.totalUsers],
+  ].map(([l,v])=>`<div class="stat"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('')
+   + `<div class="stat" style="grid-column:span 4;display:flex;justify-content:space-between"><div><div class="l">Pending deposits</div><div class="v">${s.pendingDeposits}</div></div><button class="secondary" onclick="switchTab('deposits')">Review →</button></div>`;
+
+  const labels = d.salesByDay.map(r=>r.day);
+  const data   = d.salesByDay.map(r=>r.revenue||0);
+  if(revChart) revChart.destroy();
+  revChart = new Chart($('#revChart'),{
+    type:'line',
+    data:{ labels, datasets:[{ label:'Revenue ₱', data, borderColor:'#8a5cff', backgroundColor:'rgba(108,140,255,.2)', fill:true, tension:.35, pointRadius:3 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ x:{ ticks:{color:'#9fb0d8'},grid:{color:'#22305e44'} }, y:{ ticks:{color:'#9fb0d8'},grid:{color:'#22305e44'} } },
+      plugins:{ legend:{labels:{color:'#cfd9ff'}} } }
+  });
+
+  $('#topPlans').innerHTML = d.topPlans.length
+    ? `<table><thead><tr><th>Plan</th><th class="right">Sold</th><th class="right">Revenue</th></tr></thead><tbody>${
+       d.topPlans.map(p=>`<tr><td>${esc(p.plan_label)}</td><td class="right">${p.sold}</td><td class="right">${pesos(p.revenue)}</td></tr>`).join('')
+     }</tbody></table>`
+    : '<small class="dim">No fulfilled orders yet.</small>';
+
+  $('#lowStock').innerHTML = d.lowStock.length
+    ? d.lowStock.map(k=>`<span class="badge warn" style="margin:3px">${esc(k.plan_id)}: ${k.available||0} left</span>`).join('')
+    : '<span class="badge ok">All plans well stocked ✓</span>';
+}
+
+// ───── PAYMENTS ─────
+async function loadPayments(){
+  // legacy GCash
+  const ds = await api('/api/admin/deposit-settings');
+  $('#gcashNum').value = ds.gcash_number || '';
+  $('#gcashPreview').innerHTML = ds.qr_code ? `<img src="${esc(ds.qr_code)}" class="qr" />` : '';
+  // payment methods
+  const list = await api('/api/admin/payment-methods');
+  $('#pmBody').innerHTML = list.map(m => `
+    <tr>
+      <td>${m.qr_code?`<img class="qr" src="${esc(m.qr_code)}"/>`:'—'}</td>
+      <td><strong>${esc(m.name)}</strong></td>
+      <td>${esc(m.account_name||'—')}</td>
+      <td>${esc(m.account_number)}</td>
+      <td>${m.enabled?'<span class="badge ok">Active</span>':'<span class="badge">Off</span>'}</td>
+      <td class="right">
+        <button class="secondary" onclick="editPM(${m.id})">Edit</button>
+        <button class="danger" onclick="delPM(${m.id})">Delete</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="6"><small class="dim">No payment methods yet.</small></td></tr>';
+  window.__pms = list;
+}
+$('#saveGcash').onclick = async () => {
+  const fd = new FormData();
+  fd.append('gcash_number', $('#gcashNum').value.trim());
+  if($('#gcashQr').files[0]) fd.append('qr_code', $('#gcashQr').files[0]);
+  try{ await api('/api/admin/deposit-settings',{method:'POST',body:fd}); toast('GCash saved'); loadPayments(); }
+  catch(e){ toast(e.message,'bad'); }
+};
+$('#addPM').onclick = () => editPM(null);
+function pmPrompt(existing){
+  const v = existing || { name:'', account_name:'', account_number:'', instructions:'', qr_code:'', enabled:1, sort_order:0 };
+  const name = prompt('Method name (GCash / Maya / PayPal / BPI / …)', v.name); if(name==null) return null;
+  const account_name = prompt('Account name (recipient)', v.account_name || ''); if(account_name==null) return null;
+  const account_number = prompt('Account number / email / IBAN', v.account_number || ''); if(account_number==null) return null;
+  const instructions = prompt('Instructions shown to buyers (optional)', v.instructions || '') || '';
+  const enabled = confirm('Enable this method? OK = yes, Cancel = no');
+  return { name, account_name, account_number, instructions, qr_code: v.qr_code || '', enabled, sort_order: v.sort_order || 0 };
+}
+window.editPM = async (id) => {
+  const existing = id ? (window.__pms||[]).find(x=>x.id===id) : null;
+  const data = pmPrompt(existing); if(!data) return;
+  try{
+    const fd = new FormData(); Object.entries(data).forEach(([k,v])=>fd.append(k, v===true?'1':v===false?'0':v));
+    if(id) await api('/api/admin/payment-methods/'+id,{method:'PUT',body:fd});
+    else   await api('/api/admin/payment-methods',{method:'POST',body:fd});
+    toast('Saved'); loadPayments();
+  }catch(e){ toast(e.message,'bad'); }
+};
+window.delPM = async (id) => {
+  if(!confirm('Delete this payment method?')) return;
+  try{ await api('/api/admin/payment-methods/'+id,{method:'DELETE'}); toast('Deleted'); loadPayments(); }
+  catch(e){ toast(e.message,'bad'); }
+};
+
+// ───── PLANS ─────
+async function loadPlans(){
+  const plans = await api('/api/admin/plans');
+  $('#plansBody').innerHTML = plans.map(p=>`
+    <tr data-id="${p.id}">
+      <td>${esc(p.id)}</td>
+      <td><input value="${esc(p.label)}" data-k="label"/></td>
+      <td><input type="number" value="${p.days}" data-k="days"/></td>
+      <td><input type="number" value="${p.price}" data-k="price"/></td>
+      <td><input type="checkbox" data-k="enabled" ${p.enabled?'checked':''} style="width:auto"/></td>
+    </tr>`).join('');
+}
+$('#savePlans').onclick = async () => {
+  const rows = [...$('#plansBody').children].map(tr=>{
+    const obj={ id: tr.dataset.id };
+    tr.querySelectorAll('[data-k]').forEach(el=>{
+      if(el.type==='checkbox') obj[el.dataset.k]=el.checked;
+      else if(el.type==='number') obj[el.dataset.k]=parseInt(el.value)||0;
+      else obj[el.dataset.k]=el.value;
+    });
+    return obj;
+  });
+  try{ await api('/api/admin/plans',{method:'POST',body:{plans:rows}}); toast('Plans saved'); }
+  catch(e){ toast(e.message,'bad'); }
+};
+
+// ───── KEYS ─────
+async function loadKeys(){
+  const plans = await api('/api/admin/plans');
+  $('#keyPlan').innerHTML = plans.map(p=>`<option value="${esc(p.id)}">${esc(p.label)}</option>`).join('');
+  const d = await api('/api/admin/keys');
+  $('#keyCounts').innerHTML = d.counts.map(c=>`<span class="pill" style="margin:3px">${esc(c.plan_id)}: ${c.available||0}/${c.total}</span>`).join('') || '<small class="dim">No keys yet.</small>';
+  $('#allKeysBody').innerHTML = d.keys.map(k=>`
+    <tr>
+      <td>${esc(k.plan_id)}</td>
+      <td><code>${esc(k.key_val)}</code></td>
+      <td>${k.used?'<span class="badge bad">used</span>':'<span class="badge ok">available</span>'}</td>
+      <td>${fmtDate(k.added_at)}</td>
+      <td class="right"><button class="danger" onclick="delKey(${k.id})">Delete</button></td>
+    </tr>`).join('') || '<tr><td colspan="5"><small class="dim">No keys yet.</small></td></tr>';
+}
+$('#addKeys').onclick = async () => {
+  try{
+    const r = await api('/api/admin/keys',{method:'POST',body:{planId:$('#keyPlan').value,keys:$('#keyList').value}});
+    toast('Added '+r.added+' keys'); $('#keyList').value=''; loadKeys();
+  }catch(e){ toast(e.message,'bad'); }
+};
+window.delKey = async id => { if(!confirm('Delete key?'))return; await api('/api/admin/keys/'+id,{method:'DELETE'}); loadKeys(); };
+
+// ───── ORDERS ─────
+async function loadOrders(){
+  const list = await api('/api/admin/orders');
+  $('#ordersBody').innerHTML = list.map(o=>`
+    <tr>
+      <td><code>${esc(o.id.slice(0,8))}</code></td>
+      <td>${esc(o.username)}</td>
+      <td>${esc(o.plan_label)}</td>
+      <td>${pesos(o.price)}</td>
+      <td><span class="badge ${o.status==='fulfilled'?'ok':o.status==='cancelled'?'bad':'warn'}">${esc(o.status)}</span></td>
+      <td>${fmtDate(o.created_at)}</td>
+      <td>${o.key_given?`<code>${esc(o.key_given)}</code>`:'—'}</td>
+    </tr>`).join('') || '<tr><td colspan="7"><small class="dim">No orders yet.</small></td></tr>';
+}
+
+// ───── DEPOSITS ─────
+async function loadDeposits(){
+  const list = await api('/api/admin/deposits');
+  $('#depBody').innerHTML = list.map(d=>`
+    <tr>
+      <td><code>${esc(d.reference_id)}</code><br><small class="dim">${esc(d.telegram||'')}</small></td>
+      <td>${esc(d.username)}</td>
+      <td>${pesos(d.amount)}</td>
+      <td>${esc(d.last4_digits)}</td>
+      <td><span class="badge ${d.status==='approved'?'ok':d.status==='rejected'?'bad':'warn'}">${esc(d.status)}</span></td>
+      <td>${d.screenshot?`<a target="_blank" href="${esc(d.screenshot)}">view</a>`:'—'}</td>
+      <td class="right">
+        ${d.status==='pending'?`
+          <button onclick="depApprove(${d.id})">Approve</button>
+          <button class="danger" onclick="depReject(${d.id})">Reject</button>
+        `:''}
+        <button class="ghost" onclick="depDelete(${d.id})">🗑</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="7"><small class="dim">No deposits.</small></td></tr>';
+}
+window.depApprove = async id => { try{await api('/api/admin/deposits/'+id+'/approve',{method:'POST',body:{admin_notes:''}}); toast('Approved'); loadDeposits();}catch(e){toast(e.message,'bad')} };
+window.depReject  = async id => { const n=prompt('Reason?','')||''; try{await api('/api/admin/deposits/'+id+'/reject',{method:'POST',body:{admin_notes:n}}); toast('Rejected'); loadDeposits();}catch(e){toast(e.message,'bad')} };
+window.depDelete  = async id => { if(!confirm('Delete?'))return; await api('/api/admin/deposits/'+id,{method:'DELETE'}); loadDeposits(); };
+
+// ───── PROMOS ─────
+async function loadPromos(){
+  const list = await api('/api/admin/promo-codes');
+  $('#promoBody').innerHTML = list.map(p=>`
+    <tr>
+      <td><strong>${esc(p.code)}</strong></td>
+      <td>${p.discount_type==='flat'?pesos(p.discount_value)+' off':p.discount_value+'% off'}</td>
+      <td>${p.uses}${p.max_uses?'/'+p.max_uses:''}</td>
+      <td>${p.expires_at?fmtDate(p.expires_at):'—'}</td>
+      <td>${p.enabled?'<span class="badge ok">Active</span>':'<span class="badge">Off</span>'}</td>
+      <td class="right">
+        <button class="secondary" onclick="togglePromo(${p.id},${p.enabled?0:1},'${esc(p.code)}','${p.discount_type}',${p.discount_value},${p.max_uses},'${p.expires_at||''}')">${p.enabled?'Disable':'Enable'}</button>
+        <button class="danger" onclick="delPromo(${p.id})">Delete</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="6"><small class="dim">No codes yet.</small></td></tr>';
+}
+$('#addPromo').onclick = async () => {
+  const body = {
+    code:$('#pc_code').value.trim(),
+    discount_type:$('#pc_type').value,
+    discount_value:parseInt($('#pc_val').value)||0,
+    max_uses:parseInt($('#pc_max').value)||0,
+    expires_at:$('#pc_exp').value||null,
+    enabled:$('#pc_en').checked
+  };
+  if(!body.code) return toast('Code required','bad');
+  try{ await api('/api/admin/promo-codes',{method:'POST',body}); toast('Created'); $('#pc_code').value=''; loadPromos(); }
+  catch(e){ toast(e.message,'bad'); }
+};
+window.togglePromo = async (id,enabled,code,type,value,max,exp) => {
+  try{ await api('/api/admin/promo-codes/'+id,{method:'PUT',body:{code,discount_type:type,discount_value:value,max_uses:max,expires_at:exp||null,enabled:!!enabled}}); loadPromos(); }
+  catch(e){ toast(e.message,'bad'); }
+};
+window.delPromo = async id => { if(!confirm('Delete code?'))return; await api('/api/admin/promo-codes/'+id,{method:'DELETE'}); loadPromos(); };
+
+// ───── USERS ─────
+async function loadUsers(){
+  const list = await api('/api/admin/users');
+  $('#usersBody').innerHTML = list.map(u=>`
+    <tr>
+      <td>${u.id}</td>
+      <td>${esc(u.username)}</td>
+      <td><span class="badge ${u.role==='admin'?'ok':''}">${esc(u.role)}</span></td>
+      <td>${pesos(u.balance)}</td>
+      <td>${esc(u.telegram||'')}</td>
+      <td class="right">
+        <button class="secondary" onclick="addBal('${esc(u.username)}')">+ Balance</button>
+        <button class="danger" onclick="delUser(${u.id})">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+$('#addUser').onclick = async () => {
+  try{
+    await api('/api/admin/users',{method:'POST',body:{
+      username:$('#u_name').value.trim(), password:$('#u_pass').value,
+      role:$('#u_role').value, balance:parseInt($('#u_bal').value)||0
+    }});
+    toast('User created'); loadUsers();
+  }catch(e){ toast(e.message,'bad'); }
+};
+window.delUser = async id => { if(!confirm('Delete user?'))return; await api('/api/admin/users/'+id,{method:'DELETE'}); loadUsers(); };
+window.addBal = async username => {
+  const amt = parseInt(prompt('Add how much ₱ to '+username+'?','100'));
+  if(!amt) return;
+  // fetch user to compute new balance via update endpoint
+  const users = await api('/api/admin/users');
+  const u = users.find(x=>x.username===username); if(!u) return;
+  try{ await api('/api/admin/users/'+u.id,{method:'PUT',body:{...u, balance:(u.balance||0)+amt}}); toast('Balance updated'); loadUsers(); }
+  catch(e){ toast(e.message,'bad'); }
+};
+
+// ───── SERVICES ─────
+async function loadServices(){
+  const list = await api('/api/admin/services');
+  $('#svcBody').innerHTML = list.map(s=>`
+    <tr>
+      <td>${esc(s.category)}</td>
+      <td><strong>${esc(s.title)}</strong><br><small class="dim">${esc((s.description||'').slice(0,80))}</small></td>
+      <td>${pesos(s.price)}</td>
+      <td>${s.order}</td>
+      <td>${s.enabled?'<span class="badge ok">on</span>':'<span class="badge">off</span>'}</td>
+      <td class="right">
+        <button class="secondary" onclick="toggleSvc(${s.id},${s.enabled?0:1})">${s.enabled?'Disable':'Enable'}</button>
+        <button class="danger" onclick="delSvc(${s.id})">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+window.toggleSvc = async (id,en) => {
+  const list = await api('/api/admin/services'); const s = list.find(x=>x.id===id); if(!s) return;
+  await api('/api/admin/services/'+id,{method:'PUT',body:{...s,enabled:!!en}}); loadServices();
+};
+window.delSvc = async id => { if(!confirm('Delete?'))return; await api('/api/admin/services/'+id,{method:'DELETE'}); loadServices(); };
+
+// ───── SETTINGS ─────
+async function loadSettings(){
+  const d = await api('/api/admin/data');
+  $('#apk_name').value = d.apk?.name || '';
+  $('#apk_link').value = d.apk?.link || '';
+  const s = d.shopSettings || {};
+  $('#ss_android').checked = !!s.show_android;
+  $('#ss_boosting').checked = !!s.show_boosting;
+  $('#ss_jepfx').checked   = !!s.show_jepfx;
+  $('#ss_module').checked  = !!s.show_module;
+}
+$('#saveApk').onclick = async () => {
+  try{
+    await api('/api/admin/apk',{method:'POST',body:{name:$('#apk_name').value,link:$('#apk_link').value}});
+    if($('#apk_logo').files[0]){
+      const fd = new FormData(); fd.append('logo',$('#apk_logo').files[0]);
+      await api('/api/admin/logo',{method:'POST',body:fd});
+    }
+    toast('Saved');
+  }catch(e){ toast(e.message,'bad'); }
+};
+$('#saveShop').onclick = async () => {
+  try{
+    await api('/api/admin/shop-settings',{method:'POST',body:{
+      show_android:$('#ss_android').checked, show_boosting:$('#ss_boosting').checked,
+      show_jepfx:$('#ss_jepfx').checked, show_module:$('#ss_module').checked
+    }});
+    toast('Saved');
+  }catch(e){ toast(e.message,'bad'); }
+};
+
+// boot
+tryAutoLogin();
+</script>
+</body>
+</html>
