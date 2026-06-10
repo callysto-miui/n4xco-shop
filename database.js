@@ -106,6 +106,39 @@ db.serialize(() => {
   )`);
   db.run(`INSERT OR IGNORE INTO deposit_settings (id, gcash_number) VALUES (1, '09123456789')`);
 
+  // Payment methods (admin-editable list: GCash, Maya, PayPal, Bank, etc.)
+  db.run(`CREATE TABLE IF NOT EXISTS payment_methods (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT NOT NULL,
+    account_name TEXT DEFAULT '',
+    account_number TEXT NOT NULL,
+    instructions TEXT DEFAULT '',
+    qr_code     TEXT DEFAULT '',
+    enabled     INTEGER DEFAULT 1,
+    sort_order  INTEGER DEFAULT 0,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+  // Seed a default GCash entry on first run (mirrors deposit_settings)
+  db.get('SELECT COUNT(*) AS c FROM payment_methods', (e, row) => {
+    if (!e && row && row.c === 0) {
+      db.run(`INSERT INTO payment_methods (name, account_name, account_number, instructions, enabled, sort_order)
+              VALUES ('GCash', 'N4XCO', '09123456789', 'Send to this GCash number then submit the receipt screenshot.', 1, 1)`);
+    }
+  });
+
+  // Promo / discount codes
+  db.run(`CREATE TABLE IF NOT EXISTS promo_codes (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    code        TEXT NOT NULL UNIQUE,
+    discount_type TEXT NOT NULL DEFAULT 'percent', -- 'percent' or 'flat'
+    discount_value INTEGER NOT NULL DEFAULT 0,
+    max_uses    INTEGER DEFAULT 0, -- 0 = unlimited
+    uses        INTEGER DEFAULT 0,
+    expires_at  DATETIME DEFAULT NULL,
+    enabled     INTEGER DEFAULT 1,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
   // Services table
   db.run(`CREATE TABLE IF NOT EXISTS services (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -338,6 +371,60 @@ const dbFuncs = {
   updateApkSettings: (data) => run(
     'UPDATE apk_settings SET name=?, logo=?, link=? WHERE id=1',
     [data.name, data.logo || '', data.link || '']
+  ),
+
+  // ==================== PAYMENT METHODS ====================
+  getPaymentMethods: (enabledOnly = false) => {
+    if (enabledOnly) return query('SELECT * FROM payment_methods WHERE enabled=1 ORDER BY sort_order ASC, id ASC');
+    return query('SELECT * FROM payment_methods ORDER BY sort_order ASC, id ASC');
+  },
+  getPaymentMethod: (id) => get('SELECT * FROM payment_methods WHERE id=?', [id]),
+  createPaymentMethod: (d) => run(
+    `INSERT INTO payment_methods (name, account_name, account_number, instructions, qr_code, enabled, sort_order)
+     VALUES (?,?,?,?,?,?,?)`,
+    [d.name, d.account_name || '', d.account_number, d.instructions || '', d.qr_code || '', d.enabled ? 1 : 0, d.sort_order || 0]
+  ),
+  updatePaymentMethod: (id, d) => run(
+    `UPDATE payment_methods SET name=?, account_name=?, account_number=?, instructions=?, qr_code=?, enabled=?, sort_order=? WHERE id=?`,
+    [d.name, d.account_name || '', d.account_number, d.instructions || '', d.qr_code || '', d.enabled ? 1 : 0, d.sort_order || 0, id]
+  ),
+  deletePaymentMethod: (id) => run('DELETE FROM payment_methods WHERE id=?', [id]),
+
+  // ==================== PROMO CODES ====================
+  getPromoCodes: () => query('SELECT * FROM promo_codes ORDER BY created_at DESC'),
+  getPromoByCode: (code) => get('SELECT * FROM promo_codes WHERE code=? COLLATE NOCASE', [code]),
+  createPromoCode: (d) => run(
+    `INSERT INTO promo_codes (code, discount_type, discount_value, max_uses, expires_at, enabled)
+     VALUES (?,?,?,?,?,?)`,
+    [d.code.trim().toUpperCase(), d.discount_type === 'flat' ? 'flat' : 'percent',
+     parseInt(d.discount_value) || 0, parseInt(d.max_uses) || 0,
+     d.expires_at || null, d.enabled ? 1 : 0]
+  ),
+  updatePromoCode: (id, d) => run(
+    `UPDATE promo_codes SET code=?, discount_type=?, discount_value=?, max_uses=?, expires_at=?, enabled=? WHERE id=?`,
+    [d.code.trim().toUpperCase(), d.discount_type === 'flat' ? 'flat' : 'percent',
+     parseInt(d.discount_value) || 0, parseInt(d.max_uses) || 0,
+     d.expires_at || null, d.enabled ? 1 : 0, id]
+  ),
+  incrementPromoUses: (id) => run('UPDATE promo_codes SET uses = uses + 1 WHERE id=?', [id]),
+  deletePromoCode: (id) => run('DELETE FROM promo_codes WHERE id=?', [id]),
+
+  // ==================== DASHBOARD ANALYTICS ====================
+  getSalesByDay: (days = 14) => query(
+    `SELECT DATE(created_at) as day,
+            COUNT(*) as orders,
+            SUM(price) as revenue
+       FROM orders
+      WHERE status='fulfilled' AND created_at >= datetime('now', ?)
+      GROUP BY DATE(created_at)
+      ORDER BY day ASC`,
+    [`-${days} days`]
+  ),
+  getTopPlans: (limit = 5) => query(
+    `SELECT plan_id, plan_label, COUNT(*) as sold, SUM(price) as revenue
+       FROM orders WHERE status='fulfilled'
+      GROUP BY plan_id, plan_label
+      ORDER BY sold DESC LIMIT ?`, [limit]
   ),
 };
 
