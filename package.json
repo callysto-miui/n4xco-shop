@@ -1,11 +1,11 @@
 {
   "name": "n4xco-shop",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "N4XCO Shop - APK & Key Store",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
