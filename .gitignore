@@ -1,6 +1,7 @@
 node_modules/
-data/
-*.db
-*.log
-public/images/logo*
+data/*.db
+data/*.db-journal
+public/uploads/*
+!public/uploads/.gitkeep
 .env
+.DS_Store
