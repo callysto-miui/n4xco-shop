@@ -671,5 +671,118 @@ app.get('/api/admin/dashboard', requireAdmin, async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ error: 'Server error' }); }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════════
+//  SERVICE PURCHASES (boosting / jepfx / module)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// User: purchase a paid service using balance
+app.post('/api/service/purchase', requireUser, async (req, res) => {
+  const { serviceId, telegram, facebook, user_link, promoCode } = req.body || {};
+  if (!serviceId) return res.status(400).json({ success: false, message: 'Service required' });
+  if (!telegram && !facebook) return res.status(400).json({ success: false, message: 'Provide Telegram or Facebook contact' });
+  try {
+    const svc = await db.getService(serviceId);
+    if (!svc || !svc.enabled) return res.status(404).json({ success: false, message: 'Service unavailable' });
+    if (!svc.price || svc.price <= 0) return res.status(400).json({ success: false, message: 'This service has no price' });
+
+    // Apply promo
+    let finalPrice = svc.price;
+    let appliedPromo = null;
+    if (promoCode) {
+      const p = await db.getPromoByCode(promoCode);
+      if (p && p.enabled
+          && (!p.expires_at || new Date(p.expires_at) >= new Date())
+          && (p.max_uses === 0 || p.uses < p.max_uses)) {
+        if (p.discount_type === 'flat') finalPrice = Math.max(0, finalPrice - p.discount_value);
+        else finalPrice = Math.max(0, Math.round(finalPrice * (1 - p.discount_value / 100)));
+        appliedPromo = p;
+      } else {
+        return res.status(400).json({ success: false, message: 'Invalid or expired promo code' });
+      }
+    }
+
+    const user = await db.getUser(req.sessionUser);
+    if (user.balance < finalPrice) return res.status(400).json({ success: false, message: 'Insufficient balance' });
+
+    // For JEPFX, require a stock link available
+    let deliveredValue = '';
+    let stockRow = null;
+    if (svc.category === 'jepfx') {
+      stockRow = await db.popServiceStock(svc.id);
+      if (!stockRow) return res.status(400).json({ success: false, message: 'Out of stock. Try again later.' });
+      deliveredValue = stockRow.value;
+    } else if (svc.category === 'module') {
+      deliveredValue = svc.contact || 'Telegram: @zekielsZ';
+    } else {
+      // boosting / others: deliver the contact info for follow-up
+      deliveredValue = svc.contact || svc.link || '';
+    }
+
+    await db.addUserBalance(req.sessionUser, -finalPrice);
+    const orderId = uuidv4();
+    await db.createServiceOrder({
+      id: orderId, username: req.sessionUser, service_id: svc.id,
+      category: svc.category, title: svc.title + (appliedPromo ? ` (promo ${appliedPromo.code})` : ''),
+      price: finalPrice, telegram: telegram || '', facebook: facebook || '',
+      user_link: user_link || '', delivered: deliveredValue,
+      status: svc.category === 'jepfx' ? 'fulfilled' : 'pending'
+    });
+    if (stockRow) await db.markServiceStockUsed(stockRow.id, orderId);
+    if (appliedPromo) await db.incrementPromoUses(appliedPromo.id);
+
+    res.json({
+      success: true, orderId,
+      newBalance: user.balance - finalPrice, paid: finalPrice,
+      delivered: deliveredValue, category: svc.category,
+      title: svc.title
+    });
+  } catch (e) {
+    console.error('Service purchase error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// User: list service orders
+app.get('/api/user/service-orders', requireUser, async (req, res) => {
+  try { res.json({ success: true, orders: await db.getUserServiceOrders(req.sessionUser) }); }
+  catch (e) { res.status(500).json({ success: false, message: 'Server error' }); }
+});
+
+// Admin: list stock and add stock for a service
+app.get('/api/admin/service-stock', requireAdmin, async (req, res) => {
+  try {
+    const counts = await db.getServiceStockCounts();
+    const all = await Promise.all(
+      (await db.getAllServices()).filter(s => s.category === 'jepfx').map(async s => ({
+        service: s,
+        items: await db.getServiceStock(s.id)
+      }))
+    );
+    res.json({ counts, services: all });
+  } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/admin/service-stock', requireAdmin, async (req, res) => {
+  try {
+    const { serviceId, values } = req.body || {};
+    if (!serviceId || !values) return res.status(400).json({ success: false, message: 'Missing fields' });
+    const list = String(values).split('\n').map(s => s.trim()).filter(Boolean);
+    const added = await db.addServiceStock(parseInt(serviceId), list);
+    res.json({ success: true, added });
+  } catch (e) { res.status(500).json({ success: false, message: 'Server error' }); }
+});
+
+app.delete('/api/admin/service-stock/:id', requireAdmin, async (req, res) => {
+  try { await db.deleteServiceStock(req.params.id); res.json({ success: true }); }
+  catch (e) { res.status(500).json({ success: false, message: 'Server error' }); }
+});
+
+// Admin: list all service orders
+app.get('/api/admin/service-orders', requireAdmin, async (req, res) => {
+  try { res.json(await db.getServiceOrders()); }
+  catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
 app.listen(PORT, () => console.log(`N4XCO Shop running on port ${PORT}`));
+
 
