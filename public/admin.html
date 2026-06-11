@@ -216,11 +216,56 @@
     <!-- SERVICES -->
     <section data-view="services" class="hide">
       <h2 style="margin:0 0 12px">Services</h2>
+      <div class="card">
+        <h2>Add / Edit service</h2>
+        <div class="row cols-3">
+          <div><label>Category</label>
+            <select id="svc_cat">
+              <option value="android">android (Services tab)</option>
+              <option value="boosting">boosting (Shop)</option>
+              <option value="jepfx">jepfx (Shop, auto-stock link)</option>
+              <option value="module">module (Shop, contact-only)</option>
+            </select>
+          </div>
+          <div><label>Title</label><input id="svc_title" placeholder="e.g. Instagram Services"/></div>
+          <div><label>Price ₱ (0 = info only)</label><input id="svc_price" type="number" value="0"/></div>
+        </div>
+        <div class="row cols-2">
+          <div><label>Link (more info / registration)</label><input id="svc_link" placeholder="https://..."/></div>
+          <div><label>Contact (FB / Telegram for delivery)</label><input id="svc_contact" placeholder="Telegram: @zekielsZ"/></div>
+        </div>
+        <div><label>Description</label><textarea id="svc_desc" rows="3" style="width:100%"></textarea></div>
+        <div class="row cols-3">
+          <div><label>Order</label><input id="svc_order" type="number" value="0"/></div>
+          <label style="align-self:end"><input type="checkbox" id="svc_enabled" checked style="width:auto"/> Enabled</label>
+          <div style="align-self:end">
+            <button id="svcSave">Save service</button>
+            <button id="svcClear" class="secondary">Clear</button>
+          </div>
+        </div>
+        <input type="hidden" id="svc_editing"/>
+      </div>
       <div class="card"><div class="scroll"><table>
         <thead><tr><th>Cat</th><th>Title</th><th>Price</th><th>Order</th><th>Enabled</th><th></th></tr></thead>
         <tbody id="svcBody"></tbody>
       </table></div></div>
+
+      <div class="card">
+        <h2>JEPFX stock links</h2>
+        <p class="dim" style="font-size:12px">Each link is consumed (delivered to user) on a successful JEPFX purchase.</p>
+        <div class="row cols-2">
+          <div><label>JEPFX service</label><select id="stk_svc"></select></div>
+          <div><label>Links (one per line)</label><textarea id="stk_vals" rows="3" style="width:100%"></textarea></div>
+        </div>
+        <div><button id="stkAdd">Add stock</button></div>
+        <div id="stkSummary" style="margin-top:10px"></div>
+        <div class="scroll" style="margin-top:10px"><table>
+          <thead><tr><th>Service</th><th>Link</th><th>Status</th><th></th></tr></thead>
+          <tbody id="stkBody"></tbody>
+        </table></div>
+      </div>
     </section>
+
 
     <!-- SETTINGS -->
     <section data-view="settings" class="hide">
@@ -410,7 +455,7 @@ async function loadPlans(){
   const plans = await api('/api/admin/plans');
   $('#plansBody').innerHTML = plans.map(p=>`
     <tr data-id="${p.id}">
-      <td>${esc(p.id)}</td>
+      <td><input value="${esc(p.id)}" data-k="new_id" style="width:90px"/></td>
       <td><input value="${esc(p.label)}" data-k="label"/></td>
       <td><input type="number" value="${p.days}" data-k="days"/></td>
       <td><input type="number" value="${p.price}" data-k="price"/></td>
@@ -427,9 +472,10 @@ $('#savePlans').onclick = async () => {
     });
     return obj;
   });
-  try{ await api('/api/admin/plans',{method:'POST',body:{plans:rows}}); toast('Plans saved'); }
+  try{ await api('/api/admin/plans',{method:'POST',body:{plans:rows}}); toast('Plans saved'); loadPlans(); }
   catch(e){ toast(e.message,'bad'); }
 };
+
 
 // ───── KEYS ─────
 async function loadKeys(){
@@ -565,6 +611,11 @@ window.addBal = async username => {
 };
 
 // ───── SERVICES ─────
+function svcFormReset(){
+  ['svc_title','svc_link','svc_contact','svc_desc'].forEach(id=>$('#'+id).value='');
+  $('#svc_price').value=0; $('#svc_order').value=0; $('#svc_enabled').checked=true;
+  $('#svc_cat').value='android'; $('#svc_editing').value='';
+}
 async function loadServices(){
   const list = await api('/api/admin/services');
   $('#svcBody').innerHTML = list.map(s=>`
@@ -575,16 +626,75 @@ async function loadServices(){
       <td>${s.order}</td>
       <td>${s.enabled?'<span class="badge ok">on</span>':'<span class="badge">off</span>'}</td>
       <td class="right">
+        <button class="secondary" onclick='editSvc(${JSON.stringify(s).replace(/'/g,"&#39;")})'>Edit</button>
         <button class="secondary" onclick="toggleSvc(${s.id},${s.enabled?0:1})">${s.enabled?'Disable':'Enable'}</button>
         <button class="danger" onclick="delSvc(${s.id})">Delete</button>
       </td>
     </tr>`).join('');
+  loadStock();
 }
+window.editSvc = (s) => {
+  $('#svc_editing').value=s.id;
+  $('#svc_cat').value=s.category; $('#svc_title').value=s.title||'';
+  $('#svc_desc').value=s.description||''; $('#svc_link').value=s.link||'';
+  $('#svc_contact').value=s.contact||''; $('#svc_price').value=s.price||0;
+  $('#svc_order').value=s.order||0; $('#svc_enabled').checked=!!s.enabled;
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+$('#svcClear').onclick = svcFormReset;
+$('#svcSave').onclick = async () => {
+  const body = {
+    category:$('#svc_cat').value, title:$('#svc_title').value.trim(),
+    description:$('#svc_desc').value, link:$('#svc_link').value.trim(),
+    contact:$('#svc_contact').value.trim(), price:parseInt($('#svc_price').value)||0,
+    order:parseInt($('#svc_order').value)||0, enabled:$('#svc_enabled').checked
+  };
+  if(!body.title){ toast('Title required','bad'); return; }
+  const id = $('#svc_editing').value;
+  try{
+    if(id) await api('/api/admin/services/'+id,{method:'PUT',body});
+    else   await api('/api/admin/services',{method:'POST',body});
+    toast('Saved'); svcFormReset(); loadServices();
+  }catch(e){ toast(e.message,'bad'); }
+};
 window.toggleSvc = async (id,en) => {
   const list = await api('/api/admin/services'); const s = list.find(x=>x.id===id); if(!s) return;
   await api('/api/admin/services/'+id,{method:'PUT',body:{...s,enabled:!!en}}); loadServices();
 };
 window.delSvc = async id => { if(!confirm('Delete?'))return; await api('/api/admin/services/'+id,{method:'DELETE'}); loadServices(); };
+
+// ───── JEPFX STOCK ─────
+async function loadStock(){
+  try{
+    const d = await api('/api/admin/service-stock');
+    $('#stk_svc').innerHTML = d.services.map(x=>`<option value="${x.service.id}">${esc(x.service.title)}</option>`).join('') || '<option value="">No JEPFX services</option>';
+    const counts = {}; (d.counts||[]).forEach(c=>counts[c.service_id]=c);
+    $('#stkSummary').innerHTML = d.services.map(x=>{
+      const c = counts[x.service.id] || {available:0,total:0};
+      return `<span class="pill" style="margin:3px">${esc(x.service.title)}: ${c.available||0}/${c.total||0}</span>`;
+    }).join('') || '<small class="dim">No stock yet.</small>';
+    const rows = [];
+    d.services.forEach(x => x.items.forEach(it => rows.push({svc:x.service,it})));
+    $('#stkBody').innerHTML = rows.map(({svc,it})=>`
+      <tr>
+        <td>${esc(svc.title)}</td>
+        <td style="max-width:340px;word-break:break-all">${esc(it.value)}</td>
+        <td>${it.used?'<span class="badge">used</span>':'<span class="badge ok">available</span>'}</td>
+        <td class="right"><button class="danger" onclick="delStock(${it.id})">Delete</button></td>
+      </tr>`).join('') || '<tr><td colspan="4"><small class="dim">No stock yet.</small></td></tr>';
+  }catch(e){ /* services tab might not be active */ }
+}
+$('#stkAdd').onclick = async () => {
+  const serviceId = $('#stk_svc').value;
+  const values = $('#stk_vals').value;
+  if(!serviceId || !values.trim()){ toast('Pick service and paste links','bad'); return; }
+  try{
+    const r = await api('/api/admin/service-stock',{method:'POST',body:{serviceId,values}});
+    toast('Added '+r.added+' link(s)'); $('#stk_vals').value=''; loadStock();
+  }catch(e){ toast(e.message,'bad'); }
+};
+window.delStock = async id => { if(!confirm('Delete link?'))return; await api('/api/admin/service-stock/'+id,{method:'DELETE'}); loadStock(); };
+
 
 // ───── SETTINGS ─────
 async function loadSettings(){
