@@ -813,6 +813,7 @@ body::after {
     </div>
     <div class="section-label">AVAILABLE PLANS</div>
     <div id="plansGrid" class="plans-grid"></div>
+    <div id="shopServicesContainer" class="services-grid" style="margin-top:2rem;"></div>
     <div class="glass-footer">KEYS AUTO-DELIVERED UPON PURCHASE · SUPPORT 24/7</div>
   </div>
 
@@ -1254,19 +1255,20 @@ function renderPlans() {
 
 function renderServices() {
   const container = document.getElementById('servicesContainer');
+  const shopContainer = document.getElementById('shopServicesContainer');
   const settings = storeData.shopSettings || {};
-  const categories = [
-    { id: 'android', name: 'ANDROID SERVICES', show: settings.show_android !== 0 },
-    { id: 'boosting', name: 'BOOSTING SERVICES', show: settings.show_boosting !== 0 },
-    { id: 'jepfx', name: 'JEPFX SERVICE TOOL', show: settings.show_jepfx !== 0 },
-    { id: 'module', name: 'MODULE FOR ROOTED', show: settings.show_module !== 0 }
+  const allCategories = [
+    { id: 'android', name: 'ANDROID SERVICES', show: settings.show_android !== 0, target: 'services' },
+    { id: 'boosting', name: 'BOOSTING SERVICES', show: settings.show_boosting !== 0, target: 'shop' },
+    { id: 'jepfx', name: 'JEPFX SERVICE TOOL', show: settings.show_jepfx !== 0, target: 'shop' },
+    { id: 'module', name: 'MODULE FOR ROOTED', show: settings.show_module !== 0, target: 'shop' }
   ];
   const servicesByCat = {};
   (storeData.services || []).forEach(s => {
     if (!servicesByCat[s.category]) servicesByCat[s.category] = [];
     servicesByCat[s.category].push(s);
   });
-  container.innerHTML = categories.filter(cat => cat.show && servicesByCat[cat.id]?.length).map(cat => `
+  const renderCat = cat => `
     <div class="service-category">
       <div class="category-header" onclick="toggleCategory(this)">
         <div class="category-title">${cat.name}</div>
@@ -1286,7 +1288,10 @@ function renderServices() {
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  const visible = allCategories.filter(cat => cat.show && servicesByCat[cat.id]?.length);
+  container.innerHTML = visible.filter(c => c.target === 'services').map(renderCat).join('');
+  if (shopContainer) shopContainer.innerHTML = visible.filter(c => c.target === 'shop').map(renderCat).join('');
   if (!container.innerHTML) container.innerHTML = '<div class="empty-msg">NO SERVICES AVAILABLE</div>';
 }
 
