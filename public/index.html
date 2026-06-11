@@ -972,10 +972,69 @@ body::after {
       <div style="border:1px solid var(--gray-3);padding:1rem;margin-bottom:1rem;">
         <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Plan:</span><span id="purchasePlanLabel">—</span></div>
         <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Price:</span><span id="purchasePrice">—</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Discount:</span><span id="purchaseDiscount" style="color:var(--green);">—</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;font-weight:bold;"><span>Total:</span><span id="purchaseTotal">—</span></div>
         <div style="display:flex;justify-content:space-between;"><span>Your Balance:</span><span id="purchaseBalance" style="color:var(--green);">—</span></div>
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="font-size:0.7rem;color:var(--gray-5);display:block;margin-bottom:.3rem;">PROMO CODE (OPTIONAL)</label>
+        <div style="display:flex;gap:.4rem;">
+          <input id="purchasePromo" placeholder="Enter code" style="flex:1;padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;text-transform:uppercase;" />
+          <button class="modal-cancel" style="width:auto;padding:0 1rem;" id="applyPromoBtn">APPLY</button>
+        </div>
+        <div id="promoMsg" style="font-size:0.7rem;margin-top:.3rem;"></div>
       </div>
       <button class="modal-btn" id="confirmPurchaseBtn">CONFIRM PURCHASE</button>
       <button class="modal-cancel" onclick="closeModal('purchaseModal')">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICE BUY MODAL -->
+<div class="modal-overlay" id="svcBuyModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="svcBuyTitle">BUY SERVICE</div>
+      <button class="modal-close" onclick="closeModal('svcBuyModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="svcBuyError" class="modal-error"></div>
+      <div style="border:1px solid var(--gray-3);padding:1rem;margin-bottom:1rem;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Service:</span><span id="svcBuyName">—</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Price:</span><span id="svcBuyPrice">—</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Discount:</span><span id="svcBuyDiscount" style="color:var(--green);">—</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;font-weight:bold;"><span>Total:</span><span id="svcBuyTotal">—</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Balance:</span><span id="svcBuyBalance" style="color:var(--green);">—</span></div>
+      </div>
+      <div style="display:grid;gap:.6rem;margin-bottom:1rem;">
+        <input id="svcBuyTg" placeholder="Telegram (@yourhandle)" style="padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;"/>
+        <input id="svcBuyFb" placeholder="Facebook profile/link" style="padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;"/>
+        <input id="svcBuyLink" placeholder="Your account/profile link (for boosting)" style="padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;"/>
+        <div style="display:flex;gap:.4rem;">
+          <input id="svcBuyPromo" placeholder="Promo code (optional)" style="flex:1;padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;text-transform:uppercase;"/>
+          <button class="modal-cancel" style="width:auto;padding:0 1rem;" id="svcApplyPromoBtn">APPLY</button>
+        </div>
+        <div id="svcPromoMsg" style="font-size:0.7rem;"></div>
+      </div>
+      <button class="modal-btn" id="confirmSvcBuyBtn">CONFIRM PURCHASE</button>
+      <button class="modal-cancel" onclick="closeModal('svcBuyModal')">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICE DELIVERY MODAL -->
+<div class="modal-overlay" id="svcResultModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="svcResultTitle">PURCHASE COMPLETE</div>
+      <button class="modal-close" onclick="closeModal('svcResultModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="key-reveal-card">
+        <div class="key-reveal-value" id="svcResultValue" style="word-break:break-all;">—</div>
+        <button class="btn-copy" onclick="copyText(document.getElementById('svcResultValue').textContent)">COPY</button>
+      </div>
+      <p id="svcResultNote" style="font-size:0.75rem;color:var(--gray-5);margin-top:1rem;text-align:center;"></p>
     </div>
   </div>
 </div>
@@ -1221,6 +1280,7 @@ function renderServices() {
               ${s.price > 0 ? `<div class="service-item-price">₱${s.price}</div>` : ''}
               <div class="service-item-desc">${esc(s.description).replace(/\n/g, '<br>')}</div>
               ${s.link ? `<a href="${s.link}" target="_blank" class="service-item-link">MORE INFO →</a>` : ''}
+              ${s.price > 0 ? `<button class="service-item-link" style="margin-top:.4rem;cursor:pointer;background:var(--blue);color:#000;border:none;font-weight:bold;" onclick="showServiceBuy(${s.id})">BUY NOW · ₱${s.price}</button>` : ''}
             </div>
           `).join('')}
         </div>
@@ -1238,6 +1298,22 @@ function toggleCategory(header) {
 }
 
 let pendingPurchasePlan = null;
+let purchasePromoApplied = null; // {code, discount_type, discount_value}
+
+function calcDiscounted(base, promo) {
+  if (!promo) return base;
+  if (promo.discount_type === 'flat') return Math.max(0, base - (promo.discount_value || 0));
+  return Math.max(0, Math.round(base * (1 - (promo.discount_value || 0) / 100)));
+}
+
+function refreshPurchaseTotals() {
+  if (!pendingPurchasePlan) return;
+  const base = pendingPurchasePlan.price;
+  const total = calcDiscounted(base, purchasePromoApplied);
+  document.getElementById('purchasePrice').textContent = '₱' + base;
+  document.getElementById('purchaseDiscount').textContent = purchasePromoApplied ? '-₱' + (base - total) : '—';
+  document.getElementById('purchaseTotal').textContent = '₱' + total;
+}
 
 async function showPurchaseModal(planId) {
   if (!userToken) { openAuthModal(); toast('Login to purchase'); return; }
@@ -1246,13 +1322,45 @@ async function showPurchaseModal(planId) {
   if ((keyAvailability[planId] || 0) === 0) { toast('No keys available for this plan'); return; }
   if (userBalance < plan.price) { toast('Insufficient balance! Please deposit funds first.'); return; }
   pendingPurchasePlan = plan;
+  purchasePromoApplied = null;
   document.getElementById('purchasePlanName').textContent = 'CONFIRM ' + plan.label.toUpperCase();
   document.getElementById('purchasePlanLabel').textContent = plan.label.toUpperCase();
-  document.getElementById('purchasePrice').textContent = '₱' + plan.price;
   document.getElementById('purchaseBalance').textContent = '₱' + userBalance.toLocaleString();
+  document.getElementById('purchasePromo').value = '';
+  document.getElementById('promoMsg').textContent = '';
+  refreshPurchaseTotals();
   document.getElementById('purchaseError').classList.remove('show');
   document.getElementById('purchaseModal').classList.add('open');
 }
+
+async function applyPromo(codeInputId, msgEl, onApplied) {
+  const code = document.getElementById(codeInputId).value.trim();
+  if (!code) { msgEl.textContent = ''; onApplied(null); return; }
+  try {
+    const res = await fetch('/api/promo/validate', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ code })
+    });
+    const d = await res.json();
+    if (d.valid) {
+      msgEl.style.color = 'var(--green)';
+      msgEl.textContent = '✓ Promo applied: ' + (d.discount_type === 'flat' ? '-₱'+d.discount_value : '-'+d.discount_value+'%');
+      onApplied(d);
+    } else {
+      msgEl.style.color = '#f55';
+      msgEl.textContent = d.message || 'Invalid code';
+      onApplied(null);
+    }
+  } catch(e) {
+    msgEl.style.color = '#f55'; msgEl.textContent = 'Error checking code'; onApplied(null);
+  }
+}
+
+document.getElementById('applyPromoBtn').addEventListener('click', () => {
+  applyPromo('purchasePromo', document.getElementById('promoMsg'), p => {
+    purchasePromoApplied = p; refreshPurchaseTotals();
+  });
+});
 
 document.getElementById('confirmPurchaseBtn').addEventListener('click', async () => {
   if (!pendingPurchasePlan) return;
@@ -1263,7 +1371,7 @@ document.getElementById('confirmPurchaseBtn').addEventListener('click', async ()
     const res = await fetch('/api/purchase', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + userToken },
-      body: JSON.stringify({ planId: pendingPurchasePlan.id })
+      body: JSON.stringify({ planId: pendingPurchasePlan.id, promoCode: purchasePromoApplied?.code })
     });
     const data = await res.json();
     if (!res.ok) {
@@ -1290,6 +1398,85 @@ document.getElementById('confirmPurchaseBtn').addEventListener('click', async ()
     pendingPurchasePlan = null;
   }
 });
+
+// ─── SERVICE BUY FLOW ──────────────────────────────────────────────────────
+let pendingService = null;
+let svcPromoApplied = null;
+
+function refreshSvcTotals() {
+  if (!pendingService) return;
+  const base = pendingService.price;
+  const total = calcDiscounted(base, svcPromoApplied);
+  document.getElementById('svcBuyPrice').textContent = '₱' + base;
+  document.getElementById('svcBuyDiscount').textContent = svcPromoApplied ? '-₱' + (base - total) : '—';
+  document.getElementById('svcBuyTotal').textContent = '₱' + total;
+}
+
+window.showServiceBuy = function(serviceId) {
+  if (!userToken) { openAuthModal(); toast('Login to purchase'); return; }
+  const svc = (storeData.services || []).find(s => s.id === serviceId);
+  if (!svc) return;
+  pendingService = svc;
+  svcPromoApplied = null;
+  document.getElementById('svcBuyTitle').textContent = 'BUY · ' + svc.title.toUpperCase();
+  document.getElementById('svcBuyName').textContent = svc.title;
+  document.getElementById('svcBuyBalance').textContent = '₱' + userBalance.toLocaleString();
+  ['svcBuyTg','svcBuyFb','svcBuyLink','svcBuyPromo'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('svcPromoMsg').textContent = '';
+  document.getElementById('svcBuyError').classList.remove('show');
+  // Hide user_link field for non-boosting (still allowed but optional)
+  document.getElementById('svcBuyLink').style.display = svc.category === 'boosting' ? '' : 'none';
+  refreshSvcTotals();
+  document.getElementById('svcBuyModal').classList.add('open');
+};
+
+document.getElementById('svcApplyPromoBtn').addEventListener('click', () => {
+  applyPromo('svcBuyPromo', document.getElementById('svcPromoMsg'), p => {
+    svcPromoApplied = p; refreshSvcTotals();
+  });
+});
+
+document.getElementById('confirmSvcBuyBtn').addEventListener('click', async () => {
+  if (!pendingService) return;
+  const btn = document.getElementById('confirmSvcBuyBtn');
+  const errEl = document.getElementById('svcBuyError');
+  const tg = document.getElementById('svcBuyTg').value.trim();
+  const fb = document.getElementById('svcBuyFb').value.trim();
+  if (!tg && !fb) { errEl.textContent = 'Provide Telegram or Facebook contact'; errEl.classList.add('show'); return; }
+  btn.disabled = true; btn.textContent = 'PROCESSING...';
+  try {
+    const res = await fetch('/api/service/purchase', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+userToken },
+      body: JSON.stringify({
+        serviceId: pendingService.id, telegram: tg, facebook: fb,
+        user_link: document.getElementById('svcBuyLink').value.trim(),
+        promoCode: svcPromoApplied?.code
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.message || 'Purchase failed'; errEl.classList.add('show'); return; }
+    closeModal('svcBuyModal');
+    userBalance = data.newBalance;
+    document.getElementById('userBalance').textContent = '₱' + userBalance.toLocaleString();
+    // Show result
+    document.getElementById('svcResultTitle').textContent = data.title.toUpperCase();
+    document.getElementById('svcResultValue').textContent = data.delivered || '(no auto-delivery)';
+    let note = '';
+    if (data.category === 'jepfx') note = 'Your registration link. Use it now — it will not be shown again. Saved to your orders.';
+    else if (data.category === 'module') note = 'Message this contact on Telegram to receive your module.';
+    else note = 'Our team will contact you on the FB/Telegram you provided.';
+    document.getElementById('svcResultNote').textContent = note;
+    document.getElementById('svcResultModal').classList.add('open');
+    toast('Purchase successful!');
+  } catch(e) {
+    errEl.textContent = 'Network error'; errEl.classList.add('show');
+  } finally {
+    btn.disabled = false; btn.textContent = 'CONFIRM PURCHASE';
+    pendingService = null;
+  }
+});
+
 
 document.querySelectorAll('.amount-btn').forEach(btn => {
   btn.addEventListener('click', () => {
