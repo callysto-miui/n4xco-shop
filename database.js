@@ -146,10 +146,39 @@ db.serialize(() => {
     title       TEXT NOT NULL,
     description TEXT NOT NULL,
     link        TEXT DEFAULT '',
+    contact     TEXT DEFAULT '',
     price       INTEGER DEFAULT 0,
     "order"     INTEGER DEFAULT 0,
     enabled     INTEGER DEFAULT 1,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+  db.run(`ALTER TABLE services ADD COLUMN contact TEXT DEFAULT ''`, () => {});
+
+  // JEPFX (auto-delivered) stock links pool
+  db.run(`CREATE TABLE IF NOT EXISTS service_stock (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    service_id  INTEGER NOT NULL,
+    value       TEXT NOT NULL,
+    used        INTEGER DEFAULT 0,
+    order_id    TEXT DEFAULT NULL,
+    added_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    used_at     DATETIME DEFAULT NULL
+  )`);
+
+  // Service purchase orders
+  db.run(`CREATE TABLE IF NOT EXISTS service_orders (
+    id            TEXT PRIMARY KEY,
+    username      TEXT NOT NULL,
+    service_id    INTEGER NOT NULL,
+    category      TEXT NOT NULL,
+    title         TEXT NOT NULL,
+    price         INTEGER NOT NULL,
+    telegram      TEXT DEFAULT '',
+    facebook      TEXT DEFAULT '',
+    user_link     TEXT DEFAULT '',
+    delivered     TEXT DEFAULT '',
+    status        TEXT DEFAULT 'pending',
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
   // APK settings
@@ -261,9 +290,10 @@ const dbFuncs = {
     return query('SELECT * FROM plans ORDER BY days ASC');
   },
   updatePlan: (id, data) => run(
-    'UPDATE plans SET label=?, days=?, price=?, enabled=? WHERE id=?',
-    [data.label, data.days, data.price, data.enabled ? 1 : 0, id]
+    'UPDATE plans SET id=?, label=?, days=?, price=?, enabled=? WHERE id=?',
+    [data.new_id || data.id || id, data.label, data.days, data.price, data.enabled ? 1 : 0, id]
   ),
+
 
   // ==================== KEYS ====================
   addKeys: async (planId, keysList) => {
@@ -350,14 +380,40 @@ const dbFuncs = {
   getAllServices: () => query('SELECT * FROM services ORDER BY category, "order" ASC'),
   getService: (id) => get('SELECT * FROM services WHERE id=?', [id]),
   createService: (data) => run(
-    'INSERT INTO services (category, title, description, link, price, "order", enabled) VALUES (?,?,?,?,?,?,?)',
-    [data.category, data.title, data.description, data.link || '', data.price || 0, data.order || 0, data.enabled ? 1 : 0]
+    'INSERT INTO services (category, title, description, link, contact, price, "order", enabled) VALUES (?,?,?,?,?,?,?,?)',
+    [data.category, data.title, data.description, data.link || '', data.contact || '', data.price || 0, data.order || 0, data.enabled ? 1 : 0]
   ),
   updateService: (id, data) => run(
-    'UPDATE services SET category=?, title=?, description=?, link=?, price=?, "order"=?, enabled=? WHERE id=?',
-    [data.category, data.title, data.description, data.link || '', data.price || 0, data.order || 0, data.enabled ? 1 : 0, id]
+    'UPDATE services SET category=?, title=?, description=?, link=?, contact=?, price=?, "order"=?, enabled=? WHERE id=?',
+    [data.category, data.title, data.description, data.link || '', data.contact || '', data.price || 0, data.order || 0, data.enabled ? 1 : 0, id]
   ),
   deleteService: (id) => run('DELETE FROM services WHERE id=?', [id]),
+
+  // ==================== SERVICE STOCK (e.g. JEPFX links) ====================
+  getServiceStock: (serviceId) => query('SELECT * FROM service_stock WHERE service_id=? ORDER BY id', [serviceId]),
+  getServiceStockCounts: () => query(
+    `SELECT service_id, COUNT(*) total, SUM(CASE WHEN used=0 THEN 1 ELSE 0 END) available
+     FROM service_stock GROUP BY service_id`
+  ),
+  addServiceStock: async (serviceId, values) => {
+    for (const v of values) await run('INSERT INTO service_stock (service_id, value) VALUES (?,?)', [serviceId, v]);
+    return values.length;
+  },
+  popServiceStock: (serviceId) =>
+    get('SELECT * FROM service_stock WHERE service_id=? AND used=0 ORDER BY id ASC LIMIT 1', [serviceId]),
+  markServiceStockUsed: (id, orderId) =>
+    run('UPDATE service_stock SET used=1, order_id=?, used_at=datetime("now") WHERE id=?', [orderId, id]),
+  deleteServiceStock: (id) => run('DELETE FROM service_stock WHERE id=?', [id]),
+
+  // ==================== SERVICE ORDERS ====================
+  createServiceOrder: (d) => run(
+    `INSERT INTO service_orders (id, username, service_id, category, title, price, telegram, facebook, user_link, delivered, status)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+    [d.id, d.username, d.service_id, d.category, d.title, d.price, d.telegram || '', d.facebook || '', d.user_link || '', d.delivered || '', d.status || 'pending']
+  ),
+  getServiceOrders: () => query('SELECT * FROM service_orders ORDER BY created_at DESC'),
+  getUserServiceOrders: (username) => query('SELECT * FROM service_orders WHERE username=? ORDER BY created_at DESC', [username]),
+
 
   // ==================== SHOP SETTINGS ====================
   getShopSettings: () => get('SELECT * FROM shop_settings WHERE id=1'),
