@@ -19,7 +19,8 @@
   --green: #00ff88;
   --yellow: #ffee00;
   --red: #ff3333;
-  --blue: #00aaff;
+  --blue: #00ff88;
+  --accent: #00ff88;
   --orange: #ff8800;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -765,6 +766,12 @@ body::after {
   .plans-grid, .contacts-grid { grid-template-columns: 1fr; }
   .service-items { grid-template-columns: 1fr; }
 }
+
+.tier-list { margin:.5rem 0; border-top:1px solid var(--gray-3); }
+.tier-row { display:flex; justify-content:space-between; font-size:.7rem; padding:.25rem 0; border-bottom:1px solid var(--gray-2); color:var(--gray-6); }
+.tier-row span:last-child { color:var(--green); font-weight:bold; }
+#svcTierSelect { padding:.6rem; background:var(--gray-1); border:1px solid var(--gray-3); color:#fff; width:100%; font-family:'Space Mono',monospace; }
+
 </style>
 </head>
 <body>
@@ -1007,7 +1014,11 @@ body::after {
         <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;font-weight:bold;"><span>Total:</span><span id="svcBuyTotal">—</span></div>
         <div style="display:flex;justify-content:space-between;"><span>Balance:</span><span id="svcBuyBalance" style="color:var(--green);">—</span></div>
       </div>
-      <div style="display:grid;gap:.6rem;margin-bottom:1rem;">
+      <div id="svcTierWrap" style="margin-bottom:.8rem;display:none;">
+          <label style="display:block;font-size:.7rem;color:var(--gray-6);margin-bottom:.3rem;">CHOOSE QUANTITY / TIER</label>
+          <select id="svcTierSelect"></select>
+        </div>
+        <div style="display:grid;gap:.6rem;margin-bottom:1rem;">
         <input id="svcBuyTg" placeholder="Telegram (@yourhandle)" style="padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;"/>
         <input id="svcBuyFb" placeholder="Facebook profile/link" style="padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;"/>
         <input id="svcBuyLink" placeholder="Your account/profile link (for boosting)" style="padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;"/>
@@ -1063,7 +1074,7 @@ body::after {
 let userToken = localStorage.getItem('n4xco_token');
 let userName = localStorage.getItem('n4xco_user');
 let userBalance = 0;
-let storeData = { plans: [], services: [], apk: {}, depositSettings: {} };
+let storeData = { plans: [], services: [], categories: [], apk: {}, depositSettings: {} };
 let keyAvailability = {};
 
 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -1257,7 +1268,11 @@ function renderServices() {
   const container = document.getElementById('servicesContainer');
   const shopContainer = document.getElementById('shopServicesContainer');
   const settings = storeData.shopSettings || {};
-  const allCategories = [
+  // Categories are admin-editable. Fall back to legacy hardcoded list if API returns none.
+  const apiCats = (storeData.categories || []).map(c => ({
+    id: c.key, name: c.name, show: c.enabled !== 0, target: c.target || 'shop'
+  }));
+  const allCategories = apiCats.length ? apiCats : [
     { id: 'android', name: 'ANDROID SERVICES', show: settings.show_android !== 0, target: 'services' },
     { id: 'boosting', name: 'BOOSTING SERVICES', show: settings.show_boosting !== 0, target: 'shop' },
     { id: 'jepfx', name: 'JEPFX SERVICE TOOL', show: settings.show_jepfx !== 0, target: 'shop' },
@@ -1276,15 +1291,20 @@ function renderServices() {
       </div>
       <div class="category-content">
         <div class="service-items">
-          ${servicesByCat[cat.id].map(s => `
+          ${servicesByCat[cat.id].map(s => {
+            const tiers = s.tiers || [];
+            const hasTiers = tiers.length > 0;
+            const minPrice = hasTiers ? Math.min(...tiers.map(t => t.price)) : s.price;
+            return `
             <div class="service-item">
               <div class="service-item-title">${esc(s.title)}</div>
-              ${s.price > 0 ? `<div class="service-item-price">₱${s.price}</div>` : ''}
+              ${minPrice > 0 ? `<div class="service-item-price">${hasTiers ? 'FROM ' : ''}₱${minPrice}</div>` : ''}
               <div class="service-item-desc">${esc(s.description).replace(/\n/g, '<br>')}</div>
+              ${hasTiers ? `<div class="tier-list">${tiers.map(t => `<div class="tier-row"><span>${esc(t.label)}${t.quantity>1?` · qty ${t.quantity}`:''}</span><span>₱${t.price}</span></div>`).join('')}</div>` : ''}
               ${s.link ? `<a href="${s.link}" target="_blank" class="service-item-link">MORE INFO →</a>` : ''}
-              ${s.price > 0 ? `<button class="service-item-link" style="margin-top:.4rem;cursor:pointer;background:var(--blue);color:#000;border:none;font-weight:bold;" onclick="showServiceBuy(${s.id})">BUY NOW · ₱${s.price}</button>` : ''}
+              ${(minPrice > 0 || hasTiers) ? `<button class="service-item-link" style="margin-top:.4rem;cursor:pointer;background:var(--green);color:#000;border:none;font-weight:bold;" onclick="showServiceBuy(${s.id})">BUY NOW${hasTiers?'':' · ₱'+s.price}</button>` : ''}
             </div>
-          `).join('')}
+          `;}).join('')}
         </div>
       </div>
     </div>
@@ -1410,18 +1430,20 @@ let svcPromoApplied = null;
 
 function refreshSvcTotals() {
   if (!pendingService) return;
-  const base = pendingService.price;
+  const base = pendingTier ? pendingTier.price : pendingService.price;
   const total = calcDiscounted(base, svcPromoApplied);
   document.getElementById('svcBuyPrice').textContent = '₱' + base;
   document.getElementById('svcBuyDiscount').textContent = svcPromoApplied ? '-₱' + (base - total) : '—';
   document.getElementById('svcBuyTotal').textContent = '₱' + total;
 }
 
+let pendingTier = null;
 window.showServiceBuy = function(serviceId) {
   if (!userToken) { openAuthModal(); toast('Login to purchase'); return; }
   const svc = (storeData.services || []).find(s => s.id === serviceId);
   if (!svc) return;
   pendingService = svc;
+  pendingTier = null;
   svcPromoApplied = null;
   document.getElementById('svcBuyTitle').textContent = 'BUY · ' + svc.title.toUpperCase();
   document.getElementById('svcBuyName').textContent = svc.title;
@@ -1429,11 +1451,27 @@ window.showServiceBuy = function(serviceId) {
   ['svcBuyTg','svcBuyFb','svcBuyLink','svcBuyPromo'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('svcPromoMsg').textContent = '';
   document.getElementById('svcBuyError').classList.remove('show');
-  // Hide user_link field for non-boosting (still allowed but optional)
   document.getElementById('svcBuyLink').style.display = svc.category === 'boosting' ? '' : 'none';
+  // Tier selector
+  const tiers = svc.tiers || [];
+  const tierWrap = document.getElementById('svcTierWrap');
+  const tierSel = document.getElementById('svcTierSelect');
+  if (tiers.length > 0) {
+    tierWrap.style.display = '';
+    tierSel.innerHTML = tiers.map(t => `<option value="${t.id}" data-price="${t.price}">${esc(t.label)}${t.quantity>1?` · qty ${t.quantity}`:''} — ₱${t.price}</option>`).join('');
+    pendingTier = tiers[0];
+    tierSel.onchange = () => {
+      pendingTier = tiers.find(t => t.id == tierSel.value);
+      refreshSvcTotals();
+    };
+  } else {
+    tierWrap.style.display = 'none';
+    tierSel.innerHTML = '';
+  }
   refreshSvcTotals();
   document.getElementById('svcBuyModal').classList.add('open');
 };
+function esc(str){return (str==null?'':String(str)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 document.getElementById('svcApplyPromoBtn').addEventListener('click', () => {
   applyPromo('svcBuyPromo', document.getElementById('svcPromoMsg'), p => {
@@ -1454,7 +1492,9 @@ document.getElementById('confirmSvcBuyBtn').addEventListener('click', async () =
       method: 'POST',
       headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+userToken },
       body: JSON.stringify({
-        serviceId: pendingService.id, telegram: tg, facebook: fb,
+        serviceId: pendingService.id,
+        tierId: pendingTier ? pendingTier.id : undefined,
+        telegram: tg, facebook: fb,
         user_link: document.getElementById('svcBuyLink').value.trim(),
         promoCode: svcPromoApplied?.code
       })

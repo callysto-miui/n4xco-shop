@@ -77,6 +77,14 @@
   ::-webkit-scrollbar-track{background:var(--gray-1)}
   ::-webkit-scrollbar-thumb{background:var(--gray-3)}
   ::-webkit-scrollbar-thumb:hover{background:var(--gray-4)}
+
+/* ── N4XCO green/white/black theme refresh ── */
+:root { --accent: #00ff88; --accent-2:#00cc66; }
+.badge.ok { background: var(--accent); color:#000; }
+button:not(.secondary):not(.danger):not(.ghost) { background: var(--accent); color:#000; border:none; }
+button:not(.secondary):not(.danger):not(.ghost):hover { background: var(--accent-2); }
+.navbtn.active { border-left: 3px solid var(--accent); }
+
 </style>
 </head>
 <body>
@@ -107,6 +115,7 @@
     <button class="navbtn" data-tab="deposits">💰 Deposits</button>
     <button class="navbtn" data-tab="promos">🏷️ Promo codes</button>
     <button class="navbtn" data-tab="users">👥 Users</button>
+    <button class="navbtn" data-tab="categories">🗂️ Categories</button>
     <button class="navbtn" data-tab="services">🛠️ Services</button>
     <button class="navbtn" data-tab="settings">⚙️ Settings</button>
     <div style="height:14px"></div>
@@ -244,12 +253,7 @@
         <h2>Add / Edit service</h2>
         <div class="row cols-3">
           <div><label>Category</label>
-            <select id="svc_cat">
-              <option value="android">android (Services tab)</option>
-              <option value="boosting">boosting (Shop)</option>
-              <option value="jepfx">jepfx (Shop, auto-stock link)</option>
-              <option value="module">module (Shop, contact-only)</option>
-            </select>
+            <select id="svc_cat"></select>
           </div>
           <div><label>Title</label><input id="svc_title" placeholder="e.g. Instagram Services"/></div>
           <div><label>Price ₱ (0 = info only)</label><input id="svc_price" type="number" value="0"/></div>
@@ -270,7 +274,7 @@
         <input type="hidden" id="svc_editing"/>
       </div>
       <div class="card"><div class="scroll"><table>
-        <thead><tr><th>Cat</th><th>Title</th><th>Price</th><th>Order</th><th>Enabled</th><th></th></tr></thead>
+        <thead><tr><th>Cat</th><th>Title</th><th>Price</th><th>Tiers</th><th>Order</th><th>Enabled</th><th></th></tr></thead>
         <tbody id="svcBody"></tbody>
       </table></div></div>
 
@@ -290,6 +294,59 @@
       </div>
     </section>
 
+
+
+    <!-- CATEGORIES -->
+    <section data-view="categories" class="hide">
+      <h2 style="margin:0 0 12px">Shop / Service Categories</h2>
+      <div class="card">
+        <h2>Add / Edit category</h2>
+        <div class="row cols-4">
+          <div><label>Key (slug)</label><input id="cat_key" placeholder="e.g. tiktok"/></div>
+          <div><label>Display name</label><input id="cat_name" placeholder="TIKTOK SERVICES"/></div>
+          <div><label>Target tab</label>
+            <select id="cat_target">
+              <option value="shop">Shop tab</option>
+              <option value="services">Services tab</option>
+            </select>
+          </div>
+          <div><label>Sort</label><input id="cat_sort" type="number" value="10"/></div>
+        </div>
+        <div style="margin-top:10px">
+          <label><input type="checkbox" id="cat_enabled" checked style="width:auto"/> Enabled</label>
+          <button id="catSave" style="margin-left:10px">Save category</button>
+          <button id="catClear" class="secondary">Clear</button>
+        </div>
+        <input type="hidden" id="cat_editing"/>
+        <p class="dim" style="font-size:12px;margin-top:8px">Tip: lowercase letters, numbers, dashes only for key. Use "jepfx" key to keep auto-delivery stock links behaviour.</p>
+      </div>
+      <div class="card"><div class="scroll"><table>
+        <thead><tr><th>Key</th><th>Name</th><th>Target</th><th>Sort</th><th>Enabled</th><th></th></tr></thead>
+        <tbody id="catBody"></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- TIERS MODAL -->
+    <div id="tiersModal" class="hide" style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
+      <div class="card" style="max-width:720px;width:100%;max-height:90vh;overflow:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h2 id="tiersTitle" style="margin:0">Tiers</h2>
+          <button class="secondary" onclick="document.getElementById('tiersModal').classList.add('hide')">Close</button>
+        </div>
+        <p class="dim" style="font-size:12px">Add a row per quantity / price variant (e.g. "100 Likes" qty 100 ₱50).</p>
+        <div class="row cols-4" style="margin-top:8px">
+          <div><label>Label</label><input id="tier_label" placeholder="e.g. 1000 Followers"/></div>
+          <div><label>Quantity</label><input id="tier_qty" type="number" value="1"/></div>
+          <div><label>Price ₱</label><input id="tier_price" type="number" value="0"/></div>
+          <div style="align-self:end"><button id="tierAdd">Add tier</button></div>
+        </div>
+        <input type="hidden" id="tier_service_id"/>
+        <div class="scroll" style="margin-top:10px"><table>
+          <thead><tr><th>Label</th><th>Qty</th><th>Price</th><th></th></tr></thead>
+          <tbody id="tiersBody"></tbody>
+        </table></div>
+      </div>
+    </div>
 
     <!-- SETTINGS -->
     <section data-view="settings" class="hide">
@@ -381,7 +438,7 @@ function switchTab(name){
   $$('section[data-view]').forEach(s=>s.classList.toggle('hide', s.dataset.view!==name));
   ({dashboard:loadDashboard, payments:loadPayments, plans:loadPlans, keys:loadKeys,
     orders:loadOrders, deposits:loadDeposits, promos:loadPromos, users:loadUsers,
-    services:loadServices, settings:loadSettings}[name] || (()=>{}))();
+    services:loadServices, settings:loadSettings, categories:loadCategories}[name] || (()=>{}))();
 }
 
 // ───── DASHBOARD ─────
@@ -647,6 +704,7 @@ async function loadServices(){
       <td>${esc(s.category)}</td>
       <td><strong>${esc(s.title)}</strong><br><small class="dim">${esc((s.description||'').slice(0,80))}</small></td>
       <td>${pesos(s.price)}</td>
+      <td><button class="secondary" onclick="openTiers(${s.id}, '${esc(s.title).replace(/'/g,"&#39;")}')">Manage</button></td>
       <td>${s.order}</td>
       <td>${s.enabled?'<span class="badge ok">on</span>':'<span class="badge">off</span>'}</td>
       <td class="right">
@@ -753,6 +811,117 @@ $('#saveShop').onclick = async () => {
 
 // boot
 tryAutoLogin();
+
+// ───── CATEGORIES ─────
+let _cachedCategories = [];
+async function loadCategoriesSelect(){
+  try {
+    _cachedCategories = await api('/api/admin/categories');
+    const sel = document.getElementById('svc_cat');
+    if (sel) sel.innerHTML = _cachedCategories.map(c =>
+      `<option value="${esc(c.key)}">${esc(c.key)} (${c.target})</option>`
+    ).join('');
+  } catch(e){}
+}
+async function loadCategories(){
+  const list = await api('/api/admin/categories');
+  _cachedCategories = list;
+  $('#catBody').innerHTML = list.map(c=>`
+    <tr>
+      <td><code>${esc(c.key)}</code></td>
+      <td>${esc(c.name)}</td>
+      <td>${esc(c.target)}</td>
+      <td>${c.sort}</td>
+      <td>${c.enabled?'<span class="badge ok">on</span>':'<span class="badge">off</span>'}</td>
+      <td class="right">
+        <button class="secondary" onclick='editCat(${JSON.stringify(c).replace(/'/g,"&#39;")})'>Edit</button>
+        <button class="danger" onclick="delCat(${c.id})">Delete</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="6"><small class="dim">No categories yet.</small></td></tr>';
+  // refresh services category dropdown too
+  const sel = document.getElementById('svc_cat');
+  if (sel) sel.innerHTML = list.map(c => `<option value="${esc(c.key)}">${esc(c.key)} (${c.target})</option>`).join('');
+}
+function catFormReset(){
+  $('#cat_key').value=''; $('#cat_name').value=''; $('#cat_target').value='shop';
+  $('#cat_sort').value=10; $('#cat_enabled').checked=true; $('#cat_editing').value='';
+}
+window.editCat = (c) => {
+  $('#cat_editing').value=c.id;
+  $('#cat_key').value=c.key; $('#cat_name').value=c.name;
+  $('#cat_target').value=c.target||'shop'; $('#cat_sort').value=c.sort||0;
+  $('#cat_enabled').checked=!!c.enabled;
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+window.delCat = async (id) => {
+  if(!confirm('Delete category? Services in it will keep their key but will not render until you re-add it.')) return;
+  await api('/api/admin/categories/'+id,{method:'DELETE'}); loadCategories();
+};
+document.addEventListener('DOMContentLoaded', () => {
+  const sv = document.getElementById('catSave');
+  if (sv) sv.onclick = async () => {
+    const body = {
+      key: $('#cat_key').value.trim().toLowerCase(),
+      name: $('#cat_name').value.trim(),
+      target: $('#cat_target').value,
+      sort: parseInt($('#cat_sort').value)||0,
+      enabled: $('#cat_enabled').checked
+    };
+    if(!body.key || !body.name){ toast('Key and name required','bad'); return; }
+    const id = $('#cat_editing').value;
+    try {
+      if(id) await api('/api/admin/categories/'+id,{method:'PUT',body});
+      else   await api('/api/admin/categories',{method:'POST',body});
+      toast('Saved'); catFormReset(); loadCategories();
+    } catch(e){ toast(e.message,'bad'); }
+  };
+  const cc = document.getElementById('catClear');
+  if (cc) cc.onclick = catFormReset;
+
+  // Tiers modal handler
+  const tAdd = document.getElementById('tierAdd');
+  if (tAdd) tAdd.onclick = async () => {
+    const sid = $('#tier_service_id').value;
+    const body = {
+      label: $('#tier_label').value.trim(),
+      quantity: parseInt($('#tier_qty').value)||1,
+      price: parseInt($('#tier_price').value)||0,
+      sort: 0
+    };
+    if(!body.label || body.price<0){ toast('Label and price required','bad'); return; }
+    try {
+      await api('/api/admin/services/'+sid+'/tiers',{method:'POST',body});
+      $('#tier_label').value=''; $('#tier_qty').value=1; $('#tier_price').value=0;
+      openTiers(sid, document.getElementById('tiersTitle').textContent.replace(/^Tiers · /,''));
+    } catch(e){ toast(e.message,'bad'); }
+  };
+});
+
+window.openTiers = async (serviceId, title) => {
+  $('#tier_service_id').value = serviceId;
+  document.getElementById('tiersTitle').textContent = 'Tiers · ' + title;
+  document.getElementById('tiersModal').classList.remove('hide');
+  const rows = await api('/api/admin/services/'+serviceId+'/tiers');
+  $('#tiersBody').innerHTML = rows.map(t => `
+    <tr>
+      <td>${esc(t.label)}</td>
+      <td>${t.quantity}</td>
+      <td>${pesos(t.price)}</td>
+      <td class="right"><button class="danger" onclick="delTier(${t.id}, ${serviceId}, '${esc(title).replace(/'/g,"&#39;")}')">Delete</button></td>
+    </tr>`).join('') || '<tr><td colspan="4"><small class="dim">No tiers — service will use its base price.</small></td></tr>';
+};
+window.delTier = async (id, sid, title) => {
+  if(!confirm('Delete tier?')) return;
+  await api('/api/admin/tiers/'+id, {method:'DELETE'});
+  openTiers(sid, title);
+};
+// Auto-load category dropdown when services tab opens
+const _origLoadServices = loadServices;
+loadServices = async function(){
+  await loadCategoriesSelect();
+  return _origLoadServices();
+};
+
 </script>
 </body>
 </html>
