@@ -83,10 +83,13 @@ app.get('/api/store', async (req, res) => {
     const apk = await db.getApkSettings();
     const plans = await db.getPlans(true);
     const services = await db.getServices();
+    const categories = await db.getCategories(true);
+    const tiers = await db.getAllTiers();
+    services.forEach(sv => { sv.tiers = tiers.filter(t => t.service_id === sv.id); });
     const shopSettings = await db.getShopSettings();
     const depositSettings = await db.getDepositSettings();
     const paymentMethods = await db.getPaymentMethods(true);
-    res.json({ apk, plans, services, shopSettings, depositSettings, paymentMethods });
+    res.json({ apk, plans, services, categories, shopSettings, depositSettings, paymentMethods });
   } catch (err) {
     console.error('Store error:', err);
     res.status(500).json({ error: 'Server error' });
@@ -316,7 +319,7 @@ app.get('/api/admin/check', (req, res) => {
 // Full admin data
 app.get('/api/admin/data', requireAdmin, async (req, res) => {
   try {
-    const [apk, plans, keyCounts, orders, users, deposits, services, shopSettings, depositSettings] = await Promise.all([
+    const [apk, plans, keyCounts, orders, users, deposits, services, shopSettings, depositSettings, categories, tiers] = await Promise.all([
       db.getApkSettings(),
       db.getPlans(),
       db.getKeyCounts(),
@@ -325,9 +328,12 @@ app.get('/api/admin/data', requireAdmin, async (req, res) => {
       db.getDeposits(),
       db.getAllServices(),
       db.getShopSettings(),
-      db.getDepositSettings()
+      db.getDepositSettings(),
+      db.getCategories(),
+      db.getAllTiers()
     ]);
-    res.json({ apk, plans, keyCounts, orders, users, deposits, services, shopSettings, depositSettings });
+    services.forEach(sv => { sv.tiers = tiers.filter(t => t.service_id === sv.id); });
+    res.json({ apk, plans, keyCounts, orders, users, deposits, services, shopSettings, depositSettings, categories, tiers });
   } catch (e) {
     console.error('Admin data error:', e);
     res.status(500).json({ error: 'Server error' });
@@ -677,16 +683,25 @@ app.get('/api/admin/dashboard', requireAdmin, async (req, res) => {
 
 // User: purchase a paid service using balance
 app.post('/api/service/purchase', requireUser, async (req, res) => {
-  const { serviceId, telegram, facebook, user_link, promoCode } = req.body || {};
+  const { serviceId, tierId, telegram, facebook, user_link, promoCode } = req.body || {};
   if (!serviceId) return res.status(400).json({ success: false, message: 'Service required' });
   if (!telegram && !facebook) return res.status(400).json({ success: false, message: 'Provide Telegram or Facebook contact' });
   try {
     const svc = await db.getService(serviceId);
     if (!svc || !svc.enabled) return res.status(404).json({ success: false, message: 'Service unavailable' });
-    if (!svc.price || svc.price <= 0) return res.status(400).json({ success: false, message: 'This service has no price' });
+    let chosenTier = null;
+    if (tierId) {
+      chosenTier = await db.getTier(tierId);
+      if (!chosenTier || chosenTier.service_id !== svc.id) return res.status(400).json({ success:false, message:'Invalid tier' });
+    } else {
+      const tiers = await db.getTiersByService(svc.id);
+      if (tiers.length > 0) return res.status(400).json({ success:false, message:'Please choose a quantity tier' });
+    }
+    const basePrice = chosenTier ? chosenTier.price : svc.price;
+    if (!basePrice || basePrice <= 0) return res.status(400).json({ success: false, message: 'This service has no price' });
 
     // Apply promo
-    let finalPrice = svc.price;
+    let finalPrice = basePrice;
     let appliedPromo = null;
     if (promoCode) {
       const p = await db.getPromoByCode(promoCode);
@@ -725,7 +740,10 @@ app.post('/api/service/purchase', requireUser, async (req, res) => {
       category: svc.category, title: svc.title + (appliedPromo ? ` (promo ${appliedPromo.code})` : ''),
       price: finalPrice, telegram: telegram || '', facebook: facebook || '',
       user_link: user_link || '', delivered: deliveredValue,
-      status: svc.category === 'jepfx' ? 'fulfilled' : 'pending'
+      status: svc.category === 'jepfx' ? 'fulfilled' : 'pending',
+      tier_id: chosenTier ? chosenTier.id : null,
+      tier_label: chosenTier ? chosenTier.label : '',
+      quantity: chosenTier ? chosenTier.quantity : 1
     });
     if (stockRow) await db.markServiceStockUsed(stockRow.id, orderId);
     if (appliedPromo) await db.incrementPromoUses(appliedPromo.id);
@@ -782,6 +800,51 @@ app.get('/api/admin/service-orders', requireAdmin, async (req, res) => {
   try { res.json(await db.getServiceOrders()); }
   catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
+
+
+// ==================== ADMIN: CATEGORIES ====================
+app.get('/api/admin/categories', requireAdmin, async (req, res) => {
+  try { res.json(await db.getCategories()); } catch(e){ res.status(500).json({error:'Server error'}); }
+});
+app.post('/api/admin/categories', requireAdmin, async (req, res) => {
+  try {
+    const b = req.body || {};
+    if (!b.key || !b.name) return res.status(400).json({success:false,message:'key and name required'});
+    await db.createCategory(b);
+    res.json({success:true});
+  } catch(e){ res.status(500).json({success:false,message:'Server error (key may already exist)'}); }
+});
+app.put('/api/admin/categories/:id', requireAdmin, async (req, res) => {
+  try { await db.updateCategory(req.params.id, req.body||{}); res.json({success:true}); }
+  catch(e){ res.status(500).json({success:false,message:'Server error'}); }
+});
+app.delete('/api/admin/categories/:id', requireAdmin, async (req, res) => {
+  try { await db.deleteCategory(req.params.id); res.json({success:true}); }
+  catch(e){ res.status(500).json({success:false,message:'Server error'}); }
+});
+
+// ==================== ADMIN: SERVICE TIERS ====================
+app.get('/api/admin/services/:id/tiers', requireAdmin, async (req, res) => {
+  try { res.json(await db.getTiersByService(req.params.id)); }
+  catch(e){ res.status(500).json({error:'Server error'}); }
+});
+app.post('/api/admin/services/:id/tiers', requireAdmin, async (req, res) => {
+  try {
+    const b = req.body || {};
+    if (!b.label || b.price == null) return res.status(400).json({success:false,message:'label and price required'});
+    await db.createTier({ service_id: req.params.id, ...b });
+    res.json({success:true});
+  } catch(e){ res.status(500).json({success:false,message:'Server error'}); }
+});
+app.put('/api/admin/tiers/:id', requireAdmin, async (req, res) => {
+  try { await db.updateTier(req.params.id, req.body||{}); res.json({success:true}); }
+  catch(e){ res.status(500).json({success:false,message:'Server error'}); }
+});
+app.delete('/api/admin/tiers/:id', requireAdmin, async (req, res) => {
+  try { await db.deleteTier(req.params.id); res.json({success:true}); }
+  catch(e){ res.status(500).json({success:false,message:'Server error'}); }
+});
+
 
 app.listen(PORT, () => console.log(`N4XCO Shop running on port ${PORT}`));
 

@@ -153,6 +153,40 @@ db.serialize(() => {
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
   db.run(`ALTER TABLE services ADD COLUMN contact TEXT DEFAULT ''`, () => {});
+  db.run(`ALTER TABLE service_orders ADD COLUMN tier_id INTEGER`, () => {});
+  db.run(`ALTER TABLE service_orders ADD COLUMN tier_label TEXT DEFAULT ''`, () => {});
+  db.run(`ALTER TABLE service_orders ADD COLUMN quantity INTEGER DEFAULT 1`, () => {});
+
+
+  // Editable shop categories (admin can add/edit/delete)
+  db.run(`CREATE TABLE IF NOT EXISTS service_categories (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    key     TEXT NOT NULL UNIQUE,
+    name    TEXT NOT NULL,
+    target  TEXT NOT NULL DEFAULT 'shop',
+    sort    INTEGER DEFAULT 0,
+    enabled INTEGER DEFAULT 1
+  )`);
+  const seedCats = [
+    ['android','ANDROID SERVICES','services',1],
+    ['boosting','BOOSTING SERVICES','shop',2],
+    ['jepfx','JEPFX SERVICE TOOL','shop',3],
+    ['module','MODULE FOR ROOTED','shop',4],
+  ];
+  seedCats.forEach(([k,n,t,o]) =>
+    db.run(`INSERT OR IGNORE INTO service_categories (key,name,target,sort) VALUES (?,?,?,?)`,[k,n,t,o])
+  );
+
+  // Per-service pricing tiers (quantity / price variants)
+  db.run(`CREATE TABLE IF NOT EXISTS service_tiers (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    service_id INTEGER NOT NULL,
+    label      TEXT NOT NULL,
+    quantity   INTEGER DEFAULT 1,
+    price      INTEGER NOT NULL,
+    sort       INTEGER DEFAULT 0,
+    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
+  )`);
 
   // JEPFX (auto-delivered) stock links pool
   db.run(`CREATE TABLE IF NOT EXISTS service_stock (
@@ -405,11 +439,41 @@ const dbFuncs = {
     run('UPDATE service_stock SET used=1, order_id=?, used_at=datetime("now") WHERE id=?', [orderId, id]),
   deleteServiceStock: (id) => run('DELETE FROM service_stock WHERE id=?', [id]),
 
+
+  // ==================== CATEGORIES ====================
+  getCategories: (enabledOnly=false) => enabledOnly
+    ? query('SELECT * FROM service_categories WHERE enabled=1 ORDER BY sort ASC, id ASC')
+    : query('SELECT * FROM service_categories ORDER BY sort ASC, id ASC'),
+  getCategoryByKey: (key) => get('SELECT * FROM service_categories WHERE key=?',[key]),
+  createCategory: (d) => run(
+    'INSERT INTO service_categories (key,name,target,sort,enabled) VALUES (?,?,?,?,?)',
+    [String(d.key||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,''), d.name, (d.target==='services'?'services':'shop'), parseInt(d.sort)||0, d.enabled?1:0]
+  ),
+  updateCategory: (id,d) => run(
+    'UPDATE service_categories SET key=?,name=?,target=?,sort=?,enabled=? WHERE id=?',
+    [String(d.key||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,''), d.name, (d.target==='services'?'services':'shop'), parseInt(d.sort)||0, d.enabled?1:0, id]
+  ),
+  deleteCategory: (id) => run('DELETE FROM service_categories WHERE id=?',[id]),
+
+  // ==================== SERVICE TIERS ====================
+  getTiersByService: (serviceId) => query('SELECT * FROM service_tiers WHERE service_id=? ORDER BY sort ASC, id ASC',[serviceId]),
+  getAllTiers: () => query('SELECT * FROM service_tiers ORDER BY service_id, sort ASC, id ASC'),
+  getTier: (id) => get('SELECT * FROM service_tiers WHERE id=?',[id]),
+  createTier: (d) => run(
+    'INSERT INTO service_tiers (service_id,label,quantity,price,sort) VALUES (?,?,?,?,?)',
+    [parseInt(d.service_id), d.label, parseInt(d.quantity)||1, parseInt(d.price)||0, parseInt(d.sort)||0]
+  ),
+  updateTier: (id,d) => run(
+    'UPDATE service_tiers SET label=?,quantity=?,price=?,sort=? WHERE id=?',
+    [d.label, parseInt(d.quantity)||1, parseInt(d.price)||0, parseInt(d.sort)||0, id]
+  ),
+  deleteTier: (id) => run('DELETE FROM service_tiers WHERE id=?',[id]),
+
   // ==================== SERVICE ORDERS ====================
   createServiceOrder: (d) => run(
-    `INSERT INTO service_orders (id, username, service_id, category, title, price, telegram, facebook, user_link, delivered, status)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-    [d.id, d.username, d.service_id, d.category, d.title, d.price, d.telegram || '', d.facebook || '', d.user_link || '', d.delivered || '', d.status || 'pending']
+    `INSERT INTO service_orders (id, username, service_id, category, title, price, telegram, facebook, user_link, delivered, status, tier_id, tier_label, quantity)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [d.id, d.username, d.service_id, d.category, d.title, d.price, d.telegram || '', d.facebook || '', d.user_link || '', d.delivered || '', d.status || 'pending', d.tier_id||null, d.tier_label||'', d.quantity||1]
   ),
   getServiceOrders: () => query('SELECT * FROM service_orders ORDER BY created_at DESC'),
   getUserServiceOrders: (username) => query('SELECT * FROM service_orders WHERE username=? ORDER BY created_at DESC', [username]),
