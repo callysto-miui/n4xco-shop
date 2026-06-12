@@ -858,6 +858,19 @@ app.delete('/api/admin/tiers/:id', requireAdmin, async (req, res) => {
 });
 
 
+
+// 404 fallback
+app.use((req, res) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ success:false, message:'Not found' });
+  }
+  res.status(404).send(`<!doctype html><html><head><meta charset=utf-8><title>404 — N4XCO</title>
+<style>body{background:#0a0a0a;color:#eee;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center}
+h1{font-size:6rem;margin:0;letter-spacing:.1em}p{color:#888;margin:.5rem 0 1.5rem}
+a{color:#0af;text-decoration:none;border:1px solid #0af;padding:.6rem 1.2rem;letter-spacing:.1em;text-transform:uppercase;font-size:.8rem}</style>
+</head><body><div><h1>404</h1><p>This page does not exist.</p><a href="/">Go home</a></div></body></html>`);
+});
+
 app.listen(PORT, () => console.log(`N4XCO Shop running on port ${PORT}`));
 
 
