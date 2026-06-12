@@ -46,6 +46,9 @@ app.use(session({
 }));
 
 // ─── Auth middleware ───────────────────────────────────────────────────────────
+const OWNER_USERNAME = (process.env.OWNER_USERNAME || 'N4XCO').toLowerCase();
+function isOwnerName(name){ return (name||'').toLowerCase() === OWNER_USERNAME; }
+
 async function requireAdmin(req, res, next) {
   if (req.session?.admin) { req.adminUser = req.session.adminUser; return next(); }
   const auth = req.headers.authorization;
@@ -58,6 +61,14 @@ async function requireAdmin(req, res, next) {
     }
   }
   res.status(401).json({ success: false, message: 'Unauthorized' });
+}
+
+function requireOwner(req, res, next){
+  requireAdmin(req, res, () => {
+    const who = req.adminUser || req.session?.adminUser;
+    if (!isOwnerName(who)) return res.status(403).json({ success:false, message:'Owner only — only N4XCO can perform this action.' });
+    next();
+  });
 }
 
 async function requireUser(req, res, next) {
@@ -313,7 +324,8 @@ app.post('/api/admin/logout', (req, res) => {
 });
 
 app.get('/api/admin/check', (req, res) => {
-  res.json({ admin: !!req.session?.admin, username: req.session?.adminUser });
+  const who = req.session?.adminUser || '';
+  res.json({ admin: !!req.session?.admin, username: who, isOwner: isOwnerName(who), owner: OWNER_USERNAME });
 });
 
 // Full admin data
@@ -478,7 +490,7 @@ app.put('/api/admin/users/:id', requireAdmin, async (req, res) => {
   }
 });
 
-app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
+app.delete('/api/admin/users/:id', requireOwner, async (req, res) => {
   try {
     await db.deleteUser(req.params.id);
     res.json({ success: true });
