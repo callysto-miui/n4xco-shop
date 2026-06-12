@@ -79,11 +79,20 @@
   ::-webkit-scrollbar-thumb:hover{background:var(--gray-4)}
 
 /* ── N4XCO green/white/black theme refresh ── */
-:root { --accent: #00ff88; --accent-2:#00cc66; }
-.badge.ok { background: var(--accent); color:#000; }
-button:not(.secondary):not(.danger):not(.ghost) { background: var(--accent); color:#000; border:none; }
-button:not(.secondary):not(.danger):not(.ghost):hover { background: var(--accent-2); }
-.navbtn.active { border-left: 3px solid var(--accent); }
+:root { --accent:#00ff88; --accent-2:#00cc66; --accent-soft:rgba(0,255,136,.12); }
+/* Black is the primary surface, green is a subtle accent */
+html,body{background:#000}
+aside{background:#050505;border-right:1px solid #111}
+.card{background:#0a0a0a;border:1px solid #161616;border-left:2px solid transparent;transition:border-color .15s}
+.card:hover{border-left-color:var(--accent)}
+button:not(.secondary):not(.danger):not(.ghost){background:#0e0e0e;color:#fff;border:1px solid var(--accent)}
+button:not(.secondary):not(.danger):not(.ghost):hover{background:var(--accent);color:#000;border-color:var(--accent)}
+.badge.ok{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.navbtn.active{background:#0a0a0a;color:var(--accent);border-left:3px solid var(--accent)}
+.stat{background:#0a0a0a;border:1px solid #161616;border-left:2px solid var(--accent)}
+.stat .v{color:var(--accent)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-soft)}
+.owner-only.hide-owner{display:none !important}
 
 </style>
 </head>
@@ -115,7 +124,6 @@ button:not(.secondary):not(.danger):not(.ghost):hover { background: var(--accent
     <button class="navbtn" data-tab="deposits">💰 Deposits</button>
     <button class="navbtn" data-tab="promos">🏷️ Promo codes</button>
     <button class="navbtn" data-tab="users">👥 Users</button>
-    <button class="navbtn" data-tab="categories">🗂️ Categories</button>
     <button class="navbtn" data-tab="services">🛠️ Services</button>
     <button class="navbtn" data-tab="settings">⚙️ Settings</button>
     <div style="height:14px"></div>
@@ -250,6 +258,34 @@ button:not(.secondary):not(.danger):not(.ghost):hover { background: var(--accent
     <section data-view="services" class="hide">
       <h2 style="margin:0 0 12px">Services</h2>
       <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <h2 style="margin:0">Categories</h2>
+          <small class="dim">Manage Shop / Services tabs shown to users</small>
+        </div>
+        <div class="row cols-4">
+          <div><label>Key (slug)</label><input id="cat_key" placeholder="e.g. tiktok"/></div>
+          <div><label>Display name</label><input id="cat_name" placeholder="TIKTOK SERVICES"/></div>
+          <div><label>Target tab</label>
+            <select id="cat_target">
+              <option value="shop">Shop tab</option>
+              <option value="services">Services tab</option>
+            </select>
+          </div>
+          <div><label>Sort</label><input id="cat_sort" type="number" value="10"/></div>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <label style="margin:0"><input type="checkbox" id="cat_enabled" checked style="width:auto"/> Enabled</label>
+          <button id="catSave">Save category</button>
+          <button id="catClear" class="secondary">Clear</button>
+        </div>
+        <input type="hidden" id="cat_editing"/>
+        <div class="scroll" style="margin-top:12px"><table>
+          <thead><tr><th>Key</th><th>Name</th><th>Target</th><th>Sort</th><th>Enabled</th><th></th></tr></thead>
+          <tbody id="catBody"></tbody>
+        </table></div>
+        <p class="dim" style="font-size:12px;margin-top:8px">Tip: lowercase letters, numbers, dashes only for key. Use "jepfx" key to keep auto-delivery stock links behaviour.</p>
+      </div>
+      <div class="card">
         <h2>Add / Edit service</h2>
         <div class="row cols-3">
           <div><label>Category</label>
@@ -295,36 +331,6 @@ button:not(.secondary):not(.danger):not(.ghost):hover { background: var(--accent
     </section>
 
 
-
-    <!-- CATEGORIES -->
-    <section data-view="categories" class="hide">
-      <h2 style="margin:0 0 12px">Shop / Service Categories</h2>
-      <div class="card">
-        <h2>Add / Edit category</h2>
-        <div class="row cols-4">
-          <div><label>Key (slug)</label><input id="cat_key" placeholder="e.g. tiktok"/></div>
-          <div><label>Display name</label><input id="cat_name" placeholder="TIKTOK SERVICES"/></div>
-          <div><label>Target tab</label>
-            <select id="cat_target">
-              <option value="shop">Shop tab</option>
-              <option value="services">Services tab</option>
-            </select>
-          </div>
-          <div><label>Sort</label><input id="cat_sort" type="number" value="10"/></div>
-        </div>
-        <div style="margin-top:10px">
-          <label><input type="checkbox" id="cat_enabled" checked style="width:auto"/> Enabled</label>
-          <button id="catSave" style="margin-left:10px">Save category</button>
-          <button id="catClear" class="secondary">Clear</button>
-        </div>
-        <input type="hidden" id="cat_editing"/>
-        <p class="dim" style="font-size:12px;margin-top:8px">Tip: lowercase letters, numbers, dashes only for key. Use "jepfx" key to keep auto-delivery stock links behaviour.</p>
-      </div>
-      <div class="card"><div class="scroll"><table>
-        <thead><tr><th>Key</th><th>Name</th><th>Target</th><th>Sort</th><th>Enabled</th><th></th></tr></thead>
-        <tbody id="catBody"></tbody>
-      </table></div></div>
-    </section>
 
     <!-- TIERS MODAL -->
     <div id="tiersModal" class="hide" style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
@@ -378,6 +384,8 @@ button:not(.secondary):not(.danger):not(.ghost):hover { background: var(--accent
 
 <script>
 let TOKEN = localStorage.getItem('n4xco_admin_token') || '';
+let IS_OWNER = false;
+let OWNER_NAME = 'N4XCO';
 const $ = (s, p=document) => p.querySelector(s);
 const $$ = (s, p=document) => [...p.querySelectorAll(s)];
 
@@ -404,7 +412,7 @@ async function tryAutoLogin(){
   try{
     const r = await fetch('/api/admin/check', { credentials:'include' });
     const j = await r.json();
-    if(j.admin){ enterApp(j.username); return true; }
+    if(j.admin){ IS_OWNER = !!j.isOwner; OWNER_NAME = j.owner || 'N4XCO'; enterApp(j.username); return true; }
   }catch{}
   return false;
 }
@@ -414,6 +422,7 @@ $('#li_btn').onclick = async () => {
   $('#li_err').textContent = '';
   try{
     await api('/api/admin/login', { method:'POST', body:{ username, password } });
+    try{ const j = await (await fetch('/api/admin/check',{credentials:'include'})).json(); IS_OWNER = !!j.isOwner; OWNER_NAME = j.owner || 'N4XCO'; }catch{}
     enterApp(username);
   }catch(e){ $('#li_err').textContent = e.message; }
 };
@@ -422,7 +431,7 @@ $('#li_pass').addEventListener('keydown', e => { if(e.key==='Enter') $('#li_btn'
 function enterApp(name){
   $('#loginView').classList.add('hide');
   $('#appView').classList.remove('hide');
-  $('#meTag').textContent = name || 'admin';
+  $('#meTag').textContent = (name || 'admin') + (IS_OWNER ? ' (Owner)' : '');
   switchTab('dashboard');
 }
 $('#logoutBtn').onclick = async () => {
@@ -438,7 +447,7 @@ function switchTab(name){
   $$('section[data-view]').forEach(s=>s.classList.toggle('hide', s.dataset.view!==name));
   ({dashboard:loadDashboard, payments:loadPayments, plans:loadPlans, keys:loadKeys,
     orders:loadOrders, deposits:loadDeposits, promos:loadPromos, users:loadUsers,
-    services:loadServices, settings:loadSettings, categories:loadCategories}[name] || (()=>{}))();
+    services:loadServices, settings:loadSettings}[name] || (()=>{}))();
 }
 
 // ───── DASHBOARD ─────
@@ -618,7 +627,13 @@ async function loadDeposits(){
 }
 window.depApprove = async id => { try{await api('/api/admin/deposits/'+id+'/approve',{method:'POST',body:{admin_notes:''}}); toast('Approved'); loadDeposits();}catch(e){toast(e.message,'bad')} };
 window.depReject  = async id => { const n=prompt('Reason?','')||''; try{await api('/api/admin/deposits/'+id+'/reject',{method:'POST',body:{admin_notes:n}}); toast('Rejected'); loadDeposits();}catch(e){toast(e.message,'bad')} };
-window.depDelete  = async id => { if(!confirm('Delete?'))return; await api('/api/admin/deposits/'+id,{method:'DELETE'}); loadDeposits(); };
+window.depDelete  = async id => {
+  const reason = prompt('Reason for deleting this deposit (required, for audit)','');
+  if(reason===null) return;
+  if(!reason.trim()){ toast('Reason required','bad'); return; }
+  try{ await api('/api/admin/deposits/'+id+'?reason='+encodeURIComponent(reason),{method:'DELETE'}); toast('Deleted'); loadDeposits(); }
+  catch(e){ toast(e.message,'bad'); }
+};
 
 // ───── PROMOS ─────
 async function loadPromos(){
@@ -667,7 +682,7 @@ async function loadUsers(){
       <td>${esc(u.telegram||'')}</td>
       <td class="right">
         <button class="secondary" onclick="addBal('${esc(u.username)}')">+ Balance</button>
-        <button class="danger" onclick="delUser(${u.id})">Delete</button>
+        ${IS_OWNER ? `<button class="danger" onclick="delUser(${u.id})">Delete</button>` : `<span class="badge" title="Only the owner (${esc(OWNER_NAME)}) can delete users">owner-only</span>`}
       </td>
     </tr>`).join('');
 }
@@ -680,7 +695,12 @@ $('#addUser').onclick = async () => {
     toast('User created'); loadUsers();
   }catch(e){ toast(e.message,'bad'); }
 };
-window.delUser = async id => { if(!confirm('Delete user?'))return; await api('/api/admin/users/'+id,{method:'DELETE'}); loadUsers(); };
+window.delUser = async id => {
+  if(!IS_OWNER){ toast('Only the owner ('+OWNER_NAME+') can delete users','bad'); return; }
+  if(!confirm('Delete user? This is permanent.'))return;
+  try{ await api('/api/admin/users/'+id,{method:'DELETE'}); toast('User deleted'); loadUsers(); }
+  catch(e){ toast(e.message,'bad'); }
+};
 window.addBal = async username => {
   const amt = parseInt(prompt('Add how much ₱ to '+username+'?','100'));
   if(!amt) return;
@@ -918,7 +938,7 @@ window.delTier = async (id, sid, title) => {
 // Auto-load category dropdown when services tab opens
 const _origLoadServices = loadServices;
 loadServices = async function(){
-  await loadCategoriesSelect();
+  await loadCategories().catch(()=>{});
   return _origLoadServices();
 };
 
