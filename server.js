@@ -17,7 +17,7 @@ async function getMailer() {
     host: s.host,
     port: s.port || 587,
     secure: !!s.secure, // true for 465, false for 587/STARTTLS
-    auth: { user: s.user, pass: s.pass }
+    auth: { user: s.user, pass: String(s.pass||'').replace(/\s+/g,'') }
   });
   return { transporter, from: `"${s.from_name || 'N4XCO Shop'}" <${s.from_email || s.user}>`, admin: s.admin_email };
 }
