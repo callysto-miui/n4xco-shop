@@ -235,6 +235,22 @@ db.serialize(() => {
   )`);
   db.run(`INSERT OR IGNORE INTO shop_settings (id) VALUES (1)`);
 
+  // SMTP settings — configured by admin so the shop can send email
+  db.run(`CREATE TABLE IF NOT EXISTS smtp_settings (
+    id          INTEGER PRIMARY KEY,
+    host        TEXT DEFAULT '',
+    port        INTEGER DEFAULT 587,
+    secure      INTEGER DEFAULT 0,
+    user        TEXT DEFAULT '',
+    pass        TEXT DEFAULT '',
+    from_email  TEXT DEFAULT '',
+    from_name   TEXT DEFAULT 'N4XCO Shop',
+    admin_email TEXT DEFAULT '',
+    enabled     INTEGER DEFAULT 0,
+    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+  db.run(`INSERT OR IGNORE INTO smtp_settings (id) VALUES (1)`);
+
   // Seed default plans
   const plans = [
     ['03days', '03 Days', 3, 120],
@@ -545,6 +561,17 @@ const dbFuncs = {
        FROM orders WHERE status='fulfilled'
       GROUP BY plan_id, plan_label
       ORDER BY sold DESC LIMIT ?`, [limit]
+  ),
+
+  // ==================== SMTP SETTINGS ====================
+  getSmtpSettings: () => get('SELECT * FROM smtp_settings WHERE id=1'),
+  updateSmtpSettings: (d) => run(
+    `UPDATE smtp_settings SET host=?, port=?, secure=?, user=?, pass=?, from_email=?, from_name=?, admin_email=?, enabled=?, updated_at=CURRENT_TIMESTAMP WHERE id=1`,
+    [
+      d.host || '', parseInt(d.port) || 587, d.secure ? 1 : 0,
+      d.user || '', d.pass || '', d.from_email || '',
+      d.from_name || 'N4XCO Shop', d.admin_email || '', d.enabled ? 1 : 0
+    ]
   ),
 };
 
