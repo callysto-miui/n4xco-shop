@@ -10,39 +10,99 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ─── Email helper ─────────────────────────────────────────────────────────────
+function cleanSmtpPassword(pass) {
+  return String(pass || '').replace(/\s+/g, '');
+}
+
+function smtpPort(settings) {
+  const port = parseInt(settings?.port, 10);
+  return Number.isFinite(port) ? port : 465;
+}
+
+function smtpSecure(settings, port) {
+  if (settings?.secure === undefined || settings?.secure === null || settings?.secure === '') return port === 465;
+  return settings.secure === true || settings.secure === 1 || settings.secure === '1' || settings.secure === 'true';
+}
+
+function smtpTransportOptions(settings, overridePort) {
+  const port = overridePort || smtpPort(settings);
+  const secure = port === 465 ? true : smtpSecure(settings, port);
+  return {
+    host: settings.host || 'smtp.gmail.com',
+    port,
+    secure,
+    auth: { user: settings.user, pass: cleanSmtpPassword(settings.pass) },
+    requireTLS: port === 587,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+    tls: {
+      servername: settings.host || 'smtp.gmail.com',
+      rejectUnauthorized: false
+    }
+  };
+}
+
+function smtpCandidates(settings) {
+  const primaryPort = smtpPort(settings);
+  const ports = [primaryPort];
+  const isGmail = /gmail/i.test(settings.host || '') || /@gmail\.com$/i.test(settings.user || '');
+  if (isGmail) {
+    if (!ports.includes(465)) ports.push(465);
+    if (!ports.includes(587)) ports.push(587);
+  }
+  return ports.map(port => smtpTransportOptions(settings, port));
+}
+
+function explainSmtpError(error, triedPorts = []) {
+  const raw = [error?.code, error?.command, error?.responseCode, error?.response, error?.message].filter(Boolean).join(' ');
+  const lower = raw.toLowerCase();
+  const tried = triedPorts.length ? ` Tried port(s): ${triedPorts.join(', ')}.` : '';
+  if (lower.includes('auth') || lower.includes('535') || lower.includes('534') || error?.code === 'EAUTH') {
+    return 'Gmail rejected the login. Use the full Gmail address and a fresh 16-character Google App Password with no spaces — not your normal Gmail password.';
+  }
+  if (lower.includes('timeout') || error?.code === 'ETIMEDOUT' || error?.code === 'ESOCKET' || error?.code === 'ECONNECTION') {
+    return `Connection timeout reaching Gmail SMTP.${tried} The code now tries Gmail 465 and 587 automatically; if this still appears, your hosting/network is blocking outbound SMTP and you need to use a host/provider that allows SMTP or an email API.`;
+  }
+  if (error?.code === 'ENOTFOUND') return 'SMTP host not found. Use smtp.gmail.com for Gmail.';
+  return error?.message || 'SMTP send failed. Check Gmail, app password, and SMTP settings.';
+}
+
 async function getMailer() {
   const s = await db.getSmtpSettings();
   if (!s || !s.enabled || !s.host || !s.user || !s.pass) return null;
-  const port = Number(s.port) || 465;
-  const secure = s.secure === undefined ? port === 465 : !!s.secure;
-  const transporter = nodemailer.createTransport({
-    host: s.host,
-    port,
-    secure,
-    auth: { user: s.user, pass: String(s.pass || '').replace(/\s+/g, '') },
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 20000,
-    tls: { rejectUnauthorized: false }
-  });
-  return { transporter, from: `"${s.from_name || 'N4XCO Shop'}" <${s.from_email || s.user}>`, admin: s.admin_email };
+  return { transports: smtpCandidates(s), from: `"${s.from_name || 'N4XCO Shop'}" <${s.from_email || s.user}>`, admin: s.admin_email };
 }
 
 async function sendMail({ to, subject, text, html }) {
+  const triedPorts = [];
+  let lastError = null;
   try {
     const m = await getMailer();
-    if (!m || !to) return { ok: false, error: !m ? 'SMTP not configured/enabled' : 'No recipient' };
-    const info = await m.transporter.sendMail({ from: m.from, to, subject, text, html });
-    return { ok: true, info };
+    if (!m || !to) return false;
+    for (const options of m.transports) {
+      triedPorts.push(options.port);
+      try {
+        const transporter = nodemailer.createTransport(options);
+        await transporter.sendMail({ from: m.from, to, subject, text, html });
+        return true;
+      } catch (e) {
+        lastError = e;
+        const msg = String(e?.message || '').toLowerCase();
+        if (e?.code === 'EAUTH' || msg.includes('auth') || msg.includes('535') || msg.includes('534')) break;
+      }
+    }
+    console.error('sendMail error:', explainSmtpError(lastError, triedPorts));
+    return false;
   } catch (e) {
-    console.error('sendMail error:', e && (e.message || e));
-    return { ok: false, error: (e && e.message) || 'Unknown send error' };
+    console.error('sendMail error:', explainSmtpError(e, triedPorts));
+    return false;
   }
 }
 
 async function notifyAdmin({ subject, text, html }) {
   const m = await getMailer();
-  if (!m || !m.admin) return { ok: false, error: 'No admin email / SMTP off' };
+  if (!m || !m.admin) return false;
   return sendMail({ to: m.admin, subject, text, html });
 }
 
@@ -323,6 +383,15 @@ app.post('/api/deposit', requireUser, (req, res) => {
         notes: notes || '',
         screenshot: screenshotPath
       });
+      const depositUser = await db.getUser(req.sessionUser).catch(() => null);
+      if (depositUser?.email) {
+        sendMail({
+          to: depositUser.email,
+          subject: `N4XCO Shop — deposit received ${referenceId}`,
+          text: `Hi ${depositUser.username},\n\nWe received your deposit request for ₱${depositAmount}.\n\nReference: ${referenceId}\nStatus: Pending admin review\n\nYou will get another email when it is approved or declined.`,
+          html: `<p>Hi ${depositUser.username},</p><p>We received your deposit request for <b>₱${depositAmount}</b>.</p><p><b>Reference:</b> ${referenceId}<br/><b>Status:</b> Pending admin review</p><p>You will get another email when it is approved or declined.</p>`
+        }).catch(()=>{});
+      }
       // Notify admin via email (non-blocking)
       notifyAdmin({
         subject: `💰 New deposit request — ${referenceId}`,
@@ -349,29 +418,6 @@ Open the admin panel to approve or reject.`,
 <b>Notes:</b> ${notes || '(none)'}</p>
 <p>Open the admin panel to approve or reject this deposit.</p>`
       }).catch(()=>{});
-
-      // Confirmation email to the user (non-blocking)
-      (async () => {
-        try {
-          const u = await db.getUser(req.sessionUser);
-          if (u && u.email) {
-            sendMail({
-              to: u.email,
-              subject: `🧾 Deposit received — ${referenceId}`,
-              text: `Hi ${u.username},
-
-We received your deposit request of ₱${depositAmount} (ref ${referenceId}).
-Our admin will review your payment shortly and credit your balance once approved.
-
-Thanks for choosing N4XCO Shop!`,
-              html: `<p>Hi <b>${u.username}</b>,</p>
-<p>We received your deposit request of <b>₱${depositAmount}</b> (ref <b>${referenceId}</b>).</p>
-<p>Our admin will review your payment shortly and credit your balance once approved.</p>
-<p>Thanks for choosing N4XCO Shop!</p>`
-            }).catch(()=>{});
-          }
-        } catch (_) {}
-      })();
       res.json({ success: true, message: 'Deposit request submitted! Admin will review and add credits.', referenceId });
     } catch (err) {
       console.error('Deposit error:', err);
@@ -635,7 +681,7 @@ ${adminNotes ? 'Reason / note from admin: ' + adminNotes + '\n\n' : ''}If you th
 app.post('/api/admin/deposits/:id/approve', requireAdmin, async (req, res) => {
   try {
     const { admin_notes } = req.body;
-    await db.updateDepositStatus(req.params.id, 'approved', admin_notes || '', req.session.adminUser);
+    await db.updateDepositStatus(req.params.id, 'approved', admin_notes || '', req.adminUser || req.session.adminUser);
     emailUserAboutDeposit(req.params.id, 'approved', admin_notes || '');
     res.json({ success: true });
   } catch (e) {
@@ -646,7 +692,7 @@ app.post('/api/admin/deposits/:id/approve', requireAdmin, async (req, res) => {
 app.post('/api/admin/deposits/:id/reject', requireAdmin, async (req, res) => {
   try {
     const { admin_notes } = req.body;
-    await db.updateDepositStatus(req.params.id, 'rejected', admin_notes || '', req.session.adminUser);
+    await db.updateDepositStatus(req.params.id, 'rejected', admin_notes || '', req.adminUser || req.session.adminUser);
     emailUserAboutDeposit(req.params.id, 'rejected', admin_notes || '');
     res.json({ success: true });
   } catch (e) {
@@ -657,18 +703,21 @@ app.post('/api/admin/deposits/:id/reject', requireAdmin, async (req, res) => {
 // ─── SMTP settings (admin) ────────────────────────────────────────────────────
 app.get('/api/admin/smtp', requireAdmin, async (req, res) => {
   try {
-    const s = (await db.getSmtpSettings()) || {};
-    // Return the password as-is (admin requested it not be hidden)
-    res.json(s);
+    const s = await db.getSmtpSettings();
+    res.json(s || {});
   } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/admin/smtp', requireAdmin, async (req, res) => {
   try {
-    const cur = (await db.getSmtpSettings()) || {};
+    const cur = await db.getSmtpSettings();
     const body = req.body || {};
-    // If client didn't send a password, keep the existing one
-    if (body.pass === undefined || body.pass === null) body.pass = cur.pass || '';
+    // Preserve existing password only if the field is left empty.
+    if (!body.pass) body.pass = cur ? cur.pass : '';
+    body.host = body.host || 'smtp.gmail.com';
+    body.port = parseInt(body.port, 10) || 465;
+    body.secure = body.port === 465 ? 1 : (body.secure ? 1 : 0);
+    body.pass = cleanSmtpPassword(body.pass);
     await db.updateSmtpSettings(body);
     res.json({ success: true });
   } catch (e) {
@@ -685,31 +734,32 @@ app.post('/api/admin/smtp/test', requireAdmin, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Save SMTP settings first (host, user, password required)' });
     }
     if (!s.enabled) return res.status(400).json({ success: false, message: 'Enable SMTP in settings first' });
-    const target = (to && to.trim()) || s.admin_email;
+    const target = to || s.admin_email;
     if (!target) return res.status(400).json({ success: false, message: 'Provide a recipient or set Admin email' });
-
-    const m = await getMailer();
-    if (!m) return res.status(400).json({ success: false, message: 'SMTP not configured' });
-
-    // Verify first so we get a proper auth/network error fast instead of the
-    // frontend timing out with "Failed to fetch".
-    try {
-      await m.transporter.verify();
-    } catch (ve) {
-      console.error('SMTP verify failed:', ve && ve.message);
-      return res.status(500).json({ success: false, message: 'SMTP connect/auth failed: ' + (ve.message || ve) });
+    const triedPorts = [];
+    let lastError = null;
+    for (const options of smtpCandidates(s)) {
+      triedPorts.push(options.port);
+      try {
+        const transporter = nodemailer.createTransport(options);
+        await transporter.verify();
+        await transporter.sendMail({
+          from: `"${s.from_name || 'N4XCO Shop'}" <${s.from_email || s.user}>`,
+          to: target,
+          subject: 'N4XCO Shop — SMTP test ✅',
+          text: 'This is a test message from your N4XCO Shop SMTP setup. If you can read this, sending works!'
+        });
+        return res.json({ success: true, message: `Test email sent to ${target} using Gmail SMTP port ${options.port}` });
+      } catch (e) {
+        lastError = e;
+        const msg = String(e?.message || '').toLowerCase();
+        if (e?.code === 'EAUTH' || msg.includes('auth') || msg.includes('535') || msg.includes('534')) break;
+      }
     }
-
-    const result = await sendMail({
-      to: target,
-      subject: 'N4XCO Shop — SMTP test ✅',
-      text: 'This is a test message from your N4XCO Shop SMTP setup. If you can read this, sending works!'
-    });
-    if (!result.ok) return res.status(500).json({ success: false, message: 'Send failed: ' + (result.error || 'unknown') });
-    res.json({ success: true, message: 'Test email sent to ' + target });
+    res.status(500).json({ success: false, message: explainSmtpError(lastError, triedPorts), details: lastError?.message || '' });
   } catch (e) {
     console.error('SMTP test error:', e);
-    res.status(500).json({ success: false, message: e.message || 'Server error' });
+    res.status(500).json({ success: false, message: explainSmtpError(e), details: e.message || '' });
   }
 });
 
