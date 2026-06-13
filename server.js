@@ -33,12 +33,18 @@ function smtpTransportOptions(settings, overridePort) {
     secure,
     auth: { user: settings.user, pass: cleanSmtpPassword(settings.pass) },
     requireTLS: port === 587,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    // Render's network sometimes has slow DNS / TLS handshakes to Gmail.
+    // Bump timeouts well above the defaults so the first connection succeeds.
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 45000,
+    pool: false,
+    // Force IPv4 — Render IPv6 routes to smtp.gmail.com occasionally hang.
+    family: 4,
     tls: {
       servername: settings.host || 'smtp.gmail.com',
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
+      minVersion: 'TLSv1.2'
     }
   };
 }
@@ -383,15 +389,9 @@ app.post('/api/deposit', requireUser, (req, res) => {
         notes: notes || '',
         screenshot: screenshotPath
       });
-      const depositUser = await db.getUser(req.sessionUser).catch(() => null);
-      if (depositUser?.email) {
-        sendMail({
-          to: depositUser.email,
-          subject: `N4XCO Shop — deposit received ${referenceId}`,
-          text: `Hi ${depositUser.username},\n\nWe received your deposit request for ₱${depositAmount}.\n\nReference: ${referenceId}\nStatus: Pending admin review\n\nYou will get another email when it is approved or declined.`,
-          html: `<p>Hi ${depositUser.username},</p><p>We received your deposit request for <b>₱${depositAmount}</b>.</p><p><b>Reference:</b> ${referenceId}<br/><b>Status:</b> Pending admin review</p><p>You will get another email when it is approved or declined.</p>`
-        }).catch(()=>{});
-      }
+      // Per owner request: do NOT email the user on deposit submission or on
+      // approve/reject. Only the admin gets notified when a user deposits.
+
       // Notify admin via email (non-blocking)
       notifyAdmin({
         subject: `💰 New deposit request — ${referenceId}`,
@@ -648,41 +648,13 @@ app.get('/api/admin/deposits', requireAdmin, async (req, res) => {
   }
 });
 
-async function emailUserAboutDeposit(depositId, status, adminNotes) {
-  try {
-    const dep = await db.getDeposit(depositId);
-    if (!dep) return;
-    const user = await db.getUser(dep.username);
-    if (!user || !user.email) return;
-    const approved = status === 'approved';
-    const subject = approved
-      ? `✅ Your deposit ${dep.reference_id} was approved`
-      : `❌ Your deposit ${dep.reference_id} was declined`;
-    const body = approved
-      ? `Hi ${user.username},
-
-Good news — your deposit of ₱${dep.amount} (ref ${dep.reference_id}) has been approved and credited to your N4XCO Shop balance.
-
-${adminNotes ? 'Admin note: ' + adminNotes + '\n\n' : ''}Thanks for choosing N4XCO Shop!`
-      : `Hi ${user.username},
-
-We're sorry — your deposit request of ₱${dep.amount} (ref ${dep.reference_id}) was declined.
-
-${adminNotes ? 'Reason / note from admin: ' + adminNotes + '\n\n' : ''}If you think this is a mistake, please contact support.`;
-    sendMail({
-      to: user.email,
-      subject,
-      text: body,
-      html: `<p>${body.replace(/\n/g, '<br/>')}</p>`
-    }).catch(()=>{});
-  } catch (e) { console.error('emailUserAboutDeposit error:', e.message); }
-}
+// Per owner request: no user emails on approve/reject. Admin only gets the
+// notification when a user submits a deposit (handled in /api/deposit).
 
 app.post('/api/admin/deposits/:id/approve', requireAdmin, async (req, res) => {
   try {
     const { admin_notes } = req.body;
     await db.updateDepositStatus(req.params.id, 'approved', admin_notes || '', req.adminUser || req.session.adminUser);
-    emailUserAboutDeposit(req.params.id, 'approved', admin_notes || '');
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -693,12 +665,12 @@ app.post('/api/admin/deposits/:id/reject', requireAdmin, async (req, res) => {
   try {
     const { admin_notes } = req.body;
     await db.updateDepositStatus(req.params.id, 'rejected', admin_notes || '', req.adminUser || req.session.adminUser);
-    emailUserAboutDeposit(req.params.id, 'rejected', admin_notes || '');
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
 
 // ─── SMTP settings (admin) ────────────────────────────────────────────────────
 app.get('/api/admin/smtp', requireAdmin, async (req, res) => {
