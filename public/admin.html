@@ -171,9 +171,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 
     <!-- PLANS -->
     <section data-view="plans" class="hide">
-      <h2 style="margin:0 0 12px">Plans</h2>
+      <h2 style="margin:0 0 12px">Key Shop Plans</h2>
       <div class="card"><div class="scroll"><table>
-        <thead><tr><th>ID</th><th>Label</th><th>Days</th><th>Price ₱</th><th>Enabled</th></tr></thead>
+        <thead><tr><th>Label</th><th>Days</th><th>Price ₱</th><th>Enabled</th></tr></thead>
         <tbody id="plansBody"></tbody>
       </table></div>
       <div style="margin-top:10px"><button id="savePlans">Save all plans</button></div>
@@ -376,6 +376,34 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
         </div>
         <div style="margin-top:10px"><button id="saveShop">Save sections</button></div>
       </div>
+
+      <div class="card">
+        <h2>📧 SMTP — Email notifications</h2>
+        <small class="dim">Used to email <b>you</b> when a user submits a deposit, and to email the <b>user's Gmail</b> when you approve or decline. For Gmail: host <code>smtp.gmail.com</code>, port <code>465</code> + secure ✓, and use a Google <b>App Password</b> (not your account password).</small>
+        <div class="row cols-2" style="margin-top:10px">
+          <div><label>SMTP Host</label><input id="smtp_host" placeholder="smtp.gmail.com"/></div>
+          <div><label>Port</label><input id="smtp_port" type="number" placeholder="465"/></div>
+        </div>
+        <div class="row cols-2">
+          <div><label>SMTP Username</label><input id="smtp_user" placeholder="you@gmail.com"/></div>
+          <div><label>SMTP Password / App Password</label><input id="smtp_pass" type="password" placeholder="••••••••"/></div>
+        </div>
+        <div class="row cols-2">
+          <div><label>From email</label><input id="smtp_from_email" placeholder="you@gmail.com"/></div>
+          <div><label>From name</label><input id="smtp_from_name" placeholder="N4XCO Shop"/></div>
+        </div>
+        <div class="row cols-2">
+          <div><label>Admin notification email (gets deposit alerts)</label><input id="smtp_admin_email" placeholder="admin@example.com"/></div>
+          <div style="display:flex;align-items:end;gap:14px">
+            <label><input type="checkbox" id="smtp_secure" style="width:auto"> Use SSL (port 465)</label>
+            <label><input type="checkbox" id="smtp_enabled" style="width:auto"> Enable email sending</label>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button id="saveSmtp">Save SMTP</button>
+          <button id="testSmtp" class="secondary">Send test email</button>
+        </div>
+      </div>
     </section>
   </main>
 </div>
@@ -545,10 +573,9 @@ async function loadPlans(){
   const plans = await api('/api/admin/plans');
   $('#plansBody').innerHTML = plans.map(p=>`
     <tr data-id="${p.id}">
-      <td><input value="${esc(p.id)}" data-k="new_id" style="width:90px"/></td>
       <td><input value="${esc(p.label)}" data-k="label"/></td>
-      <td><input type="number" value="${p.days}" data-k="days"/></td>
-      <td><input type="number" value="${p.price}" data-k="price"/></td>
+      <td><input type="number" value="${p.days}" data-k="days" min="1"/></td>
+      <td><input type="number" value="${p.price}" data-k="price" min="0"/></td>
       <td><input type="checkbox" data-k="enabled" ${p.enabled?'checked':''} style="width:auto"/></td>
     </tr>`).join('');
 }
@@ -808,7 +835,44 @@ async function loadSettings(){
   $('#ss_boosting').checked = !!s.show_boosting;
   $('#ss_jepfx').checked   = !!s.show_jepfx;
   $('#ss_module').checked  = !!s.show_module;
+  // SMTP
+  try {
+    const sm = await api('/api/admin/smtp');
+    $('#smtp_host').value = sm.host || '';
+    $('#smtp_port').value = sm.port || 587;
+    $('#smtp_user').value = sm.user || '';
+    $('#smtp_pass').value = sm.pass || '';
+    $('#smtp_from_email').value = sm.from_email || '';
+    $('#smtp_from_name').value = sm.from_name || 'N4XCO Shop';
+    $('#smtp_admin_email').value = sm.admin_email || '';
+    $('#smtp_secure').checked = !!sm.secure;
+    $('#smtp_enabled').checked = !!sm.enabled;
+  } catch(e){}
 }
+$('#saveSmtp').onclick = async () => {
+  try {
+    await api('/api/admin/smtp',{method:'POST',body:{
+      host:$('#smtp_host').value.trim(),
+      port:parseInt($('#smtp_port').value)||587,
+      secure:$('#smtp_secure').checked,
+      user:$('#smtp_user').value.trim(),
+      pass:$('#smtp_pass').value,
+      from_email:$('#smtp_from_email').value.trim(),
+      from_name:$('#smtp_from_name').value.trim(),
+      admin_email:$('#smtp_admin_email').value.trim(),
+      enabled:$('#smtp_enabled').checked
+    }});
+    toast('SMTP saved');
+    loadSettings();
+  } catch(e){ toast(e.message,'bad'); }
+};
+$('#testSmtp').onclick = async () => {
+  const to = prompt('Send test email to (leave blank to use admin email):','') || '';
+  try {
+    const r = await api('/api/admin/smtp/test',{method:'POST',body:{ to: to.trim() }});
+    toast(r.message || 'Sent');
+  } catch(e){ toast(e.message,'bad'); }
+};
 $('#saveApk').onclick = async () => {
   try{
     await api('/api/admin/apk',{method:'POST',body:{name:$('#apk_name').value,link:$('#apk_link').value}});

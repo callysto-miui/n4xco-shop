@@ -956,6 +956,8 @@ body::after {
       <div id="registerForm" style="display:none;">
         <label class="modal-label">Username</label>
         <input type="text" id="regUser" class="modal-input" placeholder="username (min 3 chars)">
+        <label class="modal-label">Gmail address <span style="color:var(--green)">*required</span></label>
+        <input type="email" id="regEmail" class="modal-input" placeholder="you@gmail.com" required>
         <label class="modal-label">Password</label>
         <input type="password" id="regPass" class="modal-input" placeholder="password (min 6 chars)">
         <label class="modal-label">Telegram (optional)</label>
@@ -1166,14 +1168,16 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 document.getElementById('registerBtn').addEventListener('click', async () => {
   const username = document.getElementById('regUser').value.trim();
   const password = document.getElementById('regPass').value;
+  const email    = document.getElementById('regEmail').value.trim().toLowerCase();
   const telegram = document.getElementById('regTelegram').value.trim();
   const facebook = document.getElementById('regFacebook').value.trim();
-  if (!username || !password) return showErr('authError', 'Fill all required fields');
+  if (!username || !password || !email) return showErr('authError', 'Username, Gmail and password are required');
   if (username.length < 3) return showErr('authError', 'Username min 3 characters');
   if (password.length < 6) return showErr('authError', 'Password min 6 characters');
+  if (!/^[a-z0-9._%+-]+@gmail\.com$/.test(email)) return showErr('authError', 'A valid @gmail.com address is required');
   document.getElementById('registerBtn').disabled = true;
   try {
-    const res = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password, telegram, facebook }) });
+    const res = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password, email, telegram, facebook }) });
     const data = await res.json();
     if (!res.ok) { showErr('authError', data.message || 'Registration failed'); return; }
     userToken = data.token; userName = data.username; userBalance = data.balance;
