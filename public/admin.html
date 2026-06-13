@@ -378,29 +378,20 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
       </div>
 
       <div class="card">
-        <h2>📧 SMTP — Email notifications</h2>
-        <small class="dim">Used to email <b>you</b> when a user submits a deposit, and to email the <b>user's Gmail</b> when you approve or decline. For Gmail: host <code>smtp.gmail.com</code>, port <code>465</code> + secure ✓, and use a Google <b>App Password</b> (not your account password).</small>
+        <h2>📧 Email notifications (Gmail)</h2>
+        <small class="dim">Simple setup. Enter your Gmail, a Google <b>App Password</b> (<a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#22c55e">get one here</a> — your normal password will NOT work), and the email where you want deposit alerts.</small>
         <div class="row cols-2" style="margin-top:10px">
-          <div><label>SMTP Host</label><input id="smtp_host" placeholder="smtp.gmail.com"/></div>
-          <div><label>Port</label><input id="smtp_port" type="number" placeholder="465"/></div>
+          <div><label>Your Gmail</label><input id="smtp_user" placeholder="you@gmail.com"/></div>
+          <div><label>Google App Password (16 chars)</label><input id="smtp_pass" type="password" placeholder="xxxx xxxx xxxx xxxx"/></div>
         </div>
         <div class="row cols-2">
-          <div><label>SMTP Username</label><input id="smtp_user" placeholder="you@gmail.com"/></div>
-          <div><label>SMTP Password / App Password</label><input id="smtp_pass" type="password" placeholder="••••••••"/></div>
-        </div>
-        <div class="row cols-2">
-          <div><label>From email</label><input id="smtp_from_email" placeholder="you@gmail.com"/></div>
-          <div><label>From name</label><input id="smtp_from_name" placeholder="N4XCO Shop"/></div>
-        </div>
-        <div class="row cols-2">
-          <div><label>Admin notification email (gets deposit alerts)</label><input id="smtp_admin_email" placeholder="admin@example.com"/></div>
+          <div><label>Admin email (where deposit alerts go)</label><input id="smtp_admin_email" placeholder="admin@example.com"/></div>
           <div style="display:flex;align-items:end;gap:14px">
-            <label><input type="checkbox" id="smtp_secure" style="width:auto"> Use SSL (port 465)</label>
             <label><input type="checkbox" id="smtp_enabled" style="width:auto"> Enable email sending</label>
           </div>
         </div>
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-          <button id="saveSmtp">Save SMTP</button>
+          <button id="saveSmtp">Save</button>
           <button id="testSmtp" class="secondary">Send test email</button>
         </div>
       </div>
@@ -835,34 +826,26 @@ async function loadSettings(){
   $('#ss_boosting').checked = !!s.show_boosting;
   $('#ss_jepfx').checked   = !!s.show_jepfx;
   $('#ss_module').checked  = !!s.show_module;
-  // SMTP
+  // Email
   try {
     const sm = await api('/api/admin/smtp');
-    $('#smtp_host').value = sm.host || '';
-    $('#smtp_port').value = sm.port || 587;
     $('#smtp_user').value = sm.user || '';
     $('#smtp_pass').value = sm.pass || '';
-    $('#smtp_from_email').value = sm.from_email || '';
-    $('#smtp_from_name').value = sm.from_name || 'N4XCO Shop';
     $('#smtp_admin_email').value = sm.admin_email || '';
-    $('#smtp_secure').checked = !!sm.secure;
     $('#smtp_enabled').checked = !!sm.enabled;
   } catch(e){}
 }
 $('#saveSmtp').onclick = async () => {
   try {
+    const user = $('#smtp_user').value.trim();
     await api('/api/admin/smtp',{method:'POST',body:{
-      host:$('#smtp_host').value.trim(),
-      port:parseInt($('#smtp_port').value)||587,
-      secure:$('#smtp_secure').checked,
-      user:$('#smtp_user').value.trim(),
-      pass:$('#smtp_pass').value,
-      from_email:$('#smtp_from_email').value.trim(),
-      from_name:$('#smtp_from_name').value.trim(),
+      host:'smtp.gmail.com', port:465, secure:true,
+      user, pass:$('#smtp_pass').value,
+      from_email:user, from_name:'N4XCO Shop',
       admin_email:$('#smtp_admin_email').value.trim(),
       enabled:$('#smtp_enabled').checked
     }});
-    toast('SMTP saved');
+    toast('Email settings saved');
     loadSettings();
   } catch(e){ toast(e.message,'bad'); }
 };
