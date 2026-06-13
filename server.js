@@ -3,10 +3,43 @@ const session = require('express-session');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
 const db = require('./database.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ─── Email helper ─────────────────────────────────────────────────────────────
+async function getMailer() {
+  const s = await db.getSmtpSettings();
+  if (!s || !s.enabled || !s.host || !s.user || !s.pass) return null;
+  const transporter = nodemailer.createTransport({
+    host: s.host,
+    port: s.port || 587,
+    secure: !!s.secure, // true for 465, false for 587/STARTTLS
+    auth: { user: s.user, pass: s.pass }
+  });
+  return { transporter, from: `"${s.from_name || 'N4XCO Shop'}" <${s.from_email || s.user}>`, admin: s.admin_email };
+}
+
+async function sendMail({ to, subject, text, html }) {
+  try {
+    const m = await getMailer();
+    if (!m || !to) return false;
+    await m.transporter.sendMail({ from: m.from, to, subject, text, html });
+    return true;
+  } catch (e) {
+    console.error('sendMail error:', e.message);
+    return false;
+  }
+}
+
+async function notifyAdmin({ subject, text, html }) {
+  const m = await getMailer();
+  if (!m || !m.admin) return false;
+  return sendMail({ to: m.admin, subject, text, html });
+}
+
 
 // ─── Multer for uploads ───────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
@@ -126,12 +159,17 @@ app.post('/api/promo/validate', async (req, res) => {
 
 // ─── User Register ─────────────────────────────────────────────────────────────
 app.post('/api/register', async (req, res) => {
-  const { username, password, telegram, facebook } = req.body;
+  const { username, password, email, telegram, facebook } = req.body;
   if (!username || !password) return res.status(400).json({ success: false, message: 'Username and password required' });
   if (username.length < 3) return res.status(400).json({ success: false, message: 'Username must be at least 3 characters' });
   if (password.length < 6) return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+  const gmail = (email || '').trim().toLowerCase();
+  if (!gmail) return res.status(400).json({ success: false, message: 'Gmail address is required' });
+  if (!/^[a-z0-9._%+-]+@gmail\.com$/.test(gmail)) {
+    return res.status(400).json({ success: false, message: 'A valid @gmail.com address is required' });
+  }
   try {
-    await db.createUser(username, password, '', telegram || '', facebook || '', 'user');
+    await db.createUser(username, password, gmail, telegram || '', facebook || '', 'user');
     const token = await db.createToken(username);
     const user = await db.getUser(username);
     res.json({ success: true, token, username, role: 'user', balance: user.balance });
@@ -279,6 +317,32 @@ app.post('/api/deposit', requireUser, (req, res) => {
         notes: notes || '',
         screenshot: screenshotPath
       });
+      // Notify admin via email (non-blocking)
+      notifyAdmin({
+        subject: `💰 New deposit request — ${referenceId}`,
+        text:
+`A new deposit request was submitted.
+
+Reference: ${referenceId}
+User: ${req.sessionUser}
+Amount: ₱${depositAmount}
+Telegram: ${telegram}
+Facebook: ${facebook}
+Last 4 digits: ${last4_digits}
+Notes: ${notes || '(none)'}
+Screenshot: ${screenshotPath || '(none)'}
+
+Open the admin panel to approve or reject.`,
+        html: `<h2>New deposit request</h2>
+<p><b>Reference:</b> ${referenceId}<br/>
+<b>User:</b> ${req.sessionUser}<br/>
+<b>Amount:</b> ₱${depositAmount}<br/>
+<b>Telegram:</b> ${telegram}<br/>
+<b>Facebook:</b> ${facebook}<br/>
+<b>Last 4 digits:</b> ${last4_digits}<br/>
+<b>Notes:</b> ${notes || '(none)'}</p>
+<p>Open the admin panel to approve or reject this deposit.</p>`
+      }).catch(()=>{});
       res.json({ success: true, message: 'Deposit request submitted! Admin will review and add credits.', referenceId });
     } catch (err) {
       console.error('Deposit error:', err);
@@ -509,10 +573,41 @@ app.get('/api/admin/deposits', requireAdmin, async (req, res) => {
   }
 });
 
+async function emailUserAboutDeposit(depositId, status, adminNotes) {
+  try {
+    const dep = await db.getDeposit(depositId);
+    if (!dep) return;
+    const user = await db.getUser(dep.username);
+    if (!user || !user.email) return;
+    const approved = status === 'approved';
+    const subject = approved
+      ? `✅ Your deposit ${dep.reference_id} was approved`
+      : `❌ Your deposit ${dep.reference_id} was declined`;
+    const body = approved
+      ? `Hi ${user.username},
+
+Good news — your deposit of ₱${dep.amount} (ref ${dep.reference_id}) has been approved and credited to your N4XCO Shop balance.
+
+${adminNotes ? 'Admin note: ' + adminNotes + '\n\n' : ''}Thanks for choosing N4XCO Shop!`
+      : `Hi ${user.username},
+
+We're sorry — your deposit request of ₱${dep.amount} (ref ${dep.reference_id}) was declined.
+
+${adminNotes ? 'Reason / note from admin: ' + adminNotes + '\n\n' : ''}If you think this is a mistake, please contact support.`;
+    sendMail({
+      to: user.email,
+      subject,
+      text: body,
+      html: `<p>${body.replace(/\n/g, '<br/>')}</p>`
+    }).catch(()=>{});
+  } catch (e) { console.error('emailUserAboutDeposit error:', e.message); }
+}
+
 app.post('/api/admin/deposits/:id/approve', requireAdmin, async (req, res) => {
   try {
     const { admin_notes } = req.body;
     await db.updateDepositStatus(req.params.id, 'approved', admin_notes || '', req.session.adminUser);
+    emailUserAboutDeposit(req.params.id, 'approved', admin_notes || '');
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -523,9 +618,56 @@ app.post('/api/admin/deposits/:id/reject', requireAdmin, async (req, res) => {
   try {
     const { admin_notes } = req.body;
     await db.updateDepositStatus(req.params.id, 'rejected', admin_notes || '', req.session.adminUser);
+    emailUserAboutDeposit(req.params.id, 'rejected', admin_notes || '');
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─── SMTP settings (admin) ────────────────────────────────────────────────────
+app.get('/api/admin/smtp', requireAdmin, async (req, res) => {
+  try {
+    const s = await db.getSmtpSettings();
+    if (s) s.pass = s.pass ? '••••••••' : '';
+    res.json(s || {});
+  } catch (e) { res.status(500).json({ error: 'Server error' }); }
+});
+
+app.post('/api/admin/smtp', requireAdmin, async (req, res) => {
+  try {
+    const cur = await db.getSmtpSettings();
+    const body = req.body || {};
+    // Preserve existing password if the form sent the masked placeholder or empty string
+    if (!body.pass || body.pass === '••••••••') body.pass = cur ? cur.pass : '';
+    await db.updateSmtpSettings(body);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('SMTP save error:', e);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.post('/api/admin/smtp/test', requireAdmin, async (req, res) => {
+  try {
+    const { to } = req.body || {};
+    const s = await db.getSmtpSettings();
+    if (!s || !s.host || !s.user || !s.pass) {
+      return res.status(400).json({ success: false, message: 'Save SMTP settings first (host, user, password required)' });
+    }
+    if (!s.enabled) return res.status(400).json({ success: false, message: 'Enable SMTP in settings first' });
+    const target = to || s.admin_email;
+    if (!target) return res.status(400).json({ success: false, message: 'Provide a recipient or set Admin email' });
+    const ok = await sendMail({
+      to: target,
+      subject: 'N4XCO Shop — SMTP test ✅',
+      text: 'This is a test message from your N4XCO Shop SMTP setup. If you can read this, sending works!'
+    });
+    if (!ok) return res.status(500).json({ success: false, message: 'Send failed — check SMTP credentials and server logs' });
+    res.json({ success: true, message: 'Test email sent to ' + target });
+  } catch (e) {
+    console.error('SMTP test error:', e);
+    res.status(500).json({ success: false, message: e.message || 'Server error' });
   }
 });
 
