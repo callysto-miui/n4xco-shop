@@ -13,11 +13,17 @@ const PORT = process.env.PORT || 3000;
 async function getMailer() {
   const s = await db.getSmtpSettings();
   if (!s || !s.enabled || !s.host || !s.user || !s.pass) return null;
+  const port = Number(s.port) || 465;
+  const secure = s.secure === undefined ? port === 465 : !!s.secure;
   const transporter = nodemailer.createTransport({
     host: s.host,
-    port: s.port || 587,
-    secure: !!s.secure, // true for 465, false for 587/STARTTLS
-    auth: { user: s.user, pass: String(s.pass||'').replace(/\s+/g,'') }
+    port,
+    secure,
+    auth: { user: s.user, pass: String(s.pass || '').replace(/\s+/g, '') },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
+    tls: { rejectUnauthorized: false }
   });
   return { transporter, from: `"${s.from_name || 'N4XCO Shop'}" <${s.from_email || s.user}>`, admin: s.admin_email };
 }
@@ -25,18 +31,18 @@ async function getMailer() {
 async function sendMail({ to, subject, text, html }) {
   try {
     const m = await getMailer();
-    if (!m || !to) return false;
-    await m.transporter.sendMail({ from: m.from, to, subject, text, html });
-    return true;
+    if (!m || !to) return { ok: false, error: !m ? 'SMTP not configured/enabled' : 'No recipient' };
+    const info = await m.transporter.sendMail({ from: m.from, to, subject, text, html });
+    return { ok: true, info };
   } catch (e) {
-    console.error('sendMail error:', e.message);
-    return false;
+    console.error('sendMail error:', e && (e.message || e));
+    return { ok: false, error: (e && e.message) || 'Unknown send error' };
   }
 }
 
 async function notifyAdmin({ subject, text, html }) {
   const m = await getMailer();
-  if (!m || !m.admin) return false;
+  if (!m || !m.admin) return { ok: false, error: 'No admin email / SMTP off' };
   return sendMail({ to: m.admin, subject, text, html });
 }
 
@@ -343,6 +349,29 @@ Open the admin panel to approve or reject.`,
 <b>Notes:</b> ${notes || '(none)'}</p>
 <p>Open the admin panel to approve or reject this deposit.</p>`
       }).catch(()=>{});
+
+      // Confirmation email to the user (non-blocking)
+      (async () => {
+        try {
+          const u = await db.getUser(req.sessionUser);
+          if (u && u.email) {
+            sendMail({
+              to: u.email,
+              subject: `🧾 Deposit received — ${referenceId}`,
+              text: `Hi ${u.username},
+
+We received your deposit request of ₱${depositAmount} (ref ${referenceId}).
+Our admin will review your payment shortly and credit your balance once approved.
+
+Thanks for choosing N4XCO Shop!`,
+              html: `<p>Hi <b>${u.username}</b>,</p>
+<p>We received your deposit request of <b>₱${depositAmount}</b> (ref <b>${referenceId}</b>).</p>
+<p>Our admin will review your payment shortly and credit your balance once approved.</p>
+<p>Thanks for choosing N4XCO Shop!</p>`
+            }).catch(()=>{});
+          }
+        } catch (_) {}
+      })();
       res.json({ success: true, message: 'Deposit request submitted! Admin will review and add credits.', referenceId });
     } catch (err) {
       console.error('Deposit error:', err);
@@ -628,18 +657,18 @@ app.post('/api/admin/deposits/:id/reject', requireAdmin, async (req, res) => {
 // ─── SMTP settings (admin) ────────────────────────────────────────────────────
 app.get('/api/admin/smtp', requireAdmin, async (req, res) => {
   try {
-    const s = await db.getSmtpSettings();
-    if (s) s.pass = s.pass ? '••••••••' : '';
-    res.json(s || {});
+    const s = (await db.getSmtpSettings()) || {};
+    // Return the password as-is (admin requested it not be hidden)
+    res.json(s);
   } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/admin/smtp', requireAdmin, async (req, res) => {
   try {
-    const cur = await db.getSmtpSettings();
+    const cur = (await db.getSmtpSettings()) || {};
     const body = req.body || {};
-    // Preserve existing password if the form sent the masked placeholder or empty string
-    if (!body.pass || body.pass === '••••••••') body.pass = cur ? cur.pass : '';
+    // If client didn't send a password, keep the existing one
+    if (body.pass === undefined || body.pass === null) body.pass = cur.pass || '';
     await db.updateSmtpSettings(body);
     res.json({ success: true });
   } catch (e) {
@@ -656,14 +685,27 @@ app.post('/api/admin/smtp/test', requireAdmin, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Save SMTP settings first (host, user, password required)' });
     }
     if (!s.enabled) return res.status(400).json({ success: false, message: 'Enable SMTP in settings first' });
-    const target = to || s.admin_email;
+    const target = (to && to.trim()) || s.admin_email;
     if (!target) return res.status(400).json({ success: false, message: 'Provide a recipient or set Admin email' });
-    const ok = await sendMail({
+
+    const m = await getMailer();
+    if (!m) return res.status(400).json({ success: false, message: 'SMTP not configured' });
+
+    // Verify first so we get a proper auth/network error fast instead of the
+    // frontend timing out with "Failed to fetch".
+    try {
+      await m.transporter.verify();
+    } catch (ve) {
+      console.error('SMTP verify failed:', ve && ve.message);
+      return res.status(500).json({ success: false, message: 'SMTP connect/auth failed: ' + (ve.message || ve) });
+    }
+
+    const result = await sendMail({
       to: target,
       subject: 'N4XCO Shop — SMTP test ✅',
       text: 'This is a test message from your N4XCO Shop SMTP setup. If you can read this, sending works!'
     });
-    if (!ok) return res.status(500).json({ success: false, message: 'Send failed — check SMTP credentials and server logs' });
+    if (!result.ok) return res.status(500).json({ success: false, message: 'Send failed: ' + (result.error || 'unknown') });
     res.json({ success: true, message: 'Test email sent to ' + target });
   } catch (e) {
     console.error('SMTP test error:', e);
