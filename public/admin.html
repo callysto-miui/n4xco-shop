@@ -394,7 +394,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
           <button id="saveTelegram">Save Telegram</button>
           <button id="testTelegram" class="secondary">Send test message</button>
+          <button id="setupWebhook" class="secondary" title="Register webhook so approve/decline buttons work in TG">🔗 Setup Approve/Decline Webhook</button>
         </div>
+        <p class="dim" style="font-size:11px;margin-top:6px">After saving your bot token, click <b>Setup Webhook</b> to enable ✅ Approve / ❌ Decline buttons on deposit notifications in Telegram.</p>
       </div>
     </section>
   </main>
@@ -856,6 +858,14 @@ $('#testTelegram').onclick = async () => {
     const r = await api('/api/admin/telegram/test',{method:'POST',body:{}});
     toast(r.message || 'Sent');
   } catch(e){ toast(e.message || 'Telegram test failed','bad'); }
+};
+$('#setupWebhook').onclick = async () => {
+  try {
+    toast('Registering webhook…');
+    const siteUrl = window.location.origin;
+    const r = await api('/api/admin/telegram/setup-webhook',{method:'POST',body:{siteUrl}});
+    toast(r.message || 'Webhook registered! Approve/Decline buttons are now active.', 'ok');
+  } catch(e){ toast(e.message || 'Webhook setup failed','bad'); }
 };
 $('#saveApk').onclick = async () => {
   try{

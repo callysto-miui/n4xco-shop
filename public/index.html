@@ -234,32 +234,34 @@ body::after {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 0;
-  border: 1px solid var(--gray-3);
+  border: 1px solid #1a2e1a;
 }
 .plan-card {
   padding: 1.5rem;
-  border-right: 1px solid var(--gray-3);
-  border-bottom: 1px solid var(--gray-3);
+  border-right: 1px solid #1a2e1a;
+  border-bottom: 1px solid #1a2e1a;
   cursor: pointer;
   transition: background 0.15s;
   position: relative;
   overflow: hidden;
+  background: #050d05;
 }
 .plan-card.disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 .plan-card.disabled .plan-buy-btn {
-  background: var(--gray-3);
-  color: var(--gray-5);
+  background: #111;
+  color: #333;
+  border-color: #1a2e1a;
   cursor: not-allowed;
 }
 .plan-card.disabled .plan-buy-btn:hover {
-  background: var(--gray-3);
-  color: var(--gray-5);
+  background: #111;
+  color: #333;
 }
 .plan-card.disabled:hover {
-  background: transparent;
+  background: #050d05;
 }
 .plan-card.disabled:hover::before {
   height: 0;
@@ -269,16 +271,16 @@ body::after {
   position: absolute;
   top: 0; left: 0;
   width: 3px; height: 0;
-  background: var(--white);
+  background: #00ff41;
   transition: height 0.25s;
 }
-.plan-card:not(.disabled):hover { background: var(--gray-1); }
+.plan-card:not(.disabled):hover { background: #0a1a0a; }
 .plan-card:not(.disabled):hover::before { height: 100%; }
 .plan-number {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 4rem;
   line-height: 1;
-  color: rgba(255,255,255,0.07);
+  color: rgba(0,255,65,0.07);
   position: absolute;
   right: 0.8rem; top: 0.5rem;
   pointer-events: none;
@@ -288,7 +290,7 @@ body::after {
 .plan-label {
   font-size: 0.6rem;
   letter-spacing: 0.2em;
-  color: var(--gray-5);
+  color: #2a5c2a;
   text-transform: uppercase;
   margin-bottom: 0.5rem;
 }
@@ -296,26 +298,26 @@ body::after {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 2.4rem;
   letter-spacing: 0.05em;
-  color: var(--white);
+  color: #00ff41;
   line-height: 1;
 }
 .plan-price-unit {
   font-family: 'Space Mono', monospace;
   font-size: 0.6rem;
-  color: var(--gray-5);
+  color: #2a5c2a;
   letter-spacing: 0.1em;
 }
 .plan-days-line {
   font-size: 0.62rem;
-  color: var(--gray-5);
+  color: #2a5c2a;
   margin: 0.6rem 0 1.2rem;
   letter-spacing: 0.05em;
 }
 .plan-buy-btn {
   width: 100%;
   background: none;
-  border: 1px solid var(--gray-3);
-  color: var(--gray-6);
+  border: 1px solid #1a4a1a;
+  color: #00cc33;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 0.88rem;
   letter-spacing: 0.15em;
@@ -323,7 +325,7 @@ body::after {
   cursor: pointer;
   transition: all 0.15s;
 }
-.plan-buy-btn:hover { background: var(--white); color: var(--black); border-color: var(--white); }
+.plan-buy-btn:hover { background: #00ff41; color: #050d05; border-color: #00ff41; }
 .services-grid {
   display: flex;
   flex-direction: column;
