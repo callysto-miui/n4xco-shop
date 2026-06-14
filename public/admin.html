@@ -407,8 +407,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
           <button id="saveTelegram">Save Telegram</button>
           <button id="testTelegram" class="secondary">Send test message</button>
           <button id="setupWebhook" class="secondary" title="Register webhook so approve/decline buttons work in TG">🔗 Setup Webhook</button>
+          <button id="deleteWebhook" class="danger" title="Disable webhook so you can use getUpdates to find new chat IDs">🔌 Disable Webhook</button>
         </div>
-        <p class="dim" style="font-size:11px;margin-top:6px">After saving, click <b>Setup Webhook</b> to enable ✅ Approve / ❌ Decline buttons on deposit notifications.</p>
+        <p class="dim" style="font-size:11px;margin-top:6px">After saving, click <b>Setup Webhook</b> to enable ✅ Approve / ❌ Decline buttons. Click <b>Disable Webhook</b> first if you need to find a new chat ID via <code>getUpdates</code>, then re-register when done.</p>
       </div>
     </section>
   </main>
@@ -909,6 +910,14 @@ $('#setupWebhook').onclick = async () => {
     const r = await api('/api/admin/telegram/setup-webhook',{method:'POST',body:{siteUrl}});
     toast(r.message || 'Webhook registered! Approve/Decline buttons are now active.', 'ok');
   } catch(e){ toast(e.message || 'Webhook setup failed','bad'); }
+};
+$('#deleteWebhook').onclick = async () => {
+  if (!confirm('Disable the webhook? Approve/Decline buttons will stop working until you re-register it. Do this only to find new chat IDs via getUpdates.')) return;
+  try {
+    toast('Disabling webhook…');
+    const r = await api('/api/admin/telegram/delete-webhook',{method:'POST',body:{}});
+    toast(r.message || 'Webhook disabled.', 'ok');
+  } catch(e){ toast(e.message || 'Failed to disable webhook','bad'); }
 };
 $('#saveApk').onclick = async () => {
   try{
