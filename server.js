@@ -712,6 +712,23 @@ app.post('/api/admin/telegram/setup-webhook', requireAdmin, async (req, res) => 
   }
 });
 
+// Remove/disable telegram webhook (needed before using getUpdates for chat IDs)
+app.post('/api/admin/telegram/delete-webhook', requireAdmin, async (req, res) => {
+  try {
+    const settings = await db.getTelegramSettings();
+    if (!settings?.bot_token) return res.status(400).json({ success: false, message: 'Bot token not set' });
+    const r = await fetch(`https://api.telegram.org/bot${settings.bot_token}/deleteWebhook`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ drop_pending_updates: false })
+    });
+    const result = await r.json().catch(() => ({}));
+    if (!result.ok) return res.status(502).json({ success: false, message: result.description || 'Failed to delete webhook' });
+    res.json({ success: true, message: 'Webhook removed. You can now use getUpdates to find chat IDs. Re-register the webhook when done.' });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 app.delete('/api/admin/deposits/:id', requireAdmin, async (req, res) => {
   try {
     await db.deleteDeposit(req.params.id);
