@@ -3,113 +3,49 @@ const session = require('express-session');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
-const nodemailer = require('nodemailer');
 const db = require('./database.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ─── Email helper ─────────────────────────────────────────────────────────────
-function cleanSmtpPassword(pass) {
-  return String(pass || '').replace(/\s+/g, '');
+// ─── Telegram notifications ──────────────────────────────────────────────────
+async function sendTelegram(text, settingsOverride) {
+  const settings = settingsOverride || await db.getTelegramSettings();
+  if (!settings?.enabled || !settings.bot_token || !settings.chat_id) return false;
+  const response = await fetch(`https://api.telegram.org/bot${settings.bot_token}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: settings.chat_id, text, disable_web_page_preview: true })
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !result.ok) throw new Error(result.description || 'Telegram rejected the message');
+  return true;
 }
 
-function smtpPort(settings) {
-  const port = parseInt(settings?.port, 10);
-  return Number.isFinite(port) ? port : 465;
+async function notifyAdmin({ subject, text }) {
+  try { return await sendTelegram(`${subject}\n\n${text}`); }
+  catch (error) { console.error('Telegram notification error:', error.message); return false; }
 }
 
-function smtpSecure(settings, port) {
-  if (settings?.secure === undefined || settings?.secure === null || settings?.secure === '') return port === 465;
-  return settings.secure === true || settings.secure === 1 || settings.secure === '1' || settings.secure === 'true';
+async function inventorySummary() {
+  const [plans, keyCounts, stockCounts, services] = await Promise.all([
+    db.getPlans(), db.getKeyCounts(), db.getServiceStockCounts(), db.getAllServices()
+  ]);
+  const keyLines = plans.map(plan => {
+    const count = keyCounts.find(item => item.plan_id === plan.id);
+    return `• ${plan.label}: ${count?.available || 0} key(s)`;
+  });
+  const stockLines = services.filter(service => service.category === 'jepfx').map(service => {
+    const count = stockCounts.find(item => item.service_id === service.id);
+    return `• ${service.title}: ${count?.available || 0} item(s)`;
+  });
+  return `🔑 Keys\n${keyLines.join('\n') || '• No plans'}\n\n📦 Service stock\n${stockLines.join('\n') || '• No stocked services'}`;
 }
 
-function smtpTransportOptions(settings, overridePort) {
-  const port = overridePort || smtpPort(settings);
-  const secure = port === 465 ? true : smtpSecure(settings, port);
-  return {
-    host: settings.host || 'smtp.gmail.com',
-    port,
-    secure,
-    auth: { user: settings.user, pass: cleanSmtpPassword(settings.pass) },
-    requireTLS: port === 587,
-    // Render's network sometimes has slow DNS / TLS handshakes to Gmail.
-    // Bump timeouts well above the defaults so the first connection succeeds.
-    connectionTimeout: 30000,
-    greetingTimeout: 30000,
-    socketTimeout: 45000,
-    pool: false,
-    // Force IPv4 — Render IPv6 routes to smtp.gmail.com occasionally hang.
-    family: 4,
-    tls: {
-      servername: settings.host || 'smtp.gmail.com',
-      rejectUnauthorized: false,
-      minVersion: 'TLSv1.2'
-    }
-  };
-}
-
-function smtpCandidates(settings) {
-  const primaryPort = smtpPort(settings);
-  const ports = [primaryPort];
-  const isGmail = /gmail/i.test(settings.host || '') || /@gmail\.com$/i.test(settings.user || '');
-  if (isGmail) {
-    if (!ports.includes(465)) ports.push(465);
-    if (!ports.includes(587)) ports.push(587);
-  }
-  return ports.map(port => smtpTransportOptions(settings, port));
-}
-
-function explainSmtpError(error, triedPorts = []) {
-  const raw = [error?.code, error?.command, error?.responseCode, error?.response, error?.message].filter(Boolean).join(' ');
-  const lower = raw.toLowerCase();
-  const tried = triedPorts.length ? ` Tried port(s): ${triedPorts.join(', ')}.` : '';
-  if (lower.includes('auth') || lower.includes('535') || lower.includes('534') || error?.code === 'EAUTH') {
-    return 'Gmail rejected the login. Use the full Gmail address and a fresh 16-character Google App Password with no spaces — not your normal Gmail password.';
-  }
-  if (lower.includes('timeout') || error?.code === 'ETIMEDOUT' || error?.code === 'ESOCKET' || error?.code === 'ECONNECTION') {
-    return `Connection timeout reaching Gmail SMTP.${tried} The code now tries Gmail 465 and 587 automatically; if this still appears, your hosting/network is blocking outbound SMTP and you need to use a host/provider that allows SMTP or an email API.`;
-  }
-  if (error?.code === 'ENOTFOUND') return 'SMTP host not found. Use smtp.gmail.com for Gmail.';
-  return error?.message || 'SMTP send failed. Check Gmail, app password, and SMTP settings.';
-}
-
-async function getMailer() {
-  const s = await db.getSmtpSettings();
-  if (!s || !s.enabled || !s.host || !s.user || !s.pass) return null;
-  return { transports: smtpCandidates(s), from: `"${s.from_name || 'N4XCO Shop'}" <${s.from_email || s.user}>`, admin: s.admin_email };
-}
-
-async function sendMail({ to, subject, text, html }) {
-  const triedPorts = [];
-  let lastError = null;
-  try {
-    const m = await getMailer();
-    if (!m || !to) return false;
-    for (const options of m.transports) {
-      triedPorts.push(options.port);
-      try {
-        const transporter = nodemailer.createTransport(options);
-        await transporter.sendMail({ from: m.from, to, subject, text, html });
-        return true;
-      } catch (e) {
-        lastError = e;
-        const msg = String(e?.message || '').toLowerCase();
-        if (e?.code === 'EAUTH' || msg.includes('auth') || msg.includes('535') || msg.includes('534')) break;
-      }
-    }
-    console.error('sendMail error:', explainSmtpError(lastError, triedPorts));
-    return false;
-  } catch (e) {
-    console.error('sendMail error:', explainSmtpError(e, triedPorts));
-    return false;
-  }
-}
-
-async function notifyAdmin({ subject, text, html }) {
-  const m = await getMailer();
-  if (!m || !m.admin) return false;
-  return sendMail({ to: m.admin, subject, text, html });
+async function sendDailyInventorySummary() {
+  const settings = await db.getTelegramSettings();
+  if (!settings?.enabled) return;
+  await sendTelegram(`📊 N4XCO daily inventory\n\n${await inventorySummary()}`, settings);
 }
 
 
@@ -244,6 +180,10 @@ app.post('/api/register', async (req, res) => {
     await db.createUser(username, password, gmail, telegram || '', facebook || '', 'user');
     const token = await db.createToken(username);
     const user = await db.getUser(username);
+    notifyAdmin({
+      subject: '👤 New user registered',
+      text: `Username: ${username}\nGmail: ${gmail}\nTelegram: ${telegram || '(none)'}\nFacebook: ${facebook || '(none)'}`
+    });
     res.json({ success: true, token, username, role: 'user', balance: user.balance });
   } catch (e) {
     if (e.message?.includes('UNIQUE')) return res.status(409).json({ success: false, message: 'Username already taken' });
@@ -356,6 +296,15 @@ app.post('/api/purchase', requireUser, async (req, res) => {
     await db.markKeyUsed(keyRow.id, orderId);
     await db.fulfillOrder(orderId, keyRow.key_val);
     if (appliedPromo) await db.incrementPromoUses(appliedPromo.id);
+    notifyAdmin({
+      subject: '🔑 Key purchased',
+      text: `Order: ${orderId}\nUser: ${req.sessionUser}\nPlan: ${plan.label}\nPaid: ₱${finalPrice}`
+    });
+    const remaining = await db.getKeyAvailable(planId);
+    const telegramSettings = await db.getTelegramSettings();
+    if (telegramSettings?.enabled && remaining <= telegramSettings.low_stock_threshold) {
+      notifyAdmin({ subject: '⚠️ Low key stock', text: `${plan.label} has ${remaining} key(s) remaining.` });
+    }
     res.json({ success: true, key: keyRow.key_val, orderId, newBalance: user.balance - finalPrice, paid: finalPrice });
   } catch (err) {
     console.error('Purchase error:', err);
@@ -389,10 +338,6 @@ app.post('/api/deposit', requireUser, (req, res) => {
         notes: notes || '',
         screenshot: screenshotPath
       });
-      // Per owner request: do NOT email the user on deposit submission or on
-      // approve/reject. Only the admin gets notified when a user deposits.
-
-      // Notify admin via email (non-blocking)
       notifyAdmin({
         subject: `💰 New deposit request — ${referenceId}`,
         text:
@@ -407,17 +352,8 @@ Last 4 digits: ${last4_digits}
 Notes: ${notes || '(none)'}
 Screenshot: ${screenshotPath || '(none)'}
 
-Open the admin panel to approve or reject.`,
-        html: `<h2>New deposit request</h2>
-<p><b>Reference:</b> ${referenceId}<br/>
-<b>User:</b> ${req.sessionUser}<br/>
-<b>Amount:</b> ₱${depositAmount}<br/>
-<b>Telegram:</b> ${telegram}<br/>
-<b>Facebook:</b> ${facebook}<br/>
-<b>Last 4 digits:</b> ${last4_digits}<br/>
-<b>Notes:</b> ${notes || '(none)'}</p>
-<p>Open the admin panel to approve or reject this deposit.</p>`
-      }).catch(()=>{});
+Open the admin panel to approve or reject.`
+      });
       res.json({ success: true, message: 'Deposit request submitted! Admin will review and add credits.', referenceId });
     } catch (err) {
       console.error('Deposit error:', err);
@@ -672,66 +608,41 @@ app.post('/api/admin/deposits/:id/reject', requireAdmin, async (req, res) => {
 });
 
 
-// ─── SMTP settings (admin) ────────────────────────────────────────────────────
-app.get('/api/admin/smtp', requireAdmin, async (req, res) => {
+// ─── Telegram settings (admin) ────────────────────────────────────────────────
+app.get('/api/admin/telegram', requireAdmin, async (req, res) => {
   try {
-    const s = await db.getSmtpSettings();
-    res.json(s || {});
+    const settings = await db.getTelegramSettings();
+    if (!settings) return res.json({});
+    res.json({ ...settings, bot_token: settings.bot_token ? '••••••••' : '' });
   } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-app.post('/api/admin/smtp', requireAdmin, async (req, res) => {
+app.post('/api/admin/telegram', requireAdmin, async (req, res) => {
   try {
-    const cur = await db.getSmtpSettings();
+    const current = await db.getTelegramSettings();
     const body = req.body || {};
-    // Preserve existing password only if the field is left empty.
-    if (!body.pass) body.pass = cur ? cur.pass : '';
-    body.host = body.host || 'smtp.gmail.com';
-    body.port = parseInt(body.port, 10) || 465;
-    body.secure = body.port === 465 ? 1 : (body.secure ? 1 : 0);
-    body.pass = cleanSmtpPassword(body.pass);
-    await db.updateSmtpSettings(body);
+    if (!body.bot_token || body.bot_token === '••••••••') body.bot_token = current?.bot_token || '';
+    if (body.enabled && (!body.bot_token || !body.chat_id)) {
+      return res.status(400).json({ success: false, message: 'Bot token and chat ID are required when Telegram is enabled' });
+    }
+    await db.updateTelegramSettings(body);
     res.json({ success: true });
   } catch (e) {
-    console.error('SMTP save error:', e);
+    console.error('Telegram save error:', e);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-app.post('/api/admin/smtp/test', requireAdmin, async (req, res) => {
+app.post('/api/admin/telegram/test', requireAdmin, async (req, res) => {
   try {
-    const { to } = req.body || {};
-    const s = await db.getSmtpSettings();
-    if (!s || !s.host || !s.user || !s.pass) {
-      return res.status(400).json({ success: false, message: 'Save SMTP settings first (host, user, password required)' });
-    }
-    if (!s.enabled) return res.status(400).json({ success: false, message: 'Enable SMTP in settings first' });
-    const target = to || s.admin_email;
-    if (!target) return res.status(400).json({ success: false, message: 'Provide a recipient or set Admin email' });
-    const triedPorts = [];
-    let lastError = null;
-    for (const options of smtpCandidates(s)) {
-      triedPorts.push(options.port);
-      try {
-        const transporter = nodemailer.createTransport(options);
-        await transporter.verify();
-        await transporter.sendMail({
-          from: `"${s.from_name || 'N4XCO Shop'}" <${s.from_email || s.user}>`,
-          to: target,
-          subject: 'N4XCO Shop — SMTP test ✅',
-          text: 'This is a test message from your N4XCO Shop SMTP setup. If you can read this, sending works!'
-        });
-        return res.json({ success: true, message: `Test email sent to ${target} using Gmail SMTP port ${options.port}` });
-      } catch (e) {
-        lastError = e;
-        const msg = String(e?.message || '').toLowerCase();
-        if (e?.code === 'EAUTH' || msg.includes('auth') || msg.includes('535') || msg.includes('534')) break;
-      }
-    }
-    res.status(500).json({ success: false, message: explainSmtpError(lastError, triedPorts), details: lastError?.message || '' });
+    const settings = await db.getTelegramSettings();
+    if (!settings?.bot_token || !settings.chat_id) return res.status(400).json({ success: false, message: 'Save a bot token and chat ID first' });
+    if (!settings.enabled) return res.status(400).json({ success: false, message: 'Enable Telegram notifications first' });
+    await sendTelegram('✅ N4XCO Shop Telegram notifications are working.', settings);
+    res.json({ success: true, message: 'Test message sent to Telegram' });
   } catch (e) {
-    console.error('SMTP test error:', e);
-    res.status(500).json({ success: false, message: explainSmtpError(e), details: e.message || '' });
+    console.error('Telegram test error:', e);
+    res.status(502).json({ success: false, message: e.message || 'Telegram test failed' });
   }
 });
 
@@ -965,6 +876,18 @@ app.post('/api/service/purchase', requireUser, async (req, res) => {
     });
     if (stockRow) await db.markServiceStockUsed(stockRow.id, orderId);
     if (appliedPromo) await db.incrementPromoUses(appliedPromo.id);
+    notifyAdmin({
+      subject: '🛒 Service purchased',
+      text: `Order: ${orderId}\nUser: ${req.sessionUser}\nService: ${svc.title}\nPaid: ₱${finalPrice}\nTelegram: ${telegram || '(none)'}\nFacebook: ${facebook || '(none)'}`
+    });
+    if (stockRow) {
+      const counts = await db.getServiceStockCounts();
+      const remaining = counts.find(item => item.service_id === svc.id)?.available || 0;
+      const telegramSettings = await db.getTelegramSettings();
+      if (telegramSettings?.enabled && remaining <= telegramSettings.low_stock_threshold) {
+        notifyAdmin({ subject: '⚠️ Low service stock', text: `${svc.title} has ${remaining} item(s) remaining.` });
+      }
+    }
 
     res.json({
       success: true, orderId,
@@ -1027,14 +950,32 @@ app.get('/api/admin/categories', requireAdmin, async (req, res) => {
 app.post('/api/admin/categories', requireAdmin, async (req, res) => {
   try {
     const b = req.body || {};
-    if (!b.key || !b.name) return res.status(400).json({success:false,message:'key and name required'});
+    b.key = String(b.key || '').trim().toLowerCase();
+    b.name = String(b.name || '').trim();
+    if (!b.key || !b.name) return res.status(400).json({success:false,message:'Key and name are required'});
+    if (!/^[a-z0-9_-]+$/.test(b.key)) return res.status(400).json({success:false,message:'Key can only contain lowercase letters, numbers, dashes, and underscores'});
     await db.createCategory(b);
     res.json({success:true});
-  } catch(e){ res.status(500).json({success:false,message:'Server error (key may already exist)'}); }
+  } catch(e){
+    if (String(e.message).includes('UNIQUE')) return res.status(409).json({success:false,message:'That category key already exists'});
+    console.error('Create category error:', e);
+    res.status(500).json({success:false,message:'Could not add category'});
+  }
 });
 app.put('/api/admin/categories/:id', requireAdmin, async (req, res) => {
-  try { await db.updateCategory(req.params.id, req.body||{}); res.json({success:true}); }
-  catch(e){ res.status(500).json({success:false,message:'Server error'}); }
+  try {
+    const b = req.body || {};
+    b.key = String(b.key || '').trim().toLowerCase();
+    b.name = String(b.name || '').trim();
+    if (!b.key || !b.name) return res.status(400).json({success:false,message:'Key and name are required'});
+    if (!/^[a-z0-9_-]+$/.test(b.key)) return res.status(400).json({success:false,message:'Invalid category key'});
+    const result = await db.updateCategory(req.params.id, b);
+    if (!result.changes) return res.status(404).json({success:false,message:'Category not found'});
+    res.json({success:true});
+  } catch(e){
+    if (String(e.message).includes('UNIQUE')) return res.status(409).json({success:false,message:'That category key already exists'});
+    res.status(500).json({success:false,message:'Could not update category'});
+  }
 });
 app.delete('/api/admin/categories/:id', requireAdmin, async (req, res) => {
   try { await db.deleteCategory(req.params.id); res.json({success:true}); }
@@ -1076,6 +1017,19 @@ h1{font-size:6rem;margin:0;letter-spacing:.1em}p{color:#888;margin:.5rem 0 1.5re
 a{color:#0af;text-decoration:none;border:1px solid #0af;padding:.6rem 1.2rem;letter-spacing:.1em;text-transform:uppercase;font-size:.8rem}</style>
 </head><body><div><h1>404</h1><p>This page does not exist.</p><a href="/">Go home</a></div></body></html>`);
 });
+
+let lastSummaryDate = '';
+setInterval(async () => {
+  try {
+    const settings = await db.getTelegramSettings();
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    if (settings?.enabled && now.getHours() === settings.daily_summary_hour && lastSummaryDate !== today) {
+      await sendDailyInventorySummary();
+      lastSummaryDate = today;
+    }
+  } catch (error) { console.error('Daily inventory summary error:', error.message); }
+}, 60 * 1000);
 
 app.listen(PORT, () => console.log(`N4XCO Shop running on port ${PORT}`));
 

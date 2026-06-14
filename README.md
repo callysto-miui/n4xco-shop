@@ -33,12 +33,14 @@ In Render → Environment, add:
 | `DB_PATH` | `/data/n4xco.db` |
 | `SESSION_SECRET` | any random string |
 
-### Step 5 — Set Up PayMongo
-1. Go to Admin Panel → PayMongo Setup
-2. Paste your Live Secret Key and Public Key
-3. Go to [PayMongo Dashboard](https://dashboard.paymongo.com) → Developers → Webhooks
-4. Add webhook URL: `https://your-app.onrender.com/api/webhook/paymongo`
-5. Select event: `link.payment.paid`
+### Step 5 — Set Up Telegram Alerts
+1. Message [@BotFather](https://t.me/BotFather), run `/newbot`, and copy the bot token.
+2. Send any message to your new bot.
+3. Open `https://api.telegram.org/botYOUR_TOKEN/getUpdates` and copy `message.chat.id`.
+4. Go to **Admin → Settings → Telegram bot notifications**.
+5. Paste the token and chat ID, enable alerts, save, then send a test message.
+
+The bot alerts the admin for registrations, deposits, key purchases, service purchases, low stock, and a daily inventory summary.
 
 ---
 
@@ -54,7 +56,8 @@ URL: `https://your-app.onrender.com/admin`
 - **Key Manager** — paste unused keys per plan, view/delete pool
 - **Orders** — view all orders, manually give keys to paid orders
 - **Users** — view all registered users, add/edit/delete accounts, set roles (user/admin)
-- **PayMongo** — set GCash keys, copy webhook URL
+- **Categories** — add, edit, and delete shop/service categories
+- **Telegram** — configure and test admin notifications without SMTP
 
 ---
 

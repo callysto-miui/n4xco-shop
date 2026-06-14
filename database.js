@@ -235,21 +235,17 @@ db.serialize(() => {
   )`);
   db.run(`INSERT OR IGNORE INTO shop_settings (id) VALUES (1)`);
 
-  // SMTP settings — configured by admin so the shop can send email
-  db.run(`CREATE TABLE IF NOT EXISTS smtp_settings (
+  // Telegram bot settings — configured from the admin panel
+  db.run(`CREATE TABLE IF NOT EXISTS telegram_settings (
     id          INTEGER PRIMARY KEY,
-    host        TEXT DEFAULT '',
-    port        INTEGER DEFAULT 587,
-    secure      INTEGER DEFAULT 0,
-    user        TEXT DEFAULT '',
-    pass        TEXT DEFAULT '',
-    from_email  TEXT DEFAULT '',
-    from_name   TEXT DEFAULT 'N4XCO Shop',
-    admin_email TEXT DEFAULT '',
+    bot_token   TEXT DEFAULT '',
+    chat_id     TEXT DEFAULT '',
     enabled     INTEGER DEFAULT 0,
+    low_stock_threshold INTEGER DEFAULT 3,
+    daily_summary_hour INTEGER DEFAULT 9,
     updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
-  db.run(`INSERT OR IGNORE INTO smtp_settings (id) VALUES (1)`);
+  db.run(`INSERT OR IGNORE INTO telegram_settings (id) VALUES (1)`);
 
   // Seed default plans
   const plans = [
@@ -563,15 +559,13 @@ const dbFuncs = {
       ORDER BY sold DESC LIMIT ?`, [limit]
   ),
 
-  // ==================== SMTP SETTINGS ====================
-  getSmtpSettings: () => get('SELECT * FROM smtp_settings WHERE id=1'),
-  updateSmtpSettings: (d) => run(
-    `UPDATE smtp_settings SET host=?, port=?, secure=?, user=?, pass=?, from_email=?, from_name=?, admin_email=?, enabled=?, updated_at=CURRENT_TIMESTAMP WHERE id=1`,
-    [
-      d.host || '', parseInt(d.port) || 587, d.secure ? 1 : 0,
-      d.user || '', d.pass || '', d.from_email || '',
-      d.from_name || 'N4XCO Shop', d.admin_email || '', d.enabled ? 1 : 0
-    ]
+  // ==================== TELEGRAM SETTINGS ====================
+  getTelegramSettings: () => get('SELECT * FROM telegram_settings WHERE id=1'),
+  updateTelegramSettings: (d) => run(
+    `UPDATE telegram_settings SET bot_token=?, chat_id=?, enabled=?, low_stock_threshold=?, daily_summary_hour=?, updated_at=CURRENT_TIMESTAMP WHERE id=1`,
+    [d.bot_token || '', d.chat_id || '', d.enabled ? 1 : 0,
+      Math.max(0, parseInt(d.low_stock_threshold) || 3),
+      Math.min(23, Math.max(0, parseInt(d.daily_summary_hour) || 9))]
   ),
 };
 
