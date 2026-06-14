@@ -382,21 +382,33 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
         <small class="dim">Create a bot with <a href="https://t.me/BotFather" target="_blank" style="color:#22c55e">@BotFather</a>, send your bot a message, then open <code>https://api.telegram.org/botTOKEN/getUpdates</code> to find your chat ID.</small>
         <div class="row cols-2" style="margin-top:10px">
           <div><label>Bot token</label><input id="telegram_token" type="password" placeholder="123456789:AA..." autocomplete="off"/></div>
-          <div><label>Admin chat ID</label><input id="telegram_chat_id" placeholder="123456789 or -100..."/></div>
         </div>
-        <div class="row cols-3">
+        <div class="row cols-3" style="margin-top:6px">
           <div><label>Low stock alert at</label><input id="telegram_low_stock" type="number" min="0" value="3"/></div>
           <div><label>Daily summary hour (0–23)</label><input id="telegram_summary_hour" type="number" min="0" max="23" value="9"/></div>
           <div style="display:flex;align-items:end;gap:14px">
             <label><input type="checkbox" id="telegram_enabled" style="width:auto"> Enable Telegram alerts</label>
           </div>
         </div>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+
+        <!-- Multi-recipient manager -->
+        <div style="margin-top:14px">
+          <label style="font-size:12px;letter-spacing:.05em;color:#888">NOTIFICATION RECIPIENTS</label>
+          <div id="recipientList" style="margin-top:6px;display:flex;flex-direction:column;gap:6px"></div>
+          <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+            <input id="new_recipient_label" placeholder="Label (e.g. Owner)" style="width:140px"/>
+            <input id="new_recipient_id" placeholder="Chat ID (e.g. 123456789)" style="width:180px"/>
+            <button id="addRecipient" class="secondary">+ Add</button>
+          </div>
+          <p class="dim" style="font-size:11px;margin-top:4px">Add as many admins/users as you want — all will receive deposit alerts with Approve/Decline buttons.</p>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
           <button id="saveTelegram">Save Telegram</button>
           <button id="testTelegram" class="secondary">Send test message</button>
-          <button id="setupWebhook" class="secondary" title="Register webhook so approve/decline buttons work in TG">🔗 Setup Approve/Decline Webhook</button>
+          <button id="setupWebhook" class="secondary" title="Register webhook so approve/decline buttons work in TG">🔗 Setup Webhook</button>
         </div>
-        <p class="dim" style="font-size:11px;margin-top:6px">After saving your bot token, click <b>Setup Webhook</b> to enable ✅ Approve / ❌ Decline buttons on deposit notifications in Telegram.</p>
+        <p class="dim" style="font-size:11px;margin-top:6px">After saving, click <b>Setup Webhook</b> to enable ✅ Approve / ❌ Decline buttons on deposit notifications.</p>
       </div>
     </section>
   </main>
@@ -820,6 +832,24 @@ window.delStock = async id => { if(!confirm('Delete link?'))return; await api('/
 
 
 // ───── SETTINGS ─────
+let _tgRecipients = []; // [{label, id}]
+
+function renderRecipients() {
+  const list = document.getElementById('recipientList');
+  if (!list) return;
+  if (!_tgRecipients.length) {
+    list.innerHTML = '<small class="dim">No recipients yet. Add at least one chat ID below.</small>';
+    return;
+  }
+  list.innerHTML = _tgRecipients.map((r, i) => `
+    <div style="display:flex;align-items:center;gap:8px;background:#111;padding:6px 10px;border:1px solid #222;border-radius:4px">
+      <span style="font-size:12px;color:#888;min-width:90px">${esc(r.label)}</span>
+      <code style="font-size:12px;flex:1;color:#ccc">${esc(r.id)}</code>
+      <button class="danger" style="padding:2px 10px;font-size:11px" onclick="removeRecipient(${i})">✕</button>
+    </div>`).join('');
+}
+window.removeRecipient = (i) => { _tgRecipients.splice(i, 1); renderRecipients(); };
+
 async function loadSettings(){
   const d = await api('/api/admin/data');
   $('#apk_name').value = d.apk?.name || '';
@@ -833,17 +863,30 @@ async function loadSettings(){
   try {
     const tg = await api('/api/admin/telegram');
     $('#telegram_token').value = tg.bot_token || '';
-    $('#telegram_chat_id').value = tg.chat_id || '';
     $('#telegram_low_stock').value = tg.low_stock_threshold ?? 3;
     $('#telegram_summary_hour').value = tg.daily_summary_hour ?? 9;
     $('#telegram_enabled').checked = !!tg.enabled;
+    _tgRecipients = Array.isArray(tg.recipients) ? tg.recipients : [];
+    renderRecipients();
   } catch(e){}
 }
+
+document.getElementById('addRecipient').onclick = () => {
+  const label = $('#new_recipient_label').value.trim() || 'Admin';
+  const id = $('#new_recipient_id').value.trim();
+  if (!id) { toast('Enter a chat ID','bad'); return; }
+  if (_tgRecipients.find(r => r.id === id)) { toast('That chat ID is already added','bad'); return; }
+  _tgRecipients.push({ label, id });
+  $('#new_recipient_label').value = '';
+  $('#new_recipient_id').value = '';
+  renderRecipients();
+};
+
 $('#saveTelegram').onclick = async () => {
   try {
     await api('/api/admin/telegram',{method:'POST',body:{
       bot_token:$('#telegram_token').value.trim(),
-      chat_id:$('#telegram_chat_id').value.trim(),
+      recipients: _tgRecipients,
       low_stock_threshold:parseInt($('#telegram_low_stock').value)||0,
       daily_summary_hour:parseInt($('#telegram_summary_hour').value)||0,
       enabled:$('#telegram_enabled').checked
