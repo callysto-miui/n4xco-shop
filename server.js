@@ -9,17 +9,18 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ─── Telegram notifications ──────────────────────────────────────────────────
-async function sendTelegram(text, settingsOverride) {
+async function sendTelegram(text, settingsOverride, extra = {}) {
   const settings = settingsOverride || await db.getTelegramSettings();
-  if (!settings?.enabled || !settings.bot_token || !settings.chat_id) return false;
+  if (!settings?.enabled || !settings.bot_token || !settings.chat_id) return null;
+  const payload = { chat_id: settings.chat_id, text, disable_web_page_preview: true, ...extra };
   const response = await fetch(`https://api.telegram.org/bot${settings.bot_token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: settings.chat_id, text, disable_web_page_preview: true })
+    body: JSON.stringify(payload)
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok || !result.ok) throw new Error(result.description || 'Telegram rejected the message');
-  return true;
+  return result;
 }
 
 async function notifyAdmin({ subject, text }) {
@@ -338,22 +339,36 @@ app.post('/api/deposit', requireUser, (req, res) => {
         notes: notes || '',
         screenshot: screenshotPath
       });
-      notifyAdmin({
-        subject: `💰 New deposit request — ${referenceId}`,
-        text:
-`A new deposit request was submitted.
+      // Send deposit notification with inline approve/decline buttons
+      try {
+        const tgSettings = await db.getTelegramSettings();
+        if (tgSettings?.enabled && tgSettings.bot_token && tgSettings.chat_id) {
+          const msgText = `💰 New deposit request — ${referenceId}
 
-Reference: ${referenceId}
 User: ${req.sessionUser}
 Amount: ₱${depositAmount}
 Telegram: ${telegram}
 Facebook: ${facebook}
 Last 4 digits: ${last4_digits}
 Notes: ${notes || '(none)'}
-Screenshot: ${screenshotPath || '(none)'}
-
-Open the admin panel to approve or reject.`
-      });
+Screenshot: ${screenshotPath || '(none)'}`;
+          const allDeposits = await db.getDeposits();
+          const dep = allDeposits.find(d => d.reference_id === referenceId);
+          const depId = dep ? dep.id : null;
+          if (depId) {
+            await sendTelegram(msgText, tgSettings, {
+              reply_markup: { inline_keyboard: [[
+                { text: '✅ Approve', callback_data: `dep_approve_${depId}` },
+                { text: '❌ Decline', callback_data: `dep_decline_${depId}` }
+              ]]}
+            });
+          } else {
+            await sendTelegram(msgText, tgSettings);
+          }
+        }
+      } catch (tgErr) {
+        console.error('Telegram deposit notify error:', tgErr.message);
+      }
       res.json({ success: true, message: 'Deposit request submitted! Admin will review and add credits.', referenceId });
     } catch (err) {
       console.error('Deposit error:', err);
@@ -643,6 +658,25 @@ app.post('/api/admin/telegram/test', requireAdmin, async (req, res) => {
   } catch (e) {
     console.error('Telegram test error:', e);
     res.status(502).json({ success: false, message: e.message || 'Telegram test failed' });
+  }
+});
+
+// Register telegram webhook so approve/decline buttons work
+app.post('/api/admin/telegram/setup-webhook', requireAdmin, async (req, res) => {
+  try {
+    const settings = await db.getTelegramSettings();
+    if (!settings?.bot_token) return res.status(400).json({ success: false, message: 'Bot token not set' });
+    const { siteUrl } = req.body || {};
+    const webhookUrl = (siteUrl || `${req.protocol}://${req.get('host')}`) + '/api/telegram/webhook';
+    const r = await fetch(`https://api.telegram.org/bot${settings.bot_token}/setWebhook`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: webhookUrl })
+    });
+    const result = await r.json().catch(() => ({}));
+    if (!result.ok) return res.status(502).json({ success: false, message: result.description || 'Failed to set webhook' });
+    res.json({ success: true, message: `Webhook registered: ${webhookUrl}` });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
   }
 });
 
@@ -1005,6 +1039,52 @@ app.delete('/api/admin/tiers/:id', requireAdmin, async (req, res) => {
 });
 
 
+
+// ─── Telegram Webhook (inline button callbacks for deposit approve/decline) ────
+app.post('/api/telegram/webhook', express.json(), async (req, res) => {
+  res.sendStatus(200); // always ack fast
+  try {
+    const update = req.body;
+    if (!update?.callback_query) return;
+    const cb = update.callback_query;
+    const data = cb.data || '';
+    const settings = await db.getTelegramSettings();
+    if (!settings?.enabled || !settings.bot_token) return;
+
+    const answerCallback = async (text) => {
+      await fetch(`https://api.telegram.org/bot${settings.bot_token}/answerCallbackQuery`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callback_query_id: cb.id, text, show_alert: false })
+      });
+    };
+    const editMessage = async (text) => {
+      await fetch(`https://api.telegram.org/bot${settings.bot_token}/editMessageText`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: cb.message.chat.id,
+          message_id: cb.message.message_id,
+          text, reply_markup: { inline_keyboard: [] }
+        })
+      });
+    };
+
+    if (data.startsWith('dep_approve_')) {
+      const id = data.replace('dep_approve_', '');
+      await db.updateDepositStatus(id, 'approved', 'Approved via Telegram', 'telegram-bot');
+      await answerCallback('✅ Deposit approved!');
+      const origText = cb.message?.text || '';
+      await editMessage(origText + '\n\n✅ APPROVED via Telegram');
+    } else if (data.startsWith('dep_decline_')) {
+      const id = data.replace('dep_decline_', '');
+      await db.updateDepositStatus(id, 'rejected', 'Declined via Telegram', 'telegram-bot');
+      await answerCallback('❌ Deposit declined.');
+      const origText = cb.message?.text || '';
+      await editMessage(origText + '\n\n❌ DECLINED via Telegram');
+    }
+  } catch (e) {
+    console.error('TG webhook error:', e.message);
+  }
+});
 
 // 404 fallback
 app.use((req, res) => {
