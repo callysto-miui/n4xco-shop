@@ -9,11 +9,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ─── Telegram notifications ──────────────────────────────────────────────────
-async function sendTelegram(text, settingsOverride, extra = {}) {
-  const settings = settingsOverride || await db.getTelegramSettings();
-  if (!settings?.enabled || !settings.bot_token || !settings.chat_id) return null;
-  const payload = { chat_id: settings.chat_id, text, disable_web_page_preview: true, ...extra };
-  const response = await fetch(`https://api.telegram.org/bot${settings.bot_token}/sendMessage`, {
+
+// Parse chat_id field — supports legacy single ID string or JSON array [{label,id}]
+function parseChatIds(raw) {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.map(e => (typeof e === 'object' ? e : { label: String(e), id: String(e) }));
+  } catch (_) {}
+  // Legacy: plain string
+  return [{ label: 'Admin', id: String(raw).trim() }];
+}
+
+async function sendTelegramToId(chatId, text, botToken, extra = {}) {
+  const payload = { chat_id: chatId, text, disable_web_page_preview: true, ...extra };
+  const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
@@ -21,6 +31,21 @@ async function sendTelegram(text, settingsOverride, extra = {}) {
   const result = await response.json().catch(() => ({}));
   if (!response.ok || !result.ok) throw new Error(result.description || 'Telegram rejected the message');
   return result;
+}
+
+// Send to ALL configured chat IDs; returns array of results
+async function sendTelegram(text, settingsOverride, extra = {}) {
+  const settings = settingsOverride || await db.getTelegramSettings();
+  if (!settings?.enabled || !settings.bot_token || !settings.chat_id) return null;
+  const recipients = parseChatIds(settings.chat_id);
+  if (!recipients.length) return null;
+  const results = await Promise.allSettled(
+    recipients.map(r => sendTelegramToId(r.id, text, settings.bot_token, extra))
+  );
+  // Return first successful result (for backward compat)
+  const first = results.find(r => r.status === 'fulfilled');
+  if (!first) throw new Error(results.map(r => r.reason?.message).join('; '));
+  return first.value;
 }
 
 async function notifyAdmin({ subject, text }) {
@@ -628,7 +653,8 @@ app.get('/api/admin/telegram', requireAdmin, async (req, res) => {
   try {
     const settings = await db.getTelegramSettings();
     if (!settings) return res.json({});
-    res.json({ ...settings, bot_token: settings.bot_token ? '••••••••' : '' });
+    const recipients = parseChatIds(settings.chat_id);
+    res.json({ ...settings, bot_token: settings.bot_token ? '••••••••' : '', recipients });
   } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
@@ -637,8 +663,14 @@ app.post('/api/admin/telegram', requireAdmin, async (req, res) => {
     const current = await db.getTelegramSettings();
     const body = req.body || {};
     if (!body.bot_token || body.bot_token === '••••••••') body.bot_token = current?.bot_token || '';
-    if (body.enabled && (!body.bot_token || !body.chat_id)) {
-      return res.status(400).json({ success: false, message: 'Bot token and chat ID are required when Telegram is enabled' });
+    // Accept recipients array [{label, id}, ...] and store as JSON in chat_id column
+    if (Array.isArray(body.recipients)) {
+      const cleaned = body.recipients.filter(r => r.id && String(r.id).trim());
+      body.chat_id = JSON.stringify(cleaned.map(r => ({ label: r.label || 'Admin', id: String(r.id).trim() })));
+    }
+    const hasRecipients = parseChatIds(body.chat_id).length > 0;
+    if (body.enabled && (!body.bot_token || !hasRecipients)) {
+      return res.status(400).json({ success: false, message: 'Bot token and at least one chat ID are required when Telegram is enabled' });
     }
     await db.updateTelegramSettings(body);
     res.json({ success: true });
