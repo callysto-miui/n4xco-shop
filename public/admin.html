@@ -378,21 +378,22 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
       </div>
 
       <div class="card">
-        <h2>📧 Email notifications (Gmail)</h2>
-        <small class="dim">Simple setup. Enter your Gmail, a Google <b>App Password</b> (<a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#22c55e">get one here</a> — your normal password will NOT work), and the email where you want deposit alerts.</small>
+        <h2>🤖 Telegram bot notifications</h2>
+        <small class="dim">Create a bot with <a href="https://t.me/BotFather" target="_blank" style="color:#22c55e">@BotFather</a>, send your bot a message, then open <code>https://api.telegram.org/botTOKEN/getUpdates</code> to find your chat ID.</small>
         <div class="row cols-2" style="margin-top:10px">
-          <div><label>Your Gmail</label><input id="smtp_user" placeholder="you@gmail.com"/></div>
-          <div><label>Google App Password (16 chars)</label><input id="smtp_pass" type="text" placeholder="xxxx xxxx xxxx xxxx"/></div>
+          <div><label>Bot token</label><input id="telegram_token" type="password" placeholder="123456789:AA..." autocomplete="off"/></div>
+          <div><label>Admin chat ID</label><input id="telegram_chat_id" placeholder="123456789 or -100..."/></div>
         </div>
-        <div class="row cols-2">
-          <div><label>Admin email (where deposit alerts go)</label><input id="smtp_admin_email" placeholder="admin@example.com"/></div>
+        <div class="row cols-3">
+          <div><label>Low stock alert at</label><input id="telegram_low_stock" type="number" min="0" value="3"/></div>
+          <div><label>Daily summary hour (0–23)</label><input id="telegram_summary_hour" type="number" min="0" max="23" value="9"/></div>
           <div style="display:flex;align-items:end;gap:14px">
-            <label><input type="checkbox" id="smtp_enabled" style="width:auto"> Enable email sending</label>
+            <label><input type="checkbox" id="telegram_enabled" style="width:auto"> Enable Telegram alerts</label>
           </div>
         </div>
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-          <button id="saveSmtp">Save</button>
-          <button id="testSmtp" class="secondary">Send test email</button>
+          <button id="saveTelegram">Save Telegram</button>
+          <button id="testTelegram" class="secondary">Send test message</button>
         </div>
       </div>
     </section>
@@ -826,36 +827,35 @@ async function loadSettings(){
   $('#ss_boosting').checked = !!s.show_boosting;
   $('#ss_jepfx').checked   = !!s.show_jepfx;
   $('#ss_module').checked  = !!s.show_module;
-  // Email
+  // Telegram
   try {
-    const sm = await api('/api/admin/smtp');
-    $('#smtp_user').value = sm.user || '';
-    $('#smtp_pass').value = sm.pass || '';
-    $('#smtp_admin_email').value = sm.admin_email || '';
-    $('#smtp_enabled').checked = !!sm.enabled;
+    const tg = await api('/api/admin/telegram');
+    $('#telegram_token').value = tg.bot_token || '';
+    $('#telegram_chat_id').value = tg.chat_id || '';
+    $('#telegram_low_stock').value = tg.low_stock_threshold ?? 3;
+    $('#telegram_summary_hour').value = tg.daily_summary_hour ?? 9;
+    $('#telegram_enabled').checked = !!tg.enabled;
   } catch(e){}
 }
-$('#saveSmtp').onclick = async () => {
+$('#saveTelegram').onclick = async () => {
   try {
-    const user = $('#smtp_user').value.trim();
-    await api('/api/admin/smtp',{method:'POST',body:{
-      host:'smtp.gmail.com', port:465, secure:true,
-      user, pass:$('#smtp_pass').value,
-      from_email:user, from_name:'N4XCO Shop',
-      admin_email:$('#smtp_admin_email').value.trim(),
-      enabled:$('#smtp_enabled').checked
+    await api('/api/admin/telegram',{method:'POST',body:{
+      bot_token:$('#telegram_token').value.trim(),
+      chat_id:$('#telegram_chat_id').value.trim(),
+      low_stock_threshold:parseInt($('#telegram_low_stock').value)||0,
+      daily_summary_hour:parseInt($('#telegram_summary_hour').value)||0,
+      enabled:$('#telegram_enabled').checked
     }});
-    toast('Email settings saved');
+    toast('Telegram settings saved');
     loadSettings();
   } catch(e){ toast(e.message,'bad'); }
 };
-$('#testSmtp').onclick = async () => {
-  const to = prompt('Send test email to (leave blank to use admin email):','') || '';
+$('#testTelegram').onclick = async () => {
   try {
-    toast('Testing Gmail SMTP…');
-    const r = await api('/api/admin/smtp/test',{method:'POST',body:{ to: to.trim() }});
+    toast('Sending Telegram test…');
+    const r = await api('/api/admin/telegram/test',{method:'POST',body:{}});
     toast(r.message || 'Sent');
-  } catch(e){ toast(e.message || 'SMTP test failed','bad'); }
+  } catch(e){ toast(e.message || 'Telegram test failed','bad'); }
 };
 $('#saveApk').onclick = async () => {
   try{
@@ -923,11 +923,12 @@ window.editCat = (c) => {
 };
 window.delCat = async (id) => {
   if(!confirm('Delete category? Services in it will keep their key but will not render until you re-add it.')) return;
-  await api('/api/admin/categories/'+id,{method:'DELETE'}); loadCategories();
+  try { await api('/api/admin/categories/'+id,{method:'DELETE'}); toast('Category deleted'); await loadCategories(); }
+  catch(e){ toast(e.message,'bad'); }
 };
-document.addEventListener('DOMContentLoaded', () => {
-  const sv = document.getElementById('catSave');
-  if (sv) sv.onclick = async () => {
+const categorySaveButton = document.getElementById('catSave');
+if (categorySaveButton) {
+  categorySaveButton.onclick = async () => {
     const body = {
       key: $('#cat_key').value.trim().toLowerCase(),
       name: $('#cat_name').value.trim(),
@@ -940,11 +941,14 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       if(id) await api('/api/admin/categories/'+id,{method:'PUT',body});
       else   await api('/api/admin/categories',{method:'POST',body});
-      toast('Saved'); catFormReset(); loadCategories();
+      toast(id ? 'Category updated' : 'Category added'); catFormReset(); await loadCategories();
     } catch(e){ toast(e.message,'bad'); }
   };
-  const cc = document.getElementById('catClear');
-  if (cc) cc.onclick = catFormReset;
+}
+const categoryClearButton = document.getElementById('catClear');
+if (categoryClearButton) categoryClearButton.onclick = catFormReset;
+
+document.addEventListener('DOMContentLoaded', () => {
 
   // Tiers modal handler
   const tAdd = document.getElementById('tierAdd');
