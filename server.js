@@ -174,6 +174,17 @@ app.get('/api/store', async (req, res) => {
   }
 });
 
+// Public key-stock counts (no auth) so the shop shows real availability per plan
+app.get('/api/key-counts', async (req, res) => {
+  try {
+    const counts = await db.getKeyCounts();
+    res.json({ success: true, counts });
+  } catch (e) {
+    console.error('Key counts error:', e);
+    res.status(500).json({ success: false, counts: [] });
+  }
+});
+
 // Validate a promo code (public, used by checkout UI)
 app.post('/api/promo/validate', async (req, res) => {
   try {
@@ -515,9 +526,12 @@ app.post('/api/admin/deposit-settings', requireAdmin, upload.single('qr_code'), 
 // Plans
 app.get('/api/admin/plans', requireAdmin, async (req, res) => {
   try {
+    const cat = (req.query.category || '').trim();
+    if (cat) return res.json(await db.getPlansByCategory(cat));
     res.json(await db.getPlans());
   } catch (e) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Get plans error:', e);
+    res.status(500).json({ error: 'Server error', detail: e.message });
   }
 });
 
@@ -525,11 +539,49 @@ app.post('/api/admin/plans', requireAdmin, async (req, res) => {
   try {
     const { plans } = req.body;
     for (const p of plans) {
-      await db.updatePlan(p.id, { label: p.label, days: p.days, price: p.price, enabled: p.enabled });
+      await db.updatePlan(p.id, {
+        label: p.label, days: p.days, price: p.price,
+        enabled: p.enabled, category: p.category || 'android',
+      });
     }
     res.json({ success: true });
   } catch (e) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Save plans error:', e);
+    res.status(500).json({ success: false, message: 'Server error', detail: e.message });
+  }
+});
+
+// Create a single plan (used by per-category plan builder)
+app.post('/api/admin/plan', requireAdmin, async (req, res) => {
+  try {
+    const b = req.body || {};
+    const id = String(b.id || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    const label = String(b.label || '').trim();
+    const category = String(b.category || '').trim().toLowerCase();
+    if (!id || !label || !category) {
+      return res.status(400).json({ success: false, message: 'id, label and category are required' });
+    }
+    if (!/^[a-z0-9_-]+$/.test(category)) {
+      return res.status(400).json({ success: false, message: 'Invalid category key' });
+    }
+    await db.createPlan({ ...b, id, label, category });
+    res.json({ success: true, id });
+  } catch (e) {
+    if (String(e.message).includes('UNIQUE')) {
+      return res.status(409).json({ success: false, message: 'A plan with that id already exists' });
+    }
+    console.error('Create plan error:', e);
+    res.status(500).json({ success: false, message: 'Could not create plan', detail: e.message });
+  }
+});
+
+app.delete('/api/admin/plans/:id', requireAdmin, async (req, res) => {
+  try {
+    await db.deletePlan(req.params.id);
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Delete plan error:', e);
+    res.status(500).json({ success: false, message: 'Could not delete plan', detail: e.message });
   }
 });
 
@@ -1028,7 +1080,8 @@ app.get('/api/admin/service-orders', requireAdmin, async (req, res) => {
 
 // ==================== ADMIN: CATEGORIES ====================
 app.get('/api/admin/categories', requireAdmin, async (req, res) => {
-  try { res.json(await db.getCategories()); } catch(e){ res.status(500).json({error:'Server error'}); }
+  try { res.json(await db.getCategories()); }
+  catch(e){ console.error('Get categories error:', e); res.status(500).json({error:'Server error', detail:e.message}); }
 });
 app.post('/api/admin/categories', requireAdmin, async (req, res) => {
   try {
@@ -1042,7 +1095,7 @@ app.post('/api/admin/categories', requireAdmin, async (req, res) => {
   } catch(e){
     if (String(e.message).includes('UNIQUE')) return res.status(409).json({success:false,message:'That category key already exists'});
     console.error('Create category error:', e);
-    res.status(500).json({success:false,message:'Could not add category'});
+    res.status(500).json({success:false,message:'Could not add category', detail:e.message});
   }
 });
 app.put('/api/admin/categories/:id', requireAdmin, async (req, res) => {
@@ -1057,7 +1110,8 @@ app.put('/api/admin/categories/:id', requireAdmin, async (req, res) => {
     res.json({success:true});
   } catch(e){
     if (String(e.message).includes('UNIQUE')) return res.status(409).json({success:false,message:'That category key already exists'});
-    res.status(500).json({success:false,message:'Could not update category'});
+    console.error('Update category error:', e);
+    res.status(500).json({success:false,message:'Could not update category', detail:e.message});
   }
 });
 app.delete('/api/admin/categories/:id', requireAdmin, async (req, res) => {

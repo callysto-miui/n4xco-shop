@@ -44,14 +44,17 @@ db.serialize(() => {
     expires_at DATETIME NOT NULL
   )`);
 
-  // Plans table
+  // Plans table (scoped to a category so each brand has its own plans)
   db.run(`CREATE TABLE IF NOT EXISTS plans (
-    id      TEXT PRIMARY KEY,
-    label   TEXT NOT NULL,
-    days    INTEGER NOT NULL,
-    price   INTEGER NOT NULL,
-    enabled INTEGER DEFAULT 1
+    id       TEXT PRIMARY KEY,
+    label    TEXT NOT NULL,
+    days     INTEGER NOT NULL,
+    price    INTEGER NOT NULL,
+    category TEXT NOT NULL DEFAULT 'android',
+    enabled  INTEGER DEFAULT 1
   )`);
+  // Migration for existing deployments (idempotent)
+  db.run(`ALTER TABLE plans ADD COLUMN category TEXT NOT NULL DEFAULT 'android'`, () => {});
 
   // Keys pool
   db.run(`CREATE TABLE IF NOT EXISTS keys_pool (
@@ -247,19 +250,23 @@ db.serialize(() => {
   )`);
   db.run(`INSERT OR IGNORE INTO telegram_settings (id) VALUES (1)`);
 
-  // Seed default plans
+  // Seed default plans (legacy ML plans live under the "android" category)
   const plans = [
-    ['03days', '03 Days', 3, 120],
-    ['07days', '07 Days', 7, 200],
-    ['15days', '15 Days', 15, 250],
-    ['20days', '20 Days', 20, 350],
-    ['30days', '30 Days', 30, 600],
-    ['60days', '60 Days', 60, 1000],
-    ['90days', '90 Days', 90, 1300],
+    ['03days', '03 Days', 3, 120, 'android'],
+    ['07days', '07 Days', 7, 200, 'android'],
+    ['15days', '15 Days', 15, 250, 'android'],
+    ['20days', '20 Days', 20, 350, 'android'],
+    ['30days', '30 Days', 30, 600, 'android'],
+    ['60days', '60 Days', 60, 1000, 'android'],
+    ['90days', '90 Days', 90, 1300, 'android'],
   ];
-  plans.forEach(([id, label, days, price]) => {
-    db.run(`INSERT OR IGNORE INTO plans (id, label, days, price) VALUES (?,?,?,?)`, [id, label, days, price]);
+  plans.forEach(([id, label, days, price, category]) => {
+    db.run(`INSERT OR IGNORE INTO plans (id, label, days, price, category) VALUES (?,?,?,?,?)`,
+      [id, label, days, price, category]);
   });
+  // Backfill category for any pre-existing rows that were inserted before the column existed
+  db.run(`UPDATE plans SET category='android' WHERE category IS NULL OR category=''`);
+
 
   // Seed default services
   const services = [
@@ -332,13 +339,44 @@ const dbFuncs = {
 
   // ==================== PLANS ====================
   getPlans: (enabledOnly = false) => {
-    if (enabledOnly) return query('SELECT * FROM plans WHERE enabled=1 ORDER BY days ASC');
-    return query('SELECT * FROM plans ORDER BY days ASC');
+    if (enabledOnly) return query('SELECT * FROM plans WHERE enabled=1 ORDER BY category ASC, days ASC');
+    return query('SELECT * FROM plans ORDER BY category ASC, days ASC');
   },
-  updatePlan: (id, data) => run(
-    'UPDATE plans SET id=?, label=?, days=?, price=?, enabled=? WHERE id=?',
-    [data.new_id || data.id || id, data.label, data.days, data.price, data.enabled ? 1 : 0, id]
+  getPlansByCategory: (category, enabledOnly = false) => {
+    const sql = enabledOnly
+      ? 'SELECT * FROM plans WHERE category=? AND enabled=1 ORDER BY days ASC'
+      : 'SELECT * FROM plans WHERE category=? ORDER BY days ASC';
+    return query(sql, [category]);
+  },
+  getPlan: (id) => get('SELECT * FROM plans WHERE id=?', [id]),
+  createPlan: (d) => run(
+    'INSERT INTO plans (id, label, days, price, category, enabled) VALUES (?,?,?,?,?,?)',
+    [
+      String(d.id || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+      String(d.label || '').trim(),
+      parseInt(d.days) || 0,
+      parseInt(d.price) || 0,
+      String(d.category || 'android').trim().toLowerCase(),
+      d.enabled === false ? 0 : 1,
+    ]
   ),
+  updatePlan: (id, data) => run(
+    'UPDATE plans SET id=?, label=?, days=?, price=?, category=?, enabled=? WHERE id=?',
+    [
+      data.new_id || data.id || id,
+      data.label,
+      parseInt(data.days) || 0,
+      parseInt(data.price) || 0,
+      String(data.category || 'android').trim().toLowerCase(),
+      data.enabled ? 1 : 0,
+      id,
+    ]
+  ),
+  deletePlan: async (id) => {
+    // Remove associated keys first so they don't dangle
+    await run('DELETE FROM keys_pool WHERE plan_id=?', [id]);
+    return run('DELETE FROM plans WHERE id=?', [id]);
+  },
 
 
   // ==================== KEYS ====================
