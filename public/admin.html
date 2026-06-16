@@ -301,6 +301,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
           </div>
           <div><label>Sort</label><input id="cat_sort" type="number" value="10"/></div>
         </div>
+        <div class="row cols-2" style="margin-top:8px">
+          <div>
+            <label>What are you selling? (delivery type)</label>
+            <select id="cat_delivery">
+              <option value="key">🔑 Key — pre-loaded keys auto-delivered after purchase</option>
+              <option value="link">🔗 Link — pre-loaded links auto-delivered after purchase</option>
+              <option value="admin" selected>👤 Admin approval — we contact the buyer on their FB/Telegram</option>
+            </select>
+            <small class="dim" id="cat_delivery_hint">For "Admin approval" the buyer is told their order will be processed manually — no stock pool needed.</small>
+          </div>
+          <div></div>
+        </div>
         <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <label style="margin:0"><input type="checkbox" id="cat_enabled" checked style="width:auto"/> Enabled</label>
           <button id="catSave">Save category</button>
@@ -308,10 +320,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
         </div>
         <input type="hidden" id="cat_editing"/>
         <div class="scroll" style="margin-top:12px"><table>
-          <thead><tr><th>Key</th><th>Name</th><th>Target</th><th>Sort</th><th>Enabled</th><th></th></tr></thead>
+          <thead><tr><th>Key</th><th>Name</th><th>Target</th><th>Delivery</th><th>Sort</th><th>Enabled</th><th></th></tr></thead>
           <tbody id="catBody"></tbody>
         </table></div>
-        <p class="dim" style="font-size:12px;margin-top:8px">Tip: lowercase letters, numbers, dashes only for key. Use "jepfx" key to keep auto-delivery stock links behaviour.</p>
+        <p class="dim" style="font-size:12px;margin-top:8px">Tip: lowercase letters, numbers, dashes only for key. Delivery type controls how purchases in this category are fulfilled — change it any time.</p>
       </div>
       <div class="card">
         <h2>Add / Edit service</h2>
@@ -326,6 +338,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
           <div><label>Link (more info / registration)</label><input id="svc_link" placeholder="https://..."/></div>
           <div><label>Contact (FB / Telegram for delivery)</label><input id="svc_contact" placeholder="Telegram: @zekielsZ"/></div>
         </div>
+        <div id="svcDeliveryHint" class="dim" style="font-size:12px;margin:4px 0 8px;padding:8px 10px;border-left:3px solid #22c55e;background:rgba(34,197,94,.06);border-radius:4px"></div>
         <div><label>Description</label><textarea id="svc_desc" rows="3" style="width:100%"></textarea></div>
         <div class="row cols-3">
           <div><label>Order</label><input id="svc_order" type="number" value="0"/></div>
@@ -343,16 +356,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
       </table></div></div>
 
       <div class="card">
-        <h2>JEPFX stock links</h2>
-        <p class="dim" style="font-size:12px">Each link is consumed (delivered to user) on a successful JEPFX purchase.</p>
+        <h2>Stock pool · keys & links</h2>
+        <p class="dim" style="font-size:12px">Add the keys or links you want auto-delivered. One per line. Each entry is consumed on a successful purchase in any "Key" or "Link" category.</p>
         <div class="row cols-2">
-          <div><label>JEPFX service</label><select id="stk_svc"></select></div>
-          <div><label>Links (one per line)</label><textarea id="stk_vals" rows="3" style="width:100%"></textarea></div>
+          <div><label>Service</label><select id="stk_svc"></select></div>
+          <div><label>Keys / Links (one per line)</label><textarea id="stk_vals" rows="3" style="width:100%"></textarea></div>
         </div>
         <div><button id="stkAdd">Add stock</button></div>
         <div id="stkSummary" style="margin-top:10px"></div>
         <div class="scroll" style="margin-top:10px"><table>
-          <thead><tr><th>Service</th><th>Link</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th>Service</th><th>Type</th><th>Value</th><th>Status</th><th></th></tr></thead>
           <tbody id="stkBody"></tbody>
         </table></div>
       </div>
@@ -845,7 +858,42 @@ function svcFormReset(){
   ['svc_title','svc_link','svc_contact','svc_desc'].forEach(id=>$('#'+id).value='');
   $('#svc_price').value=0; $('#svc_order').value=0; $('#svc_enabled').checked=true;
   $('#svc_cat').value='android'; $('#svc_editing').value='';
+  refreshSvcDeliveryHint();
 }
+function refreshSvcDeliveryHint(){
+  const sel = document.getElementById('svc_cat');
+  const hint = document.getElementById('svcDeliveryHint');
+  if (!sel || !hint) return;
+  const opt = sel.selectedOptions[0];
+  const dt = (opt && opt.dataset.delivery) || 'admin';
+  const linkInput = document.getElementById('svc_link');
+  const contactInput = document.getElementById('svc_contact');
+  // Find the <label> right above each input
+  const linkLabel = linkInput?.parentElement?.querySelector('label');
+  const contactLabel = contactInput?.parentElement?.querySelector('label');
+  if (dt === 'key') {
+    hint.innerHTML = '🔑 <strong>Key delivery.</strong> Buyers get a key from the stock pool instantly. Add keys in the <em>Stock pool</em> card below — the "Link" field below can be used as an instructions URL.';
+    if (linkLabel)    linkLabel.textContent = 'Instructions link (optional)';
+    if (contactLabel) contactLabel.textContent = 'Support contact (optional)';
+    if (linkInput)    linkInput.placeholder = 'https://how-to-redeem...';
+    if (contactInput) contactInput.placeholder = 'Telegram: @support';
+  } else if (dt === 'link') {
+    hint.innerHTML = '🔗 <strong>Link delivery.</strong> Buyers get a link from the stock pool instantly. Add links in the <em>Stock pool</em> card below.';
+    if (linkLabel)    linkLabel.textContent = 'Instructions link (optional)';
+    if (contactLabel) contactLabel.textContent = 'Support contact (optional)';
+    if (linkInput)    linkInput.placeholder = 'https://how-to-use...';
+    if (contactInput) contactInput.placeholder = 'Telegram: @support';
+  } else {
+    hint.innerHTML = '👤 <strong>Admin approval.</strong> No auto-delivery — the buyer is told: <em>"We will contact you on your FB/Telegram."</em> Fill in the contact below so it shows on their order receipt.';
+    if (linkLabel)    linkLabel.textContent = 'Link (more info / registration)';
+    if (contactLabel) contactLabel.textContent = 'Contact (FB / Telegram for delivery)';
+    if (linkInput)    linkInput.placeholder = 'https://...';
+    if (contactInput) contactInput.placeholder = 'Telegram: @zekielsZ';
+  }
+}
+document.addEventListener('change', (e) => {
+  if (e.target && e.target.id === 'svc_cat') refreshSvcDeliveryHint();
+});
 async function loadServices(){
   const list = await api('/api/admin/services');
   $('#svcBody').innerHTML = list.map(s=>`
@@ -870,6 +918,7 @@ window.editSvc = (s) => {
   $('#svc_desc').value=s.description||''; $('#svc_link').value=s.link||'';
   $('#svc_contact').value=s.contact||''; $('#svc_price').value=s.price||0;
   $('#svc_order').value=s.order||0; $('#svc_enabled').checked=!!s.enabled;
+  refreshSvcDeliveryHint();
   window.scrollTo({top:0,behavior:'smooth'});
 };
 $('#svcClear').onclick = svcFormReset;
@@ -898,33 +947,40 @@ window.delSvc = async id => { if(!confirm('Delete?'))return; await api('/api/adm
 async function loadStock(){
   try{
     const d = await api('/api/admin/service-stock');
-    $('#stk_svc').innerHTML = d.services.map(x=>`<option value="${x.service.id}">${esc(x.service.title)}</option>`).join('') || '<option value="">No JEPFX services</option>';
+    $('#stk_svc').innerHTML = d.services.map(x=>{
+      const dt = x.delivery_type || 'admin';
+      const ico = dt==='key'?'🔑':(dt==='link'?'🔗':'•');
+      return `<option value="${x.service.id}" data-delivery="${esc(dt)}">${ico} ${esc(x.service.title)} (${esc(x.service.category)})</option>`;
+    }).join('') || '<option value="">No key/link services yet — set a category\'s delivery type to "Key" or "Link" first.</option>';
     const counts = {}; (d.counts||[]).forEach(c=>counts[c.service_id]=c);
     $('#stkSummary').innerHTML = d.services.map(x=>{
       const c = counts[x.service.id] || {available:0,total:0};
-      return `<span class="pill" style="margin:3px">${esc(x.service.title)}: ${c.available||0}/${c.total||0}</span>`;
+      const low = (c.available||0) <= 3;
+      const color = low ? 'background:#7f1d1d;color:#fecaca' : '';
+      return `<span class="pill" style="margin:3px;${color}">${esc(x.service.title)}: ${c.available||0}/${c.total||0}</span>`;
     }).join('') || '<small class="dim">No stock yet.</small>';
     const rows = [];
-    d.services.forEach(x => x.items.forEach(it => rows.push({svc:x.service,it})));
-    $('#stkBody').innerHTML = rows.map(({svc,it})=>`
+    d.services.forEach(x => x.items.forEach(it => rows.push({svc:x.service,it,dt:x.delivery_type||'admin'})));
+    $('#stkBody').innerHTML = rows.map(({svc,it,dt})=>`
       <tr>
         <td>${esc(svc.title)}</td>
+        <td><span class="badge">${dt==='key'?'🔑 key':'🔗 link'}</span></td>
         <td style="max-width:340px;word-break:break-all">${esc(it.value)}</td>
         <td>${it.used?'<span class="badge">used</span>':'<span class="badge ok">available</span>'}</td>
         <td class="right"><button class="danger" onclick="delStock(${it.id})">Delete</button></td>
-      </tr>`).join('') || '<tr><td colspan="4"><small class="dim">No stock yet.</small></td></tr>';
+      </tr>`).join('') || '<tr><td colspan="5"><small class="dim">No stock yet.</small></td></tr>';
   }catch(e){ /* services tab might not be active */ }
 }
 $('#stkAdd').onclick = async () => {
   const serviceId = $('#stk_svc').value;
   const values = $('#stk_vals').value;
-  if(!serviceId || !values.trim()){ toast('Pick service and paste links','bad'); return; }
+  if(!serviceId || !values.trim()){ toast('Pick a service and paste at least one key/link','bad'); return; }
   try{
     const r = await api('/api/admin/service-stock',{method:'POST',body:{serviceId,values}});
-    toast('Added '+r.added+' link(s)'); $('#stk_vals').value=''; loadStock();
+    toast('Added '+r.added+' item(s)'); $('#stk_vals').value=''; loadStock();
   }catch(e){ toast(e.message,'bad'); }
 };
-window.delStock = async id => { if(!confirm('Delete link?'))return; await api('/api/admin/service-stock/'+id,{method:'DELETE'}); loadStock(); };
+window.delStock = async id => { if(!confirm('Delete this stock item?'))return; await api('/api/admin/service-stock/'+id,{method:'DELETE'}); loadStock(); };
 
 
 // ───── SETTINGS ─────
@@ -1044,38 +1100,46 @@ async function loadCategoriesSelect(){
     _cachedCategories = await api('/api/admin/categories');
     const sel = document.getElementById('svc_cat');
     if (sel) sel.innerHTML = _cachedCategories.map(c =>
-      `<option value="${esc(c.key)}">${esc(c.key)} (${c.target})</option>`
+      `<option value="${esc(c.key)}" data-delivery="${esc(c.delivery_type||'admin')}">${esc(c.key)} · ${esc(c.delivery_type||'admin')}</option>`
     ).join('');
   } catch(e){}
 }
 async function loadCategories(){
   const list = await api('/api/admin/categories');
   _cachedCategories = list;
+  const dtBadge = (t) => {
+    const map = { key:'🔑 Key', link:'🔗 Link', admin:'👤 Admin' };
+    return `<span class="badge">${map[t]||map.admin}</span>`;
+  };
   $('#catBody').innerHTML = list.map(c=>`
     <tr>
       <td><code>${esc(c.key)}</code></td>
       <td>${esc(c.name)}</td>
       <td>${esc(c.target)}</td>
+      <td>${dtBadge(c.delivery_type||'admin')}</td>
       <td>${c.sort}</td>
       <td>${c.enabled?'<span class="badge ok">on</span>':'<span class="badge">off</span>'}</td>
       <td class="right">
         <button class="secondary" onclick='editCat(${JSON.stringify(c).replace(/'/g,"&#39;")})'>Edit</button>
         <button class="danger" onclick="delCat(${c.id})">Delete</button>
       </td>
-    </tr>`).join('') || '<tr><td colspan="6"><small class="dim">No categories yet.</small></td></tr>';
+    </tr>`).join('') || '<tr><td colspan="7"><small class="dim">No categories yet.</small></td></tr>';
   // refresh services category dropdown too
   const sel = document.getElementById('svc_cat');
-  if (sel) sel.innerHTML = list.map(c => `<option value="${esc(c.key)}">${esc(c.key)} (${c.target})</option>`).join('');
+  if (sel) sel.innerHTML = list.map(c => `<option value="${esc(c.key)}" data-delivery="${esc(c.delivery_type||'admin')}">${esc(c.key)} · ${esc(c.delivery_type||'admin')}</option>`).join('');
+  if (typeof refreshSvcDeliveryHint === 'function') refreshSvcDeliveryHint();
 }
 function catFormReset(){
   $('#cat_key').value=''; $('#cat_name').value=''; $('#cat_target').value='shop';
   $('#cat_sort').value=10; $('#cat_enabled').checked=true; $('#cat_editing').value='';
+  const d = $('#cat_delivery'); if (d) d.value='admin';
 }
 window.editCat = (c) => {
   $('#cat_editing').value=c.id;
   $('#cat_key').value=c.key; $('#cat_name').value=c.name;
   $('#cat_target').value=c.target||'shop'; $('#cat_sort').value=c.sort||0;
   $('#cat_enabled').checked=!!c.enabled;
+  const d = $('#cat_delivery'); if (d) d.value = c.delivery_type || 'admin';
   window.scrollTo({top:0,behavior:'smooth'});
 };
 window.delCat = async (id) => {
@@ -1091,7 +1155,8 @@ if (categorySaveButton) {
       name: $('#cat_name').value.trim(),
       target: $('#cat_target').value,
       sort: parseInt($('#cat_sort').value)||0,
-      enabled: $('#cat_enabled').checked
+      enabled: $('#cat_enabled').checked,
+      delivery_type: ($('#cat_delivery')?.value) || 'admin'
     };
     if(!body.key || !body.name){ toast('Key and name required','bad'); return; }
     const id = $('#cat_editing').value;

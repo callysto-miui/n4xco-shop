@@ -1011,6 +1011,7 @@ body::after {
     </div>
     <div class="modal-body">
       <div id="svcBuyError" class="modal-error"></div>
+      <div id="svcBuyDeliveryNote" style="display:none;border-left:3px solid var(--green);background:rgba(34,197,94,.08);padding:.55rem .7rem;margin-bottom:.8rem;font-size:.72rem;color:#cbd5e1;border-radius:3px;"></div>
       <div style="border:1px solid var(--gray-3);padding:1rem;margin-bottom:1rem;">
         <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Service:</span><span id="svcBuyName">—</span></div>
         <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Price:</span><span id="svcBuyPrice">—</span></div>
@@ -1495,7 +1496,20 @@ window.showServiceBuy = function(serviceId) {
   ['svcBuyTg','svcBuyFb','svcBuyLink','svcBuyPromo'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('svcPromoMsg').textContent = '';
   document.getElementById('svcBuyError').classList.remove('show');
-  document.getElementById('svcBuyLink').style.display = svc.category === 'boosting' ? '' : 'none';
+  // Resolve category delivery_type
+  const cat = (storeData.categories || []).find(c => c.key === svc.category);
+  const dt = (cat && cat.delivery_type) || 'admin';
+  // The "your account link" input is mainly useful for admin-approval categories
+  document.getElementById('svcBuyLink').style.display = dt === 'admin' ? '' : 'none';
+  const noteEl = document.getElementById('svcBuyDeliveryNote');
+  if (dt === 'key') {
+    noteEl.innerHTML = '🔑 <strong>Instant key delivery.</strong> Your key will be shown on screen and saved to your orders.';
+  } else if (dt === 'link') {
+    noteEl.innerHTML = '🔗 <strong>Instant link delivery.</strong> Your link will be shown on screen and saved to your orders.';
+  } else {
+    noteEl.innerHTML = '👤 <strong>Admin approval.</strong> We will contact you on the Telegram / Facebook you provide below.';
+  }
+  noteEl.style.display = '';
   // Tier selector
   const tiers = svc.tiers || [];
   const tierWrap = document.getElementById('svcTierWrap');
@@ -1552,9 +1566,15 @@ document.getElementById('confirmSvcBuyBtn').addEventListener('click', async () =
     document.getElementById('svcResultTitle').textContent = data.title.toUpperCase();
     document.getElementById('svcResultValue').textContent = data.delivered || '(no auto-delivery)';
     let note = '';
-    if (data.category === 'jepfx') note = 'Your registration link. Use it now — it will not be shown again. Saved to your orders.';
-    else if (data.category === 'module') note = 'Message this contact on Telegram to receive your module.';
-    else note = 'Our team will contact you on the FB/Telegram you provided.';
+    if (data.delivery_type === 'key') {
+      note = 'Your key — copy it now. Saved to your orders.';
+    } else if (data.delivery_type === 'link') {
+      note = 'Your link — open it now. Saved to your orders.';
+    } else {
+      note = 'Order received! Our team will contact you on the FB/Telegram you provided.';
+      // Hide the value box when there is no auto-delivery
+      if (!data.delivered) document.getElementById('svcResultValue').textContent = 'We will contact you shortly.';
+    }
     document.getElementById('svcResultNote').textContent = note;
     document.getElementById('svcResultModal').classList.add('open');
     toast('Purchase successful!');
