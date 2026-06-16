@@ -156,10 +156,6 @@ db.serialize(() => {
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
   db.run(`ALTER TABLE services ADD COLUMN contact TEXT DEFAULT ''`, () => {});
-  db.run(`ALTER TABLE service_orders ADD COLUMN tier_id INTEGER`, () => {});
-  db.run(`ALTER TABLE service_orders ADD COLUMN tier_label TEXT DEFAULT ''`, () => {});
-  db.run(`ALTER TABLE service_orders ADD COLUMN quantity INTEGER DEFAULT 1`, () => {});
-
 
   // Editable shop categories (admin can add/edit/delete)
   db.run(`CREATE TABLE IF NOT EXISTS service_categories (
@@ -168,17 +164,22 @@ db.serialize(() => {
     name    TEXT NOT NULL,
     target  TEXT NOT NULL DEFAULT 'shop',
     sort    INTEGER DEFAULT 0,
-    enabled INTEGER DEFAULT 1
+    enabled INTEGER DEFAULT 1,
+    delivery_type TEXT NOT NULL DEFAULT 'admin'  -- 'key' | 'link' | 'admin'
   )`);
+  // Idempotent migration for older deployments
+  db.run(`ALTER TABLE service_categories ADD COLUMN delivery_type TEXT NOT NULL DEFAULT 'admin'`, () => {});
   const seedCats = [
-    ['android','ANDROID SERVICES','services',1],
-    ['boosting','BOOSTING SERVICES','shop',2],
-    ['jepfx','JEPFX SERVICE TOOL','shop',3],
-    ['module','MODULE FOR ROOTED','shop',4],
+    ['android','ANDROID SERVICES','services',1,'key'],
+    ['boosting','BOOSTING SERVICES','shop',2,'admin'],
+    ['jepfx','JEPFX SERVICE TOOL','shop',3,'link'],
+    ['module','MODULE FOR ROOTED','shop',4,'admin'],
   ];
-  seedCats.forEach(([k,n,t,o]) =>
-    db.run(`INSERT OR IGNORE INTO service_categories (key,name,target,sort) VALUES (?,?,?,?)`,[k,n,t,o])
-  );
+  seedCats.forEach(([k,n,t,o,d]) => {
+    db.run(`INSERT OR IGNORE INTO service_categories (key,name,target,sort,delivery_type) VALUES (?,?,?,?,?)`,[k,n,t,o,d]);
+    // Backfill delivery_type for rows that pre-date the column
+    db.run(`UPDATE service_categories SET delivery_type=? WHERE key=? AND (delivery_type IS NULL OR delivery_type='')`,[d,k]);
+  });
 
   // Per-service pricing tiers (quantity / price variants)
   db.run(`CREATE TABLE IF NOT EXISTS service_tiers (
@@ -215,8 +216,15 @@ db.serialize(() => {
     user_link     TEXT DEFAULT '',
     delivered     TEXT DEFAULT '',
     status        TEXT DEFAULT 'pending',
-    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    tier_id       INTEGER DEFAULT NULL,
+    tier_label    TEXT DEFAULT '',
+    quantity      INTEGER DEFAULT 1
   )`);
+  // Idempotent migrations for older deployments
+  db.run(`ALTER TABLE service_orders ADD COLUMN tier_id INTEGER`, () => {});
+  db.run(`ALTER TABLE service_orders ADD COLUMN tier_label TEXT DEFAULT ''`, () => {});
+  db.run(`ALTER TABLE service_orders ADD COLUMN quantity INTEGER DEFAULT 1`, () => {});
 
   // APK settings
   db.run(`CREATE TABLE IF NOT EXISTS apk_settings (
@@ -495,14 +503,20 @@ const dbFuncs = {
     ? query('SELECT * FROM service_categories WHERE enabled=1 ORDER BY sort ASC, id ASC')
     : query('SELECT * FROM service_categories ORDER BY sort ASC, id ASC'),
   getCategoryByKey: (key) => get('SELECT * FROM service_categories WHERE key=?',[key]),
-  createCategory: (d) => run(
-    'INSERT INTO service_categories (key,name,target,sort,enabled) VALUES (?,?,?,?,?)',
-    [String(d.key||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,''), d.name, (d.target==='services'?'services':'shop'), parseInt(d.sort)||0, d.enabled?1:0]
-  ),
-  updateCategory: (id,d) => run(
-    'UPDATE service_categories SET key=?,name=?,target=?,sort=?,enabled=? WHERE id=?',
-    [String(d.key||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,''), d.name, (d.target==='services'?'services':'shop'), parseInt(d.sort)||0, d.enabled?1:0, id]
-  ),
+  createCategory: (d) => {
+    const dt = ['key','link','admin'].includes(d.delivery_type) ? d.delivery_type : 'admin';
+    return run(
+      'INSERT INTO service_categories (key,name,target,sort,enabled,delivery_type) VALUES (?,?,?,?,?,?)',
+      [String(d.key||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,''), d.name, (d.target==='services'?'services':'shop'), parseInt(d.sort)||0, d.enabled?1:0, dt]
+    );
+  },
+  updateCategory: (id,d) => {
+    const dt = ['key','link','admin'].includes(d.delivery_type) ? d.delivery_type : 'admin';
+    return run(
+      'UPDATE service_categories SET key=?,name=?,target=?,sort=?,enabled=?,delivery_type=? WHERE id=?',
+      [String(d.key||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,''), d.name, (d.target==='services'?'services':'shop'), parseInt(d.sort)||0, d.enabled?1:0, dt, id]
+    );
+  },
   deleteCategory: (id) => run('DELETE FROM service_categories WHERE id=?',[id]),
 
   // ==================== SERVICE TIERS ====================

@@ -983,17 +983,23 @@ app.post('/api/service/purchase', requireUser, async (req, res) => {
     const user = await db.getUser(req.sessionUser);
     if (user.balance < finalPrice) return res.status(400).json({ success: false, message: 'Insufficient balance' });
 
-    // For JEPFX, require a stock link available
+    // Decide delivery based on the category's delivery_type:
+    //   'key'   → pop a pre-loaded key from the stock pool
+    //   'link'  → pop a pre-loaded link from the stock pool
+    //   'admin' → no auto-delivery; admin contacts the user
     let deliveredValue = '';
     let stockRow = null;
-    if (svc.category === 'jepfx') {
+    const cat = await db.getCategoryByKey(svc.category);
+    const deliveryType = (cat && cat.delivery_type) || 'admin';
+    if (deliveryType === 'key' || deliveryType === 'link') {
       stockRow = await db.popServiceStock(svc.id);
-      if (!stockRow) return res.status(400).json({ success: false, message: 'Out of stock. Try again later.' });
+      if (!stockRow) {
+        const label = deliveryType === 'key' ? 'keys' : 'links';
+        return res.status(400).json({ success: false, message: `Out of stock — no ${label} available. Please try again later.` });
+      }
       deliveredValue = stockRow.value;
-    } else if (svc.category === 'module') {
-      deliveredValue = svc.contact || 'Telegram: @zekielsZ';
     } else {
-      // boosting / others: deliver the contact info for follow-up
+      // admin approval: we'll contact the user on their provided info
       deliveredValue = svc.contact || svc.link || '';
     }
 
@@ -1004,7 +1010,7 @@ app.post('/api/service/purchase', requireUser, async (req, res) => {
       category: svc.category, title: svc.title + (appliedPromo ? ` (promo ${appliedPromo.code})` : ''),
       price: finalPrice, telegram: telegram || '', facebook: facebook || '',
       user_link: user_link || '', delivered: deliveredValue,
-      status: svc.category === 'jepfx' ? 'fulfilled' : 'pending',
+      status: (deliveryType === 'key' || deliveryType === 'link') ? 'fulfilled' : 'pending',
       tier_id: chosenTier ? chosenTier.id : null,
       tier_label: chosenTier ? chosenTier.label : '',
       quantity: chosenTier ? chosenTier.quantity : 1
@@ -1028,6 +1034,7 @@ app.post('/api/service/purchase', requireUser, async (req, res) => {
       success: true, orderId,
       newBalance: user.balance - finalPrice, paid: finalPrice,
       delivered: deliveredValue, category: svc.category,
+      delivery_type: deliveryType,
       title: svc.title
     });
   } catch (e) {
@@ -1046,10 +1053,14 @@ app.get('/api/user/service-orders', requireUser, async (req, res) => {
 app.get('/api/admin/service-stock', requireAdmin, async (req, res) => {
   try {
     const counts = await db.getServiceStockCounts();
+    // Show stock for every service in a category whose delivery_type is 'key' or 'link'
+    const cats = await db.getCategories();
+    const stockCats = new Set(cats.filter(c => c.delivery_type === 'key' || c.delivery_type === 'link').map(c => c.key));
     const all = await Promise.all(
-      (await db.getAllServices()).filter(s => s.category === 'jepfx').map(async s => ({
+      (await db.getAllServices()).filter(s => stockCats.has(s.category)).map(async s => ({
         service: s,
-        items: await db.getServiceStock(s.id)
+        items: await db.getServiceStock(s.id),
+        delivery_type: cats.find(c => c.key === s.category)?.delivery_type || 'admin'
       }))
     );
     res.json({ counts, services: all });
@@ -1088,6 +1099,7 @@ app.post('/api/admin/categories', requireAdmin, async (req, res) => {
     const b = req.body || {};
     b.key = String(b.key || '').trim().toLowerCase();
     b.name = String(b.name || '').trim();
+    b.delivery_type = ['key','link','admin'].includes(b.delivery_type) ? b.delivery_type : 'admin';
     if (!b.key || !b.name) return res.status(400).json({success:false,message:'Key and name are required'});
     if (!/^[a-z0-9_-]+$/.test(b.key)) return res.status(400).json({success:false,message:'Key can only contain lowercase letters, numbers, dashes, and underscores'});
     await db.createCategory(b);
@@ -1103,6 +1115,7 @@ app.put('/api/admin/categories/:id', requireAdmin, async (req, res) => {
     const b = req.body || {};
     b.key = String(b.key || '').trim().toLowerCase();
     b.name = String(b.name || '').trim();
+    b.delivery_type = ['key','link','admin'].includes(b.delivery_type) ? b.delivery_type : 'admin';
     if (!b.key || !b.name) return res.status(400).json({success:false,message:'Key and name are required'});
     if (!/^[a-z0-9_-]+$/.test(b.key)) return res.status(400).json({success:false,message:'Invalid category key'});
     const result = await db.updateCategory(req.params.id, b);
