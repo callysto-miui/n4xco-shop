@@ -1201,7 +1201,7 @@ async function loadStore() {
     renderServices();
     renderApk();
     renderDepositSettings();
-    if (userToken) await loadKeyAvailability();
+    await loadKeyAvailability();
   } catch(e) { console.error('Store load error', e); }
 }
 
@@ -1219,9 +1219,8 @@ function renderDepositSettings() {
 }
 
 async function loadKeyAvailability() {
-  if (!userToken) return;
   try {
-    const res = await fetch('/api/admin/keys', { headers: { Authorization: 'Bearer ' + userToken } });
+    const res = await fetch('/api/key-counts');
     const data = await res.json();
     if (data.success && data.counts) {
       keyAvailability = {};
@@ -1230,6 +1229,7 @@ async function loadKeyAvailability() {
     }
   } catch(e) {}
 }
+
 
 function renderApk() {
   const apk = storeData.apk;
@@ -1250,11 +1250,33 @@ function downloadApk() { if (storeData.apk?.link) window.open(storeData.apk.link
 
 function renderPlans() {
   const grid = document.getElementById('plansGrid');
-  if (!storeData.plans?.length) {
+  const plans = storeData.plans || [];
+  if (!plans.length) {
     grid.innerHTML = '<div style="color:var(--gray-4);text-align:center;padding:4rem;border:1px solid var(--gray-3);">NO PLANS AVAILABLE</div>';
     return;
   }
-  grid.innerHTML = storeData.plans.map(p => {
+
+  // Build category lookup from the admin-managed categories table
+  const cats = (storeData.categories || []).filter(c => c.enabled !== 0);
+  const catNameByKey = {};
+  cats.forEach(c => { catNameByKey[c.key] = c.name; });
+
+  // Group plans by their category (default to 'android' for legacy rows)
+  const groups = {};
+  plans.forEach(p => {
+    const key = p.category || 'android';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(p);
+  });
+
+  // Stable order: categories from admin table first (in their sort order),
+  // then any orphan plan categories alphabetically.
+  const orderedKeys = [
+    ...cats.map(c => c.key).filter(k => groups[k]),
+    ...Object.keys(groups).filter(k => !catNameByKey[k]).sort(),
+  ];
+
+  const cardHTML = p => {
     const available = keyAvailability[p.id] || 0;
     const disabled = available === 0;
     return `
@@ -1263,12 +1285,28 @@ function renderPlans() {
         <div class="plan-label">${esc(p.label)} PLAN</div>
         <div class="plan-price">₱${p.price}</div>
         <div class="plan-price-unit">PHP · ${p.days} DAYS</div>
-        <div class="plan-days-line">Valid for ${p.days} day${p.days > 1 ? 's' : ''}</div>
+        <div class="plan-days-line">${available} key${available===1?'':'s'} in stock</div>
         <button class="plan-buy-btn" ${disabled ? 'disabled' : ''}>${disabled ? 'SOLD OUT' : 'BUY NOW →'}</button>
+      </div>
+    `;
+  };
+
+  grid.innerHTML = orderedKeys.map(key => {
+    const name = catNameByKey[key] || key.toUpperCase();
+    return `
+      <div class="brand-section" data-cat="${esc(key)}" style="grid-column:1/-1;margin-top:1rem;">
+        <div class="section-label" style="display:flex;align-items:center;gap:.6rem;">
+          <span>${esc(name)}</span>
+          <span style="font-size:.6rem;color:var(--gray-4);letter-spacing:.15em;">· ${groups[key].length} PLAN${groups[key].length===1?'':'S'}</span>
+        </div>
+        <div class="plans-grid" style="margin-top:.6rem;">
+          ${groups[key].map(cardHTML).join('')}
+        </div>
       </div>
     `;
   }).join('');
 }
+
 
 function renderServices() {
   const container = document.getElementById('servicesContainer');

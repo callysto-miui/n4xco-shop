@@ -183,19 +183,47 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
     <!-- KEYS -->
     <section data-view="keys" class="hide">
       <h2 style="margin:0 0 12px">Keys pool</h2>
+
       <div class="card">
-        <div class="row cols-2">
+        <h2 style="margin:0 0 8px">Add keys</h2>
+        <div class="row cols-3">
+          <div><label>Category (brand)</label><select id="keyCat"></select></div>
           <div><label>Plan</label><select id="keyPlan"></select></div>
           <div><label>Keys (one per line)</label><textarea id="keyList" placeholder="KEY-1&#10;KEY-2"></textarea></div>
         </div>
-        <div style="margin-top:10px"><button id="addKeys">Add keys</button></div>
+        <div style="margin-top:10px"><button id="addKeys">Add keys</button>
+          <small class="dim">No plan in this category yet? Create one below.</small>
+        </div>
       </div>
+
+      <div class="card">
+        <h2 style="margin:0 0 8px">Create plan for a category</h2>
+        <div class="row cols-4">
+          <div><label>Category</label><select id="newPlanCat"></select></div>
+          <div><label>Plan id (slug)</label><input id="newPlanId" placeholder="e.g. tiktok_30d"/></div>
+          <div><label>Label</label><input id="newPlanLabel" placeholder="e.g. 30 Days"/></div>
+          <div><label>Days</label><input id="newPlanDays" type="number" value="30" min="1"/></div>
+        </div>
+        <div class="row cols-2">
+          <div><label>Price ₱</label><input id="newPlanPrice" type="number" value="100" min="0"/></div>
+          <div style="align-self:end"><button id="newPlanSave">Create plan</button></div>
+        </div>
+        <p class="dim" style="font-size:12px;margin-top:8px">Plan id must be unique across the whole shop, e.g. <code>tiktok_30d</code>, <code>pubg_lifetime</code>.</p>
+      </div>
+
       <div class="card"><h2>Stock</h2><div id="keyCounts"></div></div>
+
+      <div class="card"><h2>Plans by category</h2><div class="scroll"><table>
+        <thead><tr><th>Category</th><th>Plan id</th><th>Label</th><th>Days</th><th>Price</th><th>Keys</th><th></th></tr></thead>
+        <tbody id="plansByCatBody"></tbody>
+      </table></div></div>
+
       <div class="card"><h2>All keys</h2><div class="scroll"><table>
         <thead><tr><th>Plan</th><th>Key</th><th>Status</th><th>Added</th><th></th></tr></thead>
         <tbody id="allKeysBody"></tbody>
       </table></div></div>
     </section>
+
 
     <!-- ORDERS -->
     <section data-view="orders" class="hide">
@@ -438,7 +466,7 @@ async function api(path, opts={}){
   }
   const res = await fetch(path, { ...opts, headers, credentials:'include' });
   const json = await res.json().catch(()=>({}));
-  if(!res.ok) throw new Error(json.message || json.error || ('HTTP '+res.status));
+  if(!res.ok) throw new Error(json.message || json.error || json.detail || ('HTTP '+res.status));
   return json;
 }
 
@@ -602,11 +630,49 @@ $('#savePlans').onclick = async () => {
 
 
 // ───── KEYS ─────
+let _allPlans = [];
+function fillKeyCatSelects(cats){
+  const opts = cats.map(c=>`<option value="${esc(c.key)}">${esc(c.name)} (${esc(c.key)})</option>`).join('');
+  ['keyCat','newPlanCat'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) { const prev = el.value; el.innerHTML = opts; if (prev) el.value = prev; }
+  });
+}
+function refreshKeyPlanSelect(){
+  const cat = $('#keyCat').value;
+  const filtered = _allPlans.filter(p => (p.category||'android') === cat);
+  $('#keyPlan').innerHTML = filtered.length
+    ? filtered.map(p=>`<option value="${esc(p.id)}">${esc(p.label)} — ₱${p.price}</option>`).join('')
+    : '<option value="">— no plans yet, create one below —</option>';
+}
 async function loadKeys(){
-  const plans = await api('/api/admin/plans');
-  $('#keyPlan').innerHTML = plans.map(p=>`<option value="${esc(p.id)}">${esc(p.label)}</option>`).join('');
-  const d = await api('/api/admin/keys');
-  $('#keyCounts').innerHTML = d.counts.map(c=>`<span class="pill" style="margin:3px">${esc(c.plan_id)}: ${c.available||0}/${c.total}</span>`).join('') || '<small class="dim">No keys yet.</small>';
+  const [cats, plans, d] = await Promise.all([
+    api('/api/admin/categories'),
+    api('/api/admin/plans'),
+    api('/api/admin/keys'),
+  ]);
+  _allPlans = plans;
+  fillKeyCatSelects(cats);
+  refreshKeyPlanSelect();
+
+  // Counts per plan
+  const countMap = {}; (d.counts||[]).forEach(c=>{ countMap[c.plan_id] = c; });
+  $('#keyCounts').innerHTML = (d.counts||[]).map(c=>`<span class="pill" style="margin:3px">${esc(c.plan_id)}: ${c.available||0}/${c.total}</span>`).join('') || '<small class="dim">No keys yet.</small>';
+
+  // Plans grouped by category
+  $('#plansByCatBody').innerHTML = plans.map(p=>{
+    const cnt = countMap[p.id] || {available:0,total:0};
+    return `<tr>
+      <td><code>${esc(p.category||'android')}</code></td>
+      <td><code>${esc(p.id)}</code></td>
+      <td>${esc(p.label)}</td>
+      <td>${p.days}</td>
+      <td>₱${p.price}</td>
+      <td>${cnt.available||0}/${cnt.total||0}</td>
+      <td class="right"><button class="danger" onclick="delPlan('${esc(p.id)}')">Delete plan</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7"><small class="dim">No plans yet.</small></td></tr>';
+
   $('#allKeysBody').innerHTML = d.keys.map(k=>`
     <tr>
       <td>${esc(k.plan_id)}</td>
@@ -616,13 +682,42 @@ async function loadKeys(){
       <td class="right"><button class="danger" onclick="delKey(${k.id})">Delete</button></td>
     </tr>`).join('') || '<tr><td colspan="5"><small class="dim">No keys yet.</small></td></tr>';
 }
+document.addEventListener('change', e => {
+  if (e.target && e.target.id === 'keyCat') refreshKeyPlanSelect();
+});
 $('#addKeys').onclick = async () => {
+  const planId = $('#keyPlan').value;
+  if(!planId){ toast('Pick or create a plan first','bad'); return; }
   try{
-    const r = await api('/api/admin/keys',{method:'POST',body:{planId:$('#keyPlan').value,keys:$('#keyList').value}});
+    const r = await api('/api/admin/keys',{method:'POST',body:{planId,keys:$('#keyList').value}});
     toast('Added '+r.added+' keys'); $('#keyList').value=''; loadKeys();
   }catch(e){ toast(e.message,'bad'); }
 };
+const newPlanBtn = document.getElementById('newPlanSave');
+if (newPlanBtn) newPlanBtn.onclick = async () => {
+  const body = {
+    category: $('#newPlanCat').value,
+    id: $('#newPlanId').value,
+    label: $('#newPlanLabel').value,
+    days: parseInt($('#newPlanDays').value)||0,
+    price: parseInt($('#newPlanPrice').value)||0,
+    enabled: true,
+  };
+  if(!body.category || !body.id || !body.label){ toast('Category, id and label are required','bad'); return; }
+  try {
+    await api('/api/admin/plan',{method:'POST',body});
+    toast('Plan created');
+    $('#newPlanId').value=''; $('#newPlanLabel').value='';
+    await loadKeys();
+  } catch(e){ toast(e.message,'bad'); }
+};
+window.delPlan = async id => {
+  if(!confirm('Delete plan "'+id+'"? All its keys will be removed.')) return;
+  try { await api('/api/admin/plans/'+encodeURIComponent(id),{method:'DELETE'}); toast('Plan deleted'); loadKeys(); }
+  catch(e){ toast(e.message,'bad'); }
+};
 window.delKey = async id => { if(!confirm('Delete key?'))return; await api('/api/admin/keys/'+id,{method:'DELETE'}); loadKeys(); };
+
 
 // ───── ORDERS ─────
 async function loadOrders(){
