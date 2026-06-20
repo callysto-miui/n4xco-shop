@@ -17,11 +17,12 @@
   --gray-5: #888888;
   --gray-6: #aaaaaa;
   --green: #00ff88;
-  --yellow: #ffee00;
-  --red: #ff3333;
-  --blue: #00ff88;
-  --accent: #00ff88;
   --orange: #ff8800;
+  --red: #ff3333;
+  --yellow: #ffee00;
+  --blue: #00aaff;
+  --accent: #00ff88;
+  --nav-h: 52px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior: smooth; }
@@ -32,35 +33,31 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 }
+/* scanlines */
 body::before {
   content:'';
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.012) 2px, rgba(255,255,255,0.012) 4px);
-  pointer-events: none;
-  z-index: 9999;
+  pointer-events: none; z-index: 9999;
 }
 body::after {
   content: '';
-  position: fixed;
-  inset: 0;
-  opacity: 0.025;
+  position: fixed; inset: 0; opacity: 0.025;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 9998;
+  pointer-events: none; z-index: 9998;
 }
+
+/* ── NAV ── */
 .nav-bar {
   position: sticky; top: 0; z-index: 500;
   display: flex; align-items: stretch; justify-content: space-between;
   border-bottom: 1px solid var(--gray-3);
-  background: var(--black);
-  height: 52px;
+  background: rgba(0,0,0,0.95);
+  backdrop-filter: blur(8px);
+  height: var(--nav-h);
   flex-wrap: wrap;
 }
-.nav-tabs {
-  display: flex; align-items: stretch;
-  flex-wrap: wrap;
-}
+.nav-tabs { display: flex; align-items: stretch; flex-wrap: wrap; }
 .nav-btn {
   background: none;
   border: none;
@@ -75,6 +72,11 @@ body::after {
   position: relative;
   white-space: nowrap;
 }
+/* 1. SHOP tab = highlight white */
+.nav-btn[data-tab="shop"] { color: var(--white); }
+.nav-btn[data-tab="shop"].active { color: var(--white); }
+
+/* nav underline */
 .nav-btn::after {
   content: '';
   position: absolute;
@@ -83,12 +85,10 @@ body::after {
   background: var(--white);
   transition: width 0.2s;
 }
-.nav-btn.active {
-  color: var(--white);
-  background: var(--gray-1);
-}
+.nav-btn.active { color: var(--white); background: var(--gray-1); }
 .nav-btn.active::after { width: 100%; }
 .nav-btn:hover { color: var(--white); background: var(--gray-1); }
+
 .nav-user {
   display: flex; align-items: center; padding: 0 1rem;
   border-left: 1px solid var(--gray-3);
@@ -119,14 +119,18 @@ body::after {
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
+
+/* ── LAYOUT ── */
 .app-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
 }
-.tab-section { display: none; animation: fadeIn 0.2s ease; }
+.tab-section { display: none; animation: fadeIn 0.25s ease; }
 .tab-section.active { display: block; }
-@keyframes fadeIn { from{ opacity:0; } to{ opacity:1; } }
+@keyframes fadeIn { from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+
+/* ── SHOP HEADER ── */
 .shop-header {
   border: 1px solid var(--gray-3);
   padding: 2rem 2.5rem;
@@ -138,44 +142,45 @@ body::after {
   flex-wrap: wrap;
   position: relative;
   overflow: hidden;
+  background: linear-gradient(135deg, var(--gray-1) 0%, #0d0d0d 100%);
 }
 .shop-header::before {
   content: 'N4XCO';
-  position: absolute;
-  right: -0.5rem; top: 50%;
+  position: absolute; right: -0.5rem; top: 50%;
   transform: translateY(-50%);
   font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(5rem, 12vw, 9rem);
   color: rgba(255,255,255,0.03);
   letter-spacing: 0.1em;
-  pointer-events: none;
-  user-select: none;
-  line-height: 1;
+  pointer-events: none; user-select: none; line-height: 1;
 }
 .header-logo {
   font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(2rem, 5vw, 3.2rem);
   letter-spacing: 0.08em;
-  color: var(--white);
+  /* 2. Shop title highlight green */
+  color: var(--green);
   line-height: 1;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  display: flex; align-items: center; gap: 1rem;
+  text-shadow: 0 0 30px rgba(0,255,136,0.3);
 }
 .header-logo img {
-  height: 48px;
-  width: 48px;
+  height: 48px; width: 48px;
   object-fit: contain;
   border: 1px solid var(--gray-3);
   display: none;
 }
+/* 6. header meta highlight orange */
 .header-meta {
   font-size: 0.65rem;
-  color: var(--gray-5);
+  color: var(--orange);
   letter-spacing: 0.08em;
   line-height: 1.8;
   text-align: right;
+  font-weight: bold;
 }
+
+/* ── APK BANNER ── */
 .apk-banner {
   display: none;
   border: 1px solid var(--gray-3);
@@ -188,592 +193,405 @@ body::after {
   flex-wrap: wrap;
   background: var(--gray-1);
 }
-.apk-banner-label {
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
-  color: var(--gray-5);
-  text-transform: uppercase;
-}
-.apk-banner-name {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.1rem;
-  letter-spacing: 0.1em;
-  color: var(--white);
-  margin-top: 0.1rem;
-}
+.apk-banner-label { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--gray-5); text-transform: uppercase; }
+.apk-banner-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.1em; color: var(--white); margin-top: 0.1rem; }
 .btn-download {
-  font-family: 'Bebas Neue', sans-serif;
-  letter-spacing: 0.12em;
-  font-size: 0.9rem;
-  background: var(--white);
-  color: var(--black);
-  border: none;
-  padding: 0.55rem 1.4rem;
-  cursor: pointer;
-  transition: background 0.15s;
-  white-space: nowrap;
+  font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.12em; font-size: 0.9rem;
+  background: var(--white); color: var(--black); border: none;
+  padding: 0.55rem 1.4rem; cursor: pointer; transition: background 0.15s; white-space: nowrap;
 }
 .btn-download:hover { background: var(--gray-6); }
+
+/* ── SECTION LABEL ── */
 .section-label {
-  font-size: 0.58rem;
-  letter-spacing: 0.2em;
-  color: var(--gray-5);
-  text-transform: uppercase;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
+  font-size: 0.58rem; letter-spacing: 0.2em; color: var(--gray-5);
+  text-transform: uppercase; margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 0.8rem;
 }
-.section-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--gray-3);
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--gray-3); }
+
+/* ── 3. Category labels orange ── */
+.category-chip {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.25rem 0.8rem;
+  background: rgba(255,136,0,0.12);
+  border: 1px solid rgba(255,136,0,0.4);
+  border-radius: 0;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: var(--orange);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.85rem;
+  margin-bottom: 0.6rem;
 }
+.category-chip i { font-size: 0.7rem; }
+
+/* ── PLANS GRID ── */
 .plans-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 0;
-  border: 1px solid #333333;
+  border: 1px solid var(--gray-3);
 }
 .plan-card {
-  padding: 1.5rem;
-  border-right: 1px solid #333333;
-  border-bottom: 1px solid #333333;
-  cursor: pointer;
-  transition: background 0.15s;
-  position: relative;
-  overflow: hidden;
-  background: #000000;
+  padding: 1.5rem; border-right: 1px solid var(--gray-3); border-bottom: 1px solid var(--gray-3);
+  cursor: pointer; transition: background 0.15s, transform 0.15s;
+  position: relative; overflow: hidden; background: var(--black);
 }
-.plan-card.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.plan-card.disabled .plan-buy-btn {
-  background: #111;
-  color: #333;
-  border-color: #333333;
-  cursor: not-allowed;
-}
-.plan-card.disabled .plan-buy-btn:hover {
-  background: #111;
-  color: #333;
-}
-.plan-card.disabled:hover {
-  background: #000000;
-}
-.plan-card.disabled:hover::before {
-  height: 0;
-}
+.plan-card.disabled { opacity: 0.5; cursor: not-allowed; }
+.plan-card.disabled .plan-buy-btn { background: #111; color: #333; border-color: #333; cursor: not-allowed; }
+.plan-card.disabled:hover { background: var(--black); }
+.plan-card.disabled:hover::before { height: 0; }
 .plan-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 3px; height: 0;
-  background: #ffffff;
-  transition: height 0.25s;
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 3px; height: 0; background: var(--white); transition: height 0.25s;
 }
-.plan-card:not(.disabled):hover { background: #111111; }
+.plan-card:not(.disabled):hover { background: var(--gray-1); }
 .plan-card:not(.disabled):hover::before { height: 100%; }
 .plan-number {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 4rem;
-  line-height: 1;
-  color: rgba(255,255,255,0.07);
-  position: absolute;
-  right: 0.8rem; top: 0.5rem;
-  pointer-events: none;
-  user-select: none;
-  letter-spacing: -0.05em;
+  font-family: 'Bebas Neue', sans-serif; font-size: 4rem; line-height: 1;
+  color: rgba(255,255,255,0.07); position: absolute; right: 0.8rem; top: 0.5rem;
+  pointer-events: none; user-select: none; letter-spacing: -0.05em;
 }
 .plan-label {
-  font-size: 0.6rem;
-  letter-spacing: 0.2em;
-  color: #888888;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  font-size: 0.6rem; letter-spacing: 0.2em;
+  /* 4. Plan name orange */
+  color: var(--orange);
+  text-transform: uppercase; margin-bottom: 0.5rem;
+  font-weight: bold;
 }
-.plan-price {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.4rem;
-  letter-spacing: 0.05em;
-  color: #ffffff;
-  line-height: 1;
+.plan-price { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; letter-spacing: 0.05em; color: var(--white); line-height: 1; }
+.plan-price-unit { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--gray-5); letter-spacing: 0.1em; }
+/* 5. Stock count: green if in stock, red if 0 */
+.plan-stock-line {
+  font-size: 0.62rem; margin: 0.6rem 0 1.2rem; letter-spacing: 0.05em;
 }
-.plan-price-unit {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  color: #888888;
-  letter-spacing: 0.1em;
-}
-.plan-days-line {
-  font-size: 0.62rem;
-  color: #888888;
-  margin: 0.6rem 0 1.2rem;
-  letter-spacing: 0.05em;
-}
+.plan-stock-line.in-stock { color: var(--green); }
+.plan-stock-line.out-of-stock { color: var(--red); font-weight: bold; }
 .plan-buy-btn {
-  width: 100%;
-  background: none;
-  border: 1px solid #444444;
-  color: #ffffff;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 0.88rem;
-  letter-spacing: 0.15em;
-  padding: 0.6rem;
-  cursor: pointer;
-  transition: all 0.15s;
+  width: 100%; background: none; border: 1px solid var(--gray-4);
+  color: var(--white); font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.88rem; letter-spacing: 0.15em; padding: 0.6rem;
+  cursor: pointer; transition: all 0.15s;
 }
-.plan-buy-btn:hover { background: #ffffff; color: #000000; border-color: #ffffff; }
-.services-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  border: 1px solid var(--gray-3);
-}
-.service-category {
-  border-bottom: 1px solid var(--gray-3);
-}
+.plan-buy-btn:hover { background: var(--white); color: var(--black); border-color: var(--white); }
+.plan-buy-btn.sold-out { background: rgba(255,51,51,0.08); border-color: rgba(255,51,51,0.3); color: var(--red); }
+
+/* ── SERVICES ── */
+.services-grid { display: flex; flex-direction: column; gap: 1rem; border: 1px solid var(--gray-3); }
+.service-category { border-bottom: 1px solid var(--gray-3); }
 .service-category:last-child { border-bottom: none; }
 .category-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background: var(--gray-1);
-  cursor: pointer;
-  transition: background 0.15s;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.5rem; background: var(--gray-1); cursor: pointer; transition: background 0.15s;
 }
 .category-header:hover { background: var(--gray-2); }
-.category-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.2rem;
-  letter-spacing: 0.1em;
-  color: var(--white);
-}
-.category-toggle {
-  font-size: 1rem;
-  color: var(--gray-5);
-  transition: transform 0.2s;
-}
-.category-content {
-  display: none;
-  padding: 1rem 1.5rem;
-  background: var(--black);
-}
+.category-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 0.1em; color: var(--white); }
+.category-toggle { font-size: 1rem; color: var(--gray-5); transition: transform 0.2s; }
+.category-content { display: none; padding: 1rem 1.5rem; background: var(--black); }
 .category-content.open { display: block; }
-.service-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-}
+.service-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
 .service-item {
-  border: 1px solid var(--gray-3);
-  padding: 1rem;
-  transition: all 0.15s;
-  background: var(--gray-1);
+  border: 1px solid var(--gray-3); padding: 1rem;
+  transition: all 0.2s; background: var(--gray-1); position: relative; overflow: hidden;
 }
-.service-item:hover { border-color: var(--gray-5); }
-.service-item-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.08em;
-  color: var(--white);
-  margin-bottom: 0.3rem;
+.service-item::after {
+  content:''; position:absolute; top:0; left:0; width:2px; height:0;
+  background:var(--orange); transition:height 0.2s;
 }
-.service-item-price {
-  font-size: 0.8rem;
-  color: var(--green);
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-.service-item-desc {
-  font-size: 0.65rem;
-  color: var(--gray-5);
-  line-height: 1.5;
-  margin-bottom: 0.8rem;
-  white-space: pre-line;
-}
+.service-item:hover { border-color: var(--gray-4); }
+.service-item:hover::after { height:100%; }
+.service-item-title { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.08em; color: var(--white); margin-bottom: 0.3rem; }
+.service-item-price { font-size: 0.8rem; color: var(--green); font-weight: bold; margin-bottom: 0.5rem; }
+.service-item-desc { font-size: 0.65rem; color: var(--gray-5); line-height: 1.5; margin-bottom: 0.8rem; white-space: pre-line; }
 .service-item-link {
-  display: inline-block;
-  font-size: 0.6rem;
-  color: var(--blue);
-  text-decoration: none;
-  border: 1px solid rgba(0,170,255,0.3);
-  padding: 0.3rem 0.8rem;
-  transition: all 0.15s;
+  display: inline-block; font-size: 0.6rem; color: var(--blue);
+  text-decoration: none; border: 1px solid rgba(0,170,255,0.3); padding: 0.3rem 0.8rem; transition: all 0.15s;
 }
 .service-item-link:hover { background: rgba(0,170,255,0.1); border-color: var(--blue); }
-.deposit-form-card {
+
+/* ── TIER LIST ── */
+.tier-list { margin:.5rem 0; border-top:1px solid var(--gray-3); }
+.tier-row { display:flex; justify-content:space-between; font-size:.7rem; padding:.25rem 0; border-bottom:1px solid var(--gray-2); color:var(--gray-6); }
+.tier-row span:last-child { color:var(--green); font-weight:bold; }
+#svcTierSelect { padding:.6rem; background:var(--gray-1); border:1px solid var(--gray-3); color:#fff; width:100%; font-family:'Space Mono',monospace; }
+
+/* ── DEPOSIT ── */
+.deposit-form-card { border: 1px solid var(--gray-3); padding: 1.5rem; background: var(--gray-1); margin-bottom: 2rem; }
+.deposit-form-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.1em; margin-bottom: 1rem; }
+
+/* ── PAYMENT METHOD SELECTOR ── */
+.payment-methods-row {
+  display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.2rem;
+}
+.pm-chip {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
   border: 1px solid var(--gray-3);
-  padding: 1.5rem;
-  background: var(--gray-1);
-  margin-bottom: 2rem;
-}
-.deposit-form-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.3rem;
-  letter-spacing: 0.1em;
-  margin-bottom: 1rem;
-}
-.gcash-info {
-  background: rgba(0,170,255,0.1);
-  border: 1px solid rgba(0,170,255,0.3);
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-.gcash-number {
-  font-size: 1.4rem;
-  font-weight: bold;
-  color: var(--blue);
-  letter-spacing: 0.05em;
-  cursor: pointer;
-}
-.gcash-qr {
-  margin-top: 0.5rem;
-  text-align: center;
-}
-.gcash-qr img {
-  max-width: 150px;
-  border: 1px solid var(--gray-3);
-  cursor: pointer;
-}
-.field-group { margin-bottom: 1rem; }
-.field-label {
-  font-size: 0.58rem;
-  letter-spacing: 0.18em;
-  color: var(--gray-5);
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 0.4rem;
-}
-.field-input, .field-textarea {
-  width: 100%;
   background: var(--black);
-  border: 1px solid var(--gray-3);
-  padding: 0.7rem 1rem;
-  color: var(--white);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8rem;
-  transition: border-color 0.15s;
-}
-.field-input:focus, .field-textarea:focus { outline: none; border-color: var(--white); }
-.field-textarea { min-height: 80px; resize: vertical; }
-.amount-buttons {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.5rem;
-}
-.amount-btn {
-  background: var(--gray-2);
-  border: 1px solid var(--gray-3);
-  color: var(--gray-5);
-  padding: 0.4rem 1rem;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.7rem;
   cursor: pointer;
   transition: all 0.15s;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--gray-5);
+  position: relative;
+}
+.pm-chip:hover { border-color: var(--orange); color: var(--orange); }
+.pm-chip.active { border-color: var(--orange); background: rgba(255,136,0,0.08); color: var(--orange); }
+.pm-chip img { height: 20px; width: 20px; object-fit: contain; }
+.pm-chip-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--gray-4); flex-shrink: 0; transition: background 0.15s;
+}
+.pm-chip.active .pm-chip-dot { background: var(--orange); }
+.pm-details {
+  background: rgba(255,136,0,0.06);
+  border: 1px solid rgba(255,136,0,0.25);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: none;
+}
+.pm-details.active { display: block; }
+.pm-details-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 0.4rem;
+}
+.pm-number {
+  font-size: 1.4rem; font-weight: bold; color: var(--white);
+  letter-spacing: 0.05em; cursor: pointer; transition: color 0.15s;
+}
+.pm-number:hover { color: var(--orange); }
+.pm-qr { margin-top: 0.5rem; text-align: center; }
+.pm-qr img { max-width: 130px; border: 1px solid var(--gray-3); cursor: pointer; transition: opacity 0.15s; }
+.pm-qr img:hover { opacity: 0.85; }
+
+/* legacy gcash-info fallback */
+.gcash-info {
+  background: rgba(0,170,255,0.1); border: 1px solid rgba(0,170,255,0.3);
+  padding: 1rem; margin-bottom: 1.5rem; text-align: center;
+}
+.gcash-number { font-size: 1.4rem; font-weight: bold; color: var(--blue); letter-spacing: 0.05em; cursor: pointer; }
+.gcash-qr { margin-top: 0.5rem; text-align: center; }
+.gcash-qr img { max-width: 150px; border: 1px solid var(--gray-3); cursor: pointer; }
+
+/* ── FORM ── */
+.field-group { margin-bottom: 1rem; }
+.field-label { font-size: 0.58rem; letter-spacing: 0.18em; color: var(--gray-5); text-transform: uppercase; display: block; margin-bottom: 0.4rem; }
+.field-input, .field-textarea {
+  width: 100%; background: var(--black); border: 1px solid var(--gray-3);
+  padding: 0.7rem 1rem; color: var(--white); font-family: 'Space Mono', monospace;
+  font-size: 0.8rem; transition: border-color 0.15s;
+}
+.field-input:focus, .field-textarea:focus { outline: none; border-color: var(--orange); }
+.field-textarea { min-height: 80px; resize: vertical; }
+.amount-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.amount-btn {
+  background: var(--gray-2); border: 1px solid var(--gray-3); color: var(--gray-5);
+  padding: 0.4rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.7rem;
+  cursor: pointer; transition: all 0.15s;
 }
 .amount-btn:hover { border-color: var(--white); color: var(--white); }
 .btn-primary {
-  background: var(--white);
-  color: var(--black);
-  border: none;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.15em;
-  padding: 0.8rem;
-  cursor: pointer;
-  transition: background 0.15s;
-  width: 100%;
+  background: var(--white); color: var(--black); border: none;
+  font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.15em;
+  padding: 0.8rem; cursor: pointer; transition: background 0.15s; width: 100%;
 }
 .btn-primary:hover { background: var(--gray-6); }
 .btn-primary:disabled { background: var(--gray-3); color: var(--gray-5); cursor: not-allowed; }
+.btn-secondary {
+  background: none; border: 1px solid var(--gray-4); color: var(--gray-5);
+  font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; letter-spacing: 0.12em;
+  padding: 0.6rem 1.2rem; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.btn-secondary:hover { border-color: var(--white); color: var(--white); }
+.btn-danger {
+  background: rgba(255,51,51,0.1); border: 1px solid rgba(255,51,51,0.3); color: var(--red);
+  font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; letter-spacing: 0.12em;
+  padding: 0.6rem 1.2rem; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.btn-danger:hover { background: rgba(255,51,51,0.2); border-color: var(--red); }
+
+/* ── BACKUP / LOAD UI ── */
+.backup-card {
+  border: 1px solid var(--gray-3);
+  background: var(--gray-1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+.backup-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem; letter-spacing: 0.1em;
+  margin-bottom: 0.4rem; color: var(--white);
+  display: flex; align-items: center; gap: 0.6rem;
+}
+.backup-title i { color: var(--orange); }
+.backup-desc { font-size: 0.65rem; color: var(--gray-5); margin-bottom: 1.2rem; line-height: 1.6; }
+.backup-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.backup-info {
+  background: rgba(255,136,0,0.07);
+  border: 1px solid rgba(255,136,0,0.2);
+  border-left: 3px solid var(--orange);
+  padding: 0.7rem 1rem;
+  font-size: 0.62rem;
+  color: var(--gray-5);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+.backup-info strong { color: var(--orange); }
+
+/* ── DEPOSIT HISTORY ── */
 .deposit-history { margin-top: 2rem; }
 .deposit-card {
-  border: 1px solid var(--gray-3);
-  border-top: none;
-  padding: 1rem;
+  border: 1px solid var(--gray-3); border-top: none; padding: 1rem;
+  transition: background 0.15s;
 }
 .deposit-card:first-child { border-top: 1px solid var(--gray-3); }
+.deposit-card:hover { background: var(--gray-1); }
 .deposit-status {
-  font-size: 0.6rem;
-  padding: 0.2rem 0.6rem;
-  border: 1px solid;
-  display: inline-block;
+  font-size: 0.6rem; padding: 0.2rem 0.6rem; border: 1px solid; display: inline-block;
 }
 .status-pending { border-color: var(--yellow); color: var(--yellow); background: rgba(255,238,0,0.05); }
 .status-approved { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.05); }
 .status-rejected { border-color: var(--red); color: var(--red); background: rgba(255,51,51,0.05); }
+
+/* ── ORDERS ── */
 .orders-wrap { display: flex; flex-direction: column; }
 .order-card {
-  border: 1px solid var(--gray-3);
-  border-top: none;
-  padding: 1rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  border: 1px solid var(--gray-3); border-top: none; padding: 1rem 1.5rem;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+  transition: background 0.15s;
 }
 .order-card:first-child { border-top: 1px solid var(--gray-3); }
+.order-card:hover { background: var(--gray-1); }
 .order-plan { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; }
-.order-key {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.7rem;
-  color: var(--green);
-  margin-top: 0.5rem;
-  word-break: break-all;
-}
-.order-status-badge {
-  font-size: 0.6rem;
-  padding: 0.2rem 0.7rem;
-  border: 1px solid;
-  text-transform: uppercase;
-}
+.order-key { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--green); margin-top: 0.5rem; word-break: break-all; }
+.order-status-badge { font-size: 0.6rem; padding: 0.2rem 0.7rem; border: 1px solid; text-transform: uppercase; }
 .badge-pending { border-color: var(--yellow); color: var(--yellow); }
 .badge-fulfilled { border-color: var(--green); color: var(--green); }
 .badge-cancelled { border-color: var(--red); color: var(--red); }
 .btn-copy-key, .btn-cancel-order {
-  background: none;
-  border: 1px solid;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  padding: 0.25rem 0.65rem;
-  cursor: pointer;
-  transition: all 0.15s;
+  background: none; border: 1px solid; font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; padding: 0.25rem 0.65rem; cursor: pointer; transition: all 0.15s;
 }
 .btn-copy-key { border-color: rgba(0,255,136,0.3); color: var(--green); }
 .btn-copy-key:hover { background: rgba(0,255,136,0.1); }
 .btn-cancel-order { border-color: rgba(255,51,51,0.3); color: var(--red); }
 .btn-cancel-order:hover { background: rgba(255,51,51,0.1); }
-.contacts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0;
-  border: 1px solid var(--gray-3);
+
+/* ── PAGE HEADERS ── */
+.page-header {
+  font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.1em;
+  border-bottom: 1px solid var(--gray-3); padding-bottom: 1rem; margin-bottom: 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
 }
+
+/* ── CONTACTS ── */
+.contacts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0; border: 1px solid var(--gray-3); }
 .contact-card {
-  padding: 1.5rem;
-  border-right: 1px solid var(--gray-3);
-  border-bottom: 1px solid var(--gray-3);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  text-decoration: none;
-  transition: background 0.15s;
-  color: inherit;
+  padding: 1.5rem; border-right: 1px solid var(--gray-3); border-bottom: 1px solid var(--gray-3);
+  display: flex; align-items: center; gap: 1rem; text-decoration: none; transition: background 0.15s; color: inherit;
 }
 .contact-card:hover { background: var(--gray-1); }
-.contact-icon-wrap {
-  width: 44px; height: 44px;
-  border: 1px solid var(--gray-3);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
-.contact-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.1em;
-  color: var(--white);
-}
+.contact-icon-wrap { width: 44px; height: 44px; border: 1px solid var(--gray-3); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+.contact-title { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.1em; color: var(--white); }
 .contact-admin-card {
-  border: 1px solid var(--orange);
-  background: rgba(255, 136, 0, 0.05);
-  padding: 1rem;
-  margin-bottom: 1.5rem;
+  border: 1px solid var(--orange); background: rgba(255,136,0,0.05); padding: 1rem; margin-bottom: 1.5rem;
 }
 .contact-admin-btn {
-  background: var(--orange);
-  color: var(--black);
-  border: none;
-  padding: 0.5rem 1rem;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.7rem;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: opacity 0.15s;
+  background: var(--orange); color: var(--black); border: none; padding: 0.5rem 1rem;
+  font-family: 'Space Mono', monospace; font-size: 0.7rem; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 0.5rem; transition: opacity 0.15s;
 }
 .contact-admin-btn:hover { opacity: 0.8; }
+
+/* ── MODALS ── */
 .modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.92);
-  z-index: 1000;
-  display: none;
-  align-items: center;
-  justify-content: center;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+  z-index: 1000; display: none; align-items: center; justify-content: center;
   backdrop-filter: blur(4px);
 }
 .modal-overlay.open { display: flex; }
 .modal-box {
-  background: var(--black);
-  border: 1px solid var(--gray-3);
+  background: var(--black); border: 1px solid var(--gray-3);
   width: 100%; max-width: 450px; margin: 1rem;
   animation: modalIn 0.2s ease;
   max-height: 92vh; overflow-y: auto;
 }
 @keyframes modalIn { from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
 .modal-header {
-  border-bottom: 1px solid var(--gray-3);
-  padding: 1.2rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border-bottom: 1px solid var(--gray-3); padding: 1.2rem 1.5rem;
+  display: flex; justify-content: space-between; align-items: center;
 }
-.modal-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.3rem;
-  letter-spacing: 0.1em;
-}
-.modal-close {
-  background: none;
-  border: 1px solid var(--gray-3);
-  color: var(--gray-5);
-  width: 28px; height: 28px;
-  cursor: pointer;
-}
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.1em; }
+.modal-close { background: none; border: 1px solid var(--gray-3); color: var(--gray-5); width: 28px; height: 28px; cursor: pointer; transition: all 0.15s; }
+.modal-close:hover { border-color: var(--white); color: var(--white); }
 .modal-body { padding: 1.5rem; }
-.modal-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--gray-3);
-  margin-bottom: 1rem;
-}
-.modal-tab {
-  flex: 1; padding: 0.6rem;
-  text-align: center;
-  cursor: pointer;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 0.9rem;
-  color: var(--gray-5);
-  border-bottom: 2px solid transparent;
-}
+.modal-tabs { display: flex; border-bottom: 1px solid var(--gray-3); margin-bottom: 1rem; }
+.modal-tab { flex: 1; padding: 0.6rem; text-align: center; cursor: pointer; font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; color: var(--gray-5); border-bottom: 2px solid transparent; }
 .modal-tab.active { color: var(--white); border-bottom-color: var(--white); }
 .modal-input {
-  width: 100%;
-  background: var(--gray-1);
-  border: 1px solid var(--gray-3);
-  padding: 0.7rem 1rem;
-  color: var(--white);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8rem;
-  margin-bottom: 0.8rem;
+  width: 100%; background: var(--gray-1); border: 1px solid var(--gray-3);
+  padding: 0.7rem 1rem; color: var(--white); font-family: 'Space Mono', monospace;
+  font-size: 0.8rem; margin-bottom: 0.8rem;
 }
 .modal-input:focus { outline: none; border-color: var(--white); }
-.modal-label {
-  font-size: 0.58rem;
-  letter-spacing: 0.15em;
-  color: var(--gray-5);
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 0.3rem;
-}
+.modal-label { font-size: 0.58rem; letter-spacing: 0.15em; color: var(--gray-5); text-transform: uppercase; display: block; margin-bottom: 0.3rem; }
 .modal-btn {
-  width: 100%;
-  background: var(--white);
-  color: var(--black);
-  border: none;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 0.9rem;
-  letter-spacing: 0.15em;
-  padding: 0.7rem;
-  cursor: pointer;
+  width: 100%; background: var(--white); color: var(--black); border: none;
+  font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; letter-spacing: 0.15em;
+  padding: 0.7rem; cursor: pointer; transition: background 0.15s;
 }
-.modal-cancel {
-  width: 100%;
-  background: none;
-  border: 1px solid var(--gray-3);
-  color: var(--gray-5);
-  padding: 0.6rem;
-  cursor: pointer;
-  margin-top: 0.5rem;
-}
-.modal-error {
-  font-size: 0.68rem;
-  color: var(--red);
-  padding: 0.5rem;
-  border: 1px solid rgba(255,51,51,0.25);
-  background: rgba(255,51,51,0.06);
-  margin-bottom: 1rem;
-  display: none;
-}
+.modal-btn:hover { background: var(--gray-6); }
+.modal-cancel { width: 100%; background: none; border: 1px solid var(--gray-3); color: var(--gray-5); padding: 0.6rem; cursor: pointer; margin-top: 0.5rem; transition: all 0.15s; }
+.modal-cancel:hover { border-color: var(--gray-5); color: var(--white); }
+.modal-error { font-size: 0.68rem; color: var(--red); padding: 0.5rem; border: 1px solid rgba(255,51,51,0.25); background: rgba(255,51,51,0.06); margin-bottom: 1rem; display: none; }
 .modal-error.show { display: block; }
-.key-reveal-card {
-  border: 1px solid var(--green);
-  padding: 1rem;
-  text-align: center;
-  margin-top: 1rem;
-}
-.key-reveal-value {
-  font-family: 'Space Mono', monospace;
-  font-size: 1rem;
-  color: var(--green);
-  word-break: break-all;
-  margin: 0.5rem 0;
-}
-.btn-copy {
-  background: rgba(0,255,136,0.1);
-  border: 1px solid rgba(0,255,136,0.3);
-  color: var(--green);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.68rem;
-  padding: 0.4rem 1rem;
-  cursor: pointer;
-}
-.spinner {
-  width: 32px; height: 32px;
-  border: 2px solid var(--gray-3);
-  border-top-color: var(--white);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 1rem auto;
-}
+.key-reveal-card { border: 1px solid var(--green); padding: 1rem; text-align: center; margin-top: 1rem; }
+.key-reveal-value { font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--green); word-break: break-all; margin: 0.5rem 0; }
+.btn-copy { background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); color: var(--green); font-family: 'Space Mono', monospace; font-size: 0.68rem; padding: 0.4rem 1rem; cursor: pointer; }
+
+/* ── MISC ── */
+.spinner { width: 32px; height: 32px; border: 2px solid var(--gray-3); border-top-color: var(--white); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 1rem auto; }
 @keyframes spin { to{ transform:rotate(360deg); } }
-.empty-msg {
-  text-align: center;
-  color: var(--gray-4);
-  padding: 3rem;
-  font-size: 0.75rem;
-  border: 1px solid var(--gray-3);
-}
+.empty-msg { text-align: center; color: var(--gray-4); padding: 3rem; font-size: 0.75rem; border: 1px solid var(--gray-3); }
 .toast-msg {
   position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
-  background: var(--white);
-  color: var(--black);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.7rem;
-  padding: 0.6rem 1.5rem;
-  z-index: 9000;
-  opacity: 0;
-  transition: opacity 0.2s;
-  pointer-events: none;
-  white-space: nowrap;
+  background: var(--white); color: var(--black); font-family: 'Space Mono', monospace;
+  font-size: 0.7rem; padding: 0.6rem 1.5rem; z-index: 9000; opacity: 0;
+  transition: opacity 0.2s; pointer-events: none; white-space: nowrap;
 }
 .toast-msg.show { opacity: 1; }
-.glass-footer {
-  margin-top: 2rem;
-  padding: 1rem;
-  border-top: 1px solid var(--gray-3);
-  font-size: 0.58rem;
-  color: var(--gray-4);
-  text-align: center;
-  text-transform: uppercase;
+.glass-footer { margin-top: 2rem; padding: 1rem; border-top: 1px solid var(--gray-3); font-size: 0.58rem; color: var(--gray-4); text-align: center; text-transform: uppercase; }
+
+/* ── PURCHASE TOTALS ── */
+.totals-box { border: 1px solid var(--gray-3); padding: 1rem; margin: 1rem 0; background: var(--gray-1); }
+.totals-row { display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 0.3rem; color: var(--gray-5); }
+.totals-row.total { color: var(--white); font-weight: bold; border-top: 1px solid var(--gray-3); padding-top: 0.5rem; margin-top: 0.5rem; }
+
+/* ── PULSE BADGE (live) ── */
+@keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.3; } }
+.live-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.55rem; letter-spacing: 0.12em; color: var(--green);
+  animation: pulse 2s infinite;
 }
+.live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+
+/* ── PROMO INPUT ── */
+.promo-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+.promo-input { flex: 1; background: var(--black); border: 1px solid var(--gray-3); padding: 0.5rem 0.8rem; color: var(--white); font-family: 'Space Mono', monospace; font-size: 0.75rem; }
+.promo-input:focus { outline: none; border-color: var(--gray-5); }
+.promo-btn { background: var(--gray-2); border: 1px solid var(--gray-3); color: var(--gray-5); font-family: 'Bebas Neue', sans-serif; font-size: 0.85rem; letter-spacing: 0.1em; padding: 0.5rem 0.9rem; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+.promo-btn:hover { border-color: var(--white); color: var(--white); }
+
+/* ── RESPONSIVE ── */
 @media(max-width:640px) {
   .nav-btn { padding: 0 0.7rem; font-size: 0.75rem; }
   .plans-grid, .contacts-grid { grid-template-columns: 1fr; }
   .service-items { grid-template-columns: 1fr; }
+  .backup-row { flex-direction: column; }
+  .backup-row .btn-secondary, .backup-row .btn-danger { width: 100%; justify-content: center; }
 }
-
-.tier-list { margin:.5rem 0; border-top:1px solid var(--gray-3); }
-.tier-row { display:flex; justify-content:space-between; font-size:.7rem; padding:.25rem 0; border-bottom:1px solid var(--gray-2); color:var(--gray-6); }
-.tier-row span:last-child { color:var(--green); font-weight:bold; }
-#svcTierSelect { padding:.6rem; background:var(--gray-1); border:1px solid var(--gray-3); color:#fff; width:100%; font-family:'Space Mono',monospace; }
-
 </style>
 </head>
 <body>
@@ -805,12 +623,11 @@ body::after {
     <div class="shop-header">
       <div class="header-logo">
         <img id="shopLogoImg" src="" alt="">
-        <span id="appName">N4XCO SHOP</span>
+        <span id="appName">SHOP NI N4XCO</span>
       </div>
       <div class="header-meta">
-        <span>ACTIVATION KEYS</span>
-        <span>USE BALANCE TO BUY</span>
-        <span>AUTO-DELIVERED</span>
+        <div><span class="live-badge"><span class="live-dot"></span> LIVE</span></div>
+        <div>ACTIVATION KEYS · USE BALANCE TO BUY · AUTO-DELIVERED</div>
       </div>
     </div>
     <div id="apkDownload" class="apk-banner">
@@ -821,31 +638,39 @@ body::after {
       <button class="btn-download" onclick="downloadApk()">↓ DOWNLOAD APK</button>
     </div>
     <div class="section-label">AVAILABLE PLANS</div>
-    <div id="plansGrid" class="plans-grid"></div>
+    <div id="plansGrid" class="plans-grid" style="border:none;"></div>
     <div id="shopServicesContainer" class="services-grid" style="margin-top:2rem;"></div>
-    <div class="glass-footer">KEYS AUTO-DELIVERED UPON PURCHASE · SUPPORT 24/7</div>
+    <div class="glass-footer">KEYS AUTO-DELIVERED UPON PURCHASE &nbsp;·&nbsp; SUPPORT 24/7 &nbsp;·&nbsp; N4XCO SHOP</div>
   </div>
 
   <!-- SERVICES TAB -->
   <div id="servicesTab" class="tab-section">
-    <div class="orders-page-header" style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:0.1em;border-bottom:1px solid var(--gray-3);padding-bottom:1rem;margin-bottom:1.5rem;">OUR SERVICES</div>
+    <div class="page-header">OUR SERVICES</div>
     <div id="servicesContainer" class="services-grid"></div>
   </div>
 
   <!-- DEPOSIT TAB -->
   <div id="depositTab" class="tab-section">
-    <div class="orders-page-header" style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:0.1em;border-bottom:1px solid var(--gray-3);padding-bottom:1rem;margin-bottom:1.5rem;">DEPOSIT FUNDS</div>
+    <div class="page-header">DEPOSIT FUNDS</div>
+
+    <!-- ── PAYMENT METHOD SELECTOR ── -->
     <div class="deposit-form-card">
-      <div class="deposit-form-title">GCASH DEPOSIT</div>
-      <div class="gcash-info">
-        <div style="font-size:0.7rem;letter-spacing:0.1em;">SEND PAYMENT TO</div>
-        <div class="gcash-number" id="gcashNumber" onclick="copyText(document.getElementById('gcashNumber').textContent)">09123456789</div>
-        <div style="font-size:0.6rem;margin-top:0.3rem;">Click number to copy</div>
-        <div class="gcash-qr" id="gcashQrContainer" style="display:none;">
-          <img id="gcashQr" src="" alt="GCash QR Code" style="max-width:150px; margin-top:0.5rem;">
-          <div style="font-size:0.55rem;margin-top:0.3rem;">Scan QR code</div>
+      <div class="deposit-form-title">CHOOSE PAYMENT METHOD</div>
+      <div id="pmRow" class="payment-methods-row"></div>
+      <div id="pmDetails"></div>
+      <!-- fallback if no payment methods -->
+      <div id="gcashFallback" style="display:none;">
+        <div class="gcash-info">
+          <div style="font-size:0.7rem;letter-spacing:0.1em;">SEND PAYMENT TO</div>
+          <div class="gcash-number" id="gcashNumber" onclick="copyText(document.getElementById('gcashNumber').textContent)">—</div>
+          <div style="font-size:0.6rem;margin-top:0.3rem;">Click number to copy</div>
+          <div class="gcash-qr" id="gcashQrContainer" style="display:none;">
+            <img id="gcashQr" src="" alt="GCash QR Code">
+            <div style="font-size:0.55rem;margin-top:0.3rem;">Scan QR code</div>
+          </div>
         </div>
       </div>
+
       <div class="field-group">
         <label class="field-label">AMOUNT (₱)</label>
         <div class="amount-buttons">
@@ -865,7 +690,7 @@ body::after {
         <input type="text" id="depositFacebook" class="field-input" placeholder="facebook.com/username or email">
       </div>
       <div class="field-group">
-        <label class="field-label">LAST 4 DIGITS OF GCASH REFERENCE NO.</label>
+        <label class="field-label">LAST 4 DIGITS OF REFERENCE NO.</label>
         <input type="text" id="depositLast4" class="field-input" placeholder="1234" maxlength="4">
       </div>
       <div class="field-group">
@@ -879,6 +704,7 @@ body::after {
       <button class="btn-primary" id="submitDepositBtn">SUBMIT DEPOSIT REQUEST</button>
       <div id="depositMsg" style="margin-top:1rem;font-size:0.7rem;color:var(--gray-5);"></div>
     </div>
+
     <div class="deposit-history">
       <div class="section-label">DEPOSIT HISTORY</div>
       <div id="depositHistory"></div>
@@ -887,13 +713,13 @@ body::after {
 
   <!-- ORDERS TAB -->
   <div id="ordersTab" class="tab-section">
-    <div class="orders-page-header" style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:0.1em;border-bottom:1px solid var(--gray-3);padding-bottom:1rem;margin-bottom:1.5rem;">MY ORDERS</div>
+    <div class="page-header">MY ORDERS</div>
     <div id="ordersContainer"></div>
   </div>
 
   <!-- CONTACTS TAB -->
   <div id="contactsTab" class="tab-section">
-    <div class="orders-page-header" style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:0.1em;border-bottom:1px solid var(--gray-3);padding-bottom:1rem;margin-bottom:1.5rem;">CONTACTS</div>
+    <div class="page-header">CONTACTS</div>
     <div class="contact-admin-card">
       <div style="display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;">
         <i class="fas fa-headset" style="font-size:1.5rem;color:var(--orange);"></i>
@@ -908,6 +734,28 @@ body::after {
         </div>
       </div>
     </div>
+
+    <!-- ── BACKUP / LOAD SETUP ── -->
+    <div class="backup-card">
+      <div class="backup-title"><i class="fas fa-database"></i> SETUP BACKUP &amp; RESTORE</div>
+      <div class="backup-desc">
+        Since Render.com free tier resets the filesystem on redeploy, use this to save your current shop settings
+        (payment methods, shop name, GCash number, APK settings) to your browser, then restore them after a fresh deploy.
+      </div>
+      <div class="backup-info">
+        <strong>What gets saved:</strong> Shop name · APK link · GCash number &amp; QR · Payment methods · Deposit settings<br>
+        <strong>What is NOT saved:</strong> User accounts · Keys pool · Orders · Deposits (those are in your DB / external service)
+      </div>
+      <div class="backup-row">
+        <button class="btn-secondary" onclick="doBackupSetup()"><i class="fas fa-download"></i> BACKUP SETUP</button>
+        <label class="btn-secondary" style="cursor:pointer;"><i class="fas fa-upload"></i> LOAD SETUP
+          <input type="file" id="backupFileInput" accept=".json" style="display:none;" onchange="doLoadSetup(this)">
+        </label>
+        <button class="btn-danger" onclick="doQuickBackup()"><i class="fas fa-copy"></i> COPY BACKUP JSON</button>
+      </div>
+      <div id="backupStatus" style="margin-top:0.8rem;font-size:0.65rem;color:var(--gray-5);"></div>
+    </div>
+
     <div class="section-label">REACH US ON TELEGRAM</div>
     <div class="contacts-grid">
       <a class="contact-card" href="https://t.me/JEPFX" target="_blank">
@@ -934,6 +782,8 @@ body::after {
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════════ MODALS ═══════════════════════ -->
 
 <!-- AUTH MODAL -->
 <div class="modal-overlay" id="authModal">
@@ -965,14 +815,14 @@ body::after {
         <label class="modal-label">Telegram (optional)</label>
         <input type="text" id="regTelegram" class="modal-input" placeholder="@username">
         <label class="modal-label">Facebook (optional)</label>
-        <input type="text" id="regFacebook" class="modal-input" placeholder="facebook username">
+        <input type="text" id="regFacebook" class="modal-input" placeholder="facebook.com/username">
         <button class="modal-btn" id="registerBtn">CREATE ACCOUNT</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- PURCHASE CONFIRM MODAL -->
+<!-- PURCHASE MODAL -->
 <div class="modal-overlay" id="purchaseModal">
   <div class="modal-box">
     <div class="modal-header">
@@ -981,20 +831,19 @@ body::after {
     </div>
     <div class="modal-body">
       <div id="purchaseError" class="modal-error"></div>
-      <div style="border:1px solid var(--gray-3);padding:1rem;margin-bottom:1rem;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Plan:</span><span id="purchasePlanLabel">—</span></div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Price:</span><span id="purchasePrice">—</span></div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Discount:</span><span id="purchaseDiscount" style="color:var(--green);">—</span></div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;font-weight:bold;"><span>Total:</span><span id="purchaseTotal">—</span></div>
-        <div style="display:flex;justify-content:space-between;"><span>Your Balance:</span><span id="purchaseBalance" style="color:var(--green);">—</span></div>
+      <div style="font-size:0.65rem;color:var(--gray-5);margin-bottom:0.8rem;">
+        Plan: <strong style="color:var(--white)" id="purchasePlanLabel">—</strong> &nbsp;·&nbsp;
+        Balance: <strong style="color:var(--green)" id="purchaseBalance">₱0</strong>
       </div>
-      <div style="margin-bottom:1rem;">
-        <label style="font-size:0.7rem;color:var(--gray-5);display:block;margin-bottom:.3rem;">PROMO CODE (OPTIONAL)</label>
-        <div style="display:flex;gap:.4rem;">
-          <input id="purchasePromo" placeholder="Enter code" style="flex:1;padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;text-transform:uppercase;" />
-          <button class="modal-cancel" style="width:auto;padding:0 1rem;" id="applyPromoBtn">APPLY</button>
-        </div>
-        <div id="promoMsg" style="font-size:0.7rem;margin-top:.3rem;"></div>
+      <div class="promo-row">
+        <input type="text" id="purchasePromo" class="promo-input" placeholder="Promo code (optional)">
+        <button class="promo-btn" id="applyPromoBtn">APPLY</button>
+      </div>
+      <div id="promoMsg" style="font-size:0.7rem;margin-bottom:0.5rem;"></div>
+      <div class="totals-box">
+        <div class="totals-row"><span>Original price</span><span id="purchasePrice">—</span></div>
+        <div class="totals-row"><span>Discount</span><span id="purchaseDiscount">—</span></div>
+        <div class="totals-row total"><span>TOTAL</span><span id="purchaseTotal">—</span></div>
       </div>
       <button class="modal-btn" id="confirmPurchaseBtn">CONFIRM PURCHASE</button>
       <button class="modal-cancel" onclick="closeModal('purchaseModal')">CANCEL</button>
@@ -1011,27 +860,36 @@ body::after {
     </div>
     <div class="modal-body">
       <div id="svcBuyError" class="modal-error"></div>
-      <div id="svcBuyDeliveryNote" style="display:none;border-left:3px solid var(--green);background:rgba(34,197,94,.08);padding:.55rem .7rem;margin-bottom:.8rem;font-size:.72rem;color:#cbd5e1;border-radius:3px;"></div>
-      <div style="border:1px solid var(--gray-3);padding:1rem;margin-bottom:1rem;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Service:</span><span id="svcBuyName">—</span></div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Price:</span><span id="svcBuyPrice">—</span></div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;"><span>Discount:</span><span id="svcBuyDiscount" style="color:var(--green);">—</span></div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;font-weight:bold;"><span>Total:</span><span id="svcBuyTotal">—</span></div>
-        <div style="display:flex;justify-content:space-between;"><span>Balance:</span><span id="svcBuyBalance" style="color:var(--green);">—</span></div>
+      <div style="font-size:0.65rem;color:var(--gray-5);margin-bottom:0.8rem;">
+        Service: <strong style="color:var(--white)" id="svcBuyName">—</strong> &nbsp;·&nbsp;
+        Balance: <strong style="color:var(--green)" id="svcBuyBalance">₱0</strong>
       </div>
-      <div id="svcTierWrap" style="margin-bottom:.8rem;display:none;">
-          <label style="display:block;font-size:.7rem;color:var(--gray-6);margin-bottom:.3rem;">CHOOSE QUANTITY / TIER</label>
-          <select id="svcTierSelect"></select>
-        </div>
-        <div style="display:grid;gap:.6rem;margin-bottom:1rem;">
-        <input id="svcBuyTg" placeholder="Telegram (@yourhandle)" style="padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;"/>
-        <input id="svcBuyFb" placeholder="Facebook profile/link" style="padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;"/>
-        <input id="svcBuyLink" placeholder="Your account/profile link (for boosting)" style="padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;"/>
-        <div style="display:flex;gap:.4rem;">
-          <input id="svcBuyPromo" placeholder="Promo code (optional)" style="flex:1;padding:.6rem;background:var(--gray-1);border:1px solid var(--gray-3);color:#fff;text-transform:uppercase;"/>
-          <button class="modal-cancel" style="width:auto;padding:0 1rem;" id="svcApplyPromoBtn">APPLY</button>
-        </div>
-        <div id="svcPromoMsg" style="font-size:0.7rem;"></div>
+      <div id="svcBuyDeliveryNote" style="font-size:0.68rem;color:var(--gray-5);padding:0.5rem;border:1px solid var(--gray-3);margin-bottom:0.8rem;display:none;"></div>
+      <div id="svcTierWrap" style="display:none;" class="field-group">
+        <label class="modal-label">Choose tier / quantity</label>
+        <select id="svcTierSelect"></select>
+      </div>
+      <div class="field-group">
+        <label class="modal-label">Telegram Username</label>
+        <input type="text" id="svcBuyTg" class="modal-input" placeholder="@username">
+      </div>
+      <div class="field-group">
+        <label class="modal-label">Facebook</label>
+        <input type="text" id="svcBuyFb" class="modal-input" placeholder="facebook.com/username">
+      </div>
+      <div class="field-group" id="svcBuyLinkWrap" style="display:none;">
+        <label class="modal-label">Your Account / Link</label>
+        <input type="text" id="svcBuyLink" class="modal-input" placeholder="Account link or ID">
+      </div>
+      <div class="promo-row">
+        <input type="text" id="svcBuyPromo" class="promo-input" placeholder="Promo code (optional)">
+        <button class="promo-btn" id="svcApplyPromoBtn">APPLY</button>
+      </div>
+      <div id="svcPromoMsg" style="font-size:0.7rem;margin-bottom:0.5rem;"></div>
+      <div class="totals-box">
+        <div class="totals-row"><span>Price</span><span id="svcBuyPrice">—</span></div>
+        <div class="totals-row"><span>Discount</span><span id="svcBuyDiscount">—</span></div>
+        <div class="totals-row total"><span>TOTAL</span><span id="svcBuyTotal">—</span></div>
       </div>
       <button class="modal-btn" id="confirmSvcBuyBtn">CONFIRM PURCHASE</button>
       <button class="modal-cancel" onclick="closeModal('svcBuyModal')">CANCEL</button>
@@ -1060,7 +918,7 @@ body::after {
 <div class="modal-overlay" id="keyModal">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-title">KEY DELIVERED!</div>
+      <div class="modal-title">🔑 KEY DELIVERED!</div>
       <button class="modal-close" onclick="closeModal('keyModal')"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
@@ -1076,12 +934,15 @@ body::after {
 <div class="toast-msg" id="toastMsg"></div>
 
 <script>
+// ── STATE ────────────────────────────────────────────────────────────────────
 let userToken = localStorage.getItem('n4xco_token');
-let userName = localStorage.getItem('n4xco_user');
+let userName  = localStorage.getItem('n4xco_user');
 let userBalance = 0;
-let storeData = { plans: [], services: [], categories: [], apk: {}, depositSettings: {} };
+let storeData = { plans:[], services:[], categories:[], apk:{}, depositSettings:{}, paymentMethods:[] };
 let keyAvailability = {};
+let activePmId = null;
 
+// ── NAV ──────────────────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const tab = btn.dataset.tab;
@@ -1090,20 +951,33 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById(tab + 'Tab').classList.add('active');
     if (tab === 'orders') loadOrders();
-    if (tab === 'deposit') loadDepositHistory();
+    if (tab === 'deposit') { loadDepositHistory(); }
   });
 });
 
-function updateUserUI() {
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function esc(str){ return (str==null?'':String(str)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg){ const el=document.getElementById('toastMsg'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),3000); }
+function copyText(text){ navigator.clipboard.writeText(text).then(()=>toast('COPIED!')).catch(()=>{}); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function showErr(id, msg){ const el=document.getElementById(id); el.textContent=msg; el.classList.add('show'); }
+function openAuthModal(){ document.getElementById('authError').classList.remove('show'); switchAuthTab('login'); document.getElementById('authModal').classList.add('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click', function(e){ if(e.target===this) this.classList.remove('open'); });
+});
+
+// ── USER UI ──────────────────────────────────────────────────────────────────
+function updateUserUI(){
   const pill = document.getElementById('userPill');
   const balancePill = document.getElementById('balancePill');
-  if (userToken && userName) {
+  if(userToken && userName){
     document.getElementById('userPillText').textContent = userName.toUpperCase();
     document.getElementById('userPillIcon').className = 'fas fa-user-check';
     pill.classList.add('logged-in');
-    pill.onclick = () => { if(confirm('Log out as ' + userName + '?')) doLogout(); };
+    pill.onclick = ()=>{ if(confirm('Log out as '+userName+'?')) doLogout(); };
     balancePill.style.display = 'flex';
-    document.getElementById('userBalance').textContent = '₱' + userBalance.toLocaleString();
+    document.getElementById('userBalance').textContent = '₱'+userBalance.toLocaleString();
   } else {
     document.getElementById('userPillText').textContent = 'LOGIN';
     document.getElementById('userPillIcon').className = 'fas fa-user';
@@ -1113,194 +987,203 @@ function updateUserUI() {
   }
 }
 
-async function refreshUserInfo() {
-  if (!userToken) return;
+async function refreshUserInfo(){
+  if(!userToken) return;
   try {
-    const res = await fetch('/api/user/info', { headers: { Authorization: 'Bearer ' + userToken } });
+    const res = await fetch('/api/user/info',{headers:{Authorization:'Bearer '+userToken}});
     const data = await res.json();
-    if (data.success) {
-      userBalance = data.balance;
-      document.getElementById('userBalance').textContent = '₱' + userBalance.toLocaleString();
-    }
-  } catch(e) {}
+    if(data.success){ userBalance=data.balance; document.getElementById('userBalance').textContent='₱'+userBalance.toLocaleString(); }
+  } catch(e){}
 }
 
-function doLogout() {
-  userToken = null; userName = null; userBalance = 0;
+function doLogout(){
+  userToken=null; userName=null; userBalance=0;
   localStorage.removeItem('n4xco_token'); localStorage.removeItem('n4xco_user');
-  updateUserUI(); toast('LOGGED OUT');
-  location.reload();
+  updateUserUI(); toast('LOGGED OUT'); location.reload();
 }
 
-function openAuthModal() {
-  document.getElementById('authError').classList.remove('show');
-  switchAuthTab('login');
-  document.getElementById('authModal').classList.add('open');
-}
-
-function switchAuthTab(tab) {
-  const isLogin = tab === 'login';
+function switchAuthTab(tab){
+  const isLogin = tab==='login';
   document.getElementById('tabLogin').classList.toggle('active', isLogin);
   document.getElementById('tabRegister').classList.toggle('active', !isLogin);
   document.getElementById('loginForm').style.display = isLogin ? '' : 'none';
   document.getElementById('registerForm').style.display = isLogin ? 'none' : '';
 }
 
-document.getElementById('loginBtn').addEventListener('click', async () => {
-  const username = document.getElementById('loginUser').value.trim();
-  const password = document.getElementById('loginPass').value;
-  if (!username || !password) return showErr('authError', 'Enter username and password');
-  document.getElementById('loginBtn').disabled = true;
-  try {
-    const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password }) });
-    const data = await res.json();
-    if (!res.ok) { showErr('authError', data.message || 'Invalid credentials'); return; }
-    userToken = data.token; userName = data.username; userBalance = data.balance;
-    localStorage.setItem('n4xco_token', userToken);
-    localStorage.setItem('n4xco_user', userName);
-    updateUserUI();
-    closeModal('authModal');
-    toast('Welcome back, ' + userName);
-    loadStore();
-    loadOrders();
-    loadDepositHistory();
-  } catch(e) { showErr('authError', 'Network error'); }
-  finally { document.getElementById('loginBtn').disabled = false; }
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const username=document.getElementById('loginUser').value.trim();
+  const password=document.getElementById('loginPass').value;
+  if(!username||!password) return showErr('authError','Enter username and password');
+  document.getElementById('loginBtn').disabled=true;
+  try{
+    const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+    const data=await res.json();
+    if(!res.ok){ showErr('authError',data.message||'Invalid credentials'); return; }
+    userToken=data.token; userName=data.username; userBalance=data.balance;
+    localStorage.setItem('n4xco_token',userToken); localStorage.setItem('n4xco_user',userName);
+    updateUserUI(); closeModal('authModal'); toast('Welcome back, '+userName);
+    loadStore(); loadOrders(); loadDepositHistory();
+  } catch(e){ showErr('authError','Network error'); }
+  finally{ document.getElementById('loginBtn').disabled=false; }
 });
 
-document.getElementById('registerBtn').addEventListener('click', async () => {
-  const username = document.getElementById('regUser').value.trim();
-  const password = document.getElementById('regPass').value;
-  const email    = document.getElementById('regEmail').value.trim().toLowerCase();
-  const telegram = document.getElementById('regTelegram').value.trim();
-  const facebook = document.getElementById('regFacebook').value.trim();
-  if (!username || !password || !email) return showErr('authError', 'Username, Gmail and password are required');
-  if (username.length < 3) return showErr('authError', 'Username min 3 characters');
-  if (password.length < 6) return showErr('authError', 'Password min 6 characters');
-  if (!/^[a-z0-9._%+-]+@gmail\.com$/.test(email)) return showErr('authError', 'A valid @gmail.com address is required');
-  document.getElementById('registerBtn').disabled = true;
-  try {
-    const res = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password, email, telegram, facebook }) });
-    const data = await res.json();
-    if (!res.ok) { showErr('authError', data.message || 'Registration failed'); return; }
-    userToken = data.token; userName = data.username; userBalance = data.balance;
-    localStorage.setItem('n4xco_token', userToken);
-    localStorage.setItem('n4xco_user', userName);
-    updateUserUI();
-    closeModal('authModal');
-    toast('Account created! Welcome, ' + userName);
-    loadStore();
-  } catch(e) { showErr('authError', 'Network error'); }
-  finally { document.getElementById('registerBtn').disabled = false; }
+document.getElementById('registerBtn').addEventListener('click', async ()=>{
+  const username=document.getElementById('regUser').value.trim();
+  const password=document.getElementById('regPass').value;
+  const email=document.getElementById('regEmail').value.trim().toLowerCase();
+  const telegram=document.getElementById('regTelegram').value.trim();
+  const facebook=document.getElementById('regFacebook').value.trim();
+  if(!username||!password||!email) return showErr('authError','Username, Gmail and password are required');
+  if(username.length<3) return showErr('authError','Username min 3 characters');
+  if(password.length<6) return showErr('authError','Password min 6 characters');
+  if(!/^[a-z0-9._%+-]+@gmail\.com$/.test(email)) return showErr('authError','A valid @gmail.com address is required');
+  document.getElementById('registerBtn').disabled=true;
+  try{
+    const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password,email,telegram,facebook})});
+    const data=await res.json();
+    if(!res.ok){ showErr('authError',data.message||'Registration failed'); return; }
+    userToken=data.token; userName=data.username; userBalance=data.balance;
+    localStorage.setItem('n4xco_token',userToken); localStorage.setItem('n4xco_user',userName);
+    updateUserUI(); closeModal('authModal'); toast('Account created! Welcome, '+userName); loadStore();
+  } catch(e){ showErr('authError','Network error'); }
+  finally{ document.getElementById('registerBtn').disabled=false; }
 });
 
-async function loadStore() {
-  try {
-    const res = await fetch('/api/store');
-    storeData = await res.json();
-    renderPlans();
-    renderServices();
-    renderApk();
-    renderDepositSettings();
+// ── LOAD STORE ───────────────────────────────────────────────────────────────
+async function loadStore(){
+  try{
+    const res=await fetch('/api/store');
+    storeData=await res.json();
+    renderPlans(); renderServices(); renderApk(); renderDepositSettings(); renderPaymentMethods();
     await loadKeyAvailability();
-  } catch(e) { console.error('Store load error', e); }
+  } catch(e){ console.error('Store load error',e); }
 }
 
-function renderDepositSettings() {
-  const settings = storeData.depositSettings || {};
-  if (settings.gcash_number) {
-    document.getElementById('gcashNumber').textContent = settings.gcash_number;
-  }
-  if (settings.qr_code) {
-    const qrContainer = document.getElementById('gcashQrContainer');
-    const qrImg = document.getElementById('gcashQr');
-    qrImg.src = settings.qr_code;
-    qrContainer.style.display = 'block';
-  }
-}
-
-async function loadKeyAvailability() {
-  try {
-    const res = await fetch('/api/key-counts');
-    const data = await res.json();
-    if (data.success && data.counts) {
-      keyAvailability = {};
-      data.counts.forEach(c => { keyAvailability[c.plan_id] = c.available; });
-      renderPlans();
-    }
-  } catch(e) {}
-}
-
-
-function renderApk() {
-  const apk = storeData.apk;
-  if (!apk) return;
-  if (apk.name) document.getElementById('appName').textContent = apk.name.toUpperCase();
-  if (apk.logo) {
-    const img = document.getElementById('shopLogoImg');
-    img.src = apk.logo; img.style.display = '';
-  }
-  const apkDiv = document.getElementById('apkDownload');
-  if (apk.link && apk.link !== 'https://example.com/download') {
-    document.getElementById('apkName').textContent = (apk.name || 'N4XCO App').toUpperCase();
-    apkDiv.style.display = 'flex';
+function renderApk(){
+  const apk=storeData.apk;
+  if(!apk) return;
+  if(apk.name) document.getElementById('appName').textContent=apk.name.toUpperCase();
+  if(apk.logo){ const img=document.getElementById('shopLogoImg'); img.src=apk.logo; img.style.display=''; }
+  const apkDiv=document.getElementById('apkDownload');
+  if(apk.link&&apk.link!=='https://example.com/download'){
+    document.getElementById('apkName').textContent=(apk.name||'N4XCO App').toUpperCase();
+    apkDiv.style.display='flex';
   }
 }
+function downloadApk(){ if(storeData.apk?.link) window.open(storeData.apk.link,'_blank'); }
 
-function downloadApk() { if (storeData.apk?.link) window.open(storeData.apk.link, '_blank'); }
+// ── PAYMENT METHODS ──────────────────────────────────────────────────────────
+function renderPaymentMethods(){
+  const methods = (storeData.paymentMethods||[]).filter(m=>m.enabled);
+  const pmRow = document.getElementById('pmRow');
+  const pmDetails = document.getElementById('pmDetails');
+  const gcashFallback = document.getElementById('gcashFallback');
 
-function renderPlans() {
-  const grid = document.getElementById('plansGrid');
-  const plans = storeData.plans || [];
-  if (!plans.length) {
-    grid.innerHTML = '<div style="color:var(--gray-4);text-align:center;padding:4rem;border:1px solid var(--gray-3);">NO PLANS AVAILABLE</div>';
+  if(!methods.length){
+    pmRow.innerHTML='';
+    pmDetails.innerHTML='';
+    // fall back to legacy deposit settings
+    gcashFallback.style.display='block';
     return;
   }
+  gcashFallback.style.display='none';
 
-  // Build category lookup from the admin-managed categories table
-  const cats = (storeData.categories || []).filter(c => c.enabled !== 0);
-  const catNameByKey = {};
-  cats.forEach(c => { catNameByKey[c.key] = c.name; });
+  pmRow.innerHTML = methods.map(m=>`
+    <div class="pm-chip" id="pmChip_${m.id}" onclick="selectPaymentMethod(${m.id})">
+      <span class="pm-chip-dot"></span>
+      ${m.logo?`<img src="${esc(m.logo)}" alt="">`:``}
+      <span>${esc(m.name)}</span>
+    </div>
+  `).join('');
 
-  // Group plans by their category (default to 'android' for legacy rows)
-  const groups = {};
-  plans.forEach(p => {
-    const key = p.category || 'android';
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(p);
-  });
+  pmDetails.innerHTML = methods.map(m=>`
+    <div class="pm-details" id="pmPanel_${m.id}">
+      <div class="pm-details-name">${esc(m.name)}</div>
+      ${m.number?`<div class="pm-number" onclick="copyText('${esc(m.number)}')" title="Click to copy">${esc(m.number)}</div><div style="font-size:0.6rem;color:var(--gray-5);">Click number to copy</div>`:''}
+      ${m.account_name?`<div style="font-size:0.65rem;color:var(--gray-5);margin-top:0.3rem;">${esc(m.account_name)}</div>`:''}
+      ${m.instructions?`<div style="font-size:0.62rem;color:var(--gray-5);margin-top:0.5rem;line-height:1.6;">${esc(m.instructions)}</div>`:''}
+      ${m.qr_code?`<div class="pm-qr"><img src="${esc(m.qr_code)}" alt="QR Code" onclick="copyText('${esc(m.number||'')}')"><div style="font-size:0.55rem;margin-top:0.3rem;color:var(--gray-5);">Scan QR code</div></div>`:''}
+    </div>
+  `).join('');
 
-  // Stable order: categories from admin table first (in their sort order),
-  // then any orphan plan categories alphabetically.
-  const orderedKeys = [
-    ...cats.map(c => c.key).filter(k => groups[k]),
-    ...Object.keys(groups).filter(k => !catNameByKey[k]).sort(),
+  // auto-select first
+  if(methods.length>0) selectPaymentMethod(methods[0].id);
+}
+
+function selectPaymentMethod(id){
+  activePmId = id;
+  document.querySelectorAll('.pm-chip').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.pm-details').forEach(p=>p.classList.remove('active'));
+  const chip = document.getElementById('pmChip_'+id);
+  const panel = document.getElementById('pmPanel_'+id);
+  if(chip) chip.classList.add('active');
+  if(panel) panel.classList.add('active');
+}
+
+function renderDepositSettings(){
+  const settings=storeData.depositSettings||{};
+  if(settings.gcash_number) document.getElementById('gcashNumber').textContent=settings.gcash_number;
+  if(settings.qr_code){
+    const qrContainer=document.getElementById('gcashQrContainer');
+    const qrImg=document.getElementById('gcashQr');
+    qrImg.src=settings.qr_code; qrContainer.style.display='block';
+  }
+}
+
+// ── KEY AVAILABILITY ─────────────────────────────────────────────────────────
+async function loadKeyAvailability(){
+  try{
+    const res=await fetch('/api/key-counts');
+    const data=await res.json();
+    if(data.success&&data.counts){
+      keyAvailability={};
+      data.counts.forEach(c=>{ keyAvailability[c.plan_id]=c.available; });
+      renderPlans();
+    }
+  } catch(e){}
+}
+
+// ── RENDER PLANS ─────────────────────────────────────────────────────────────
+function renderPlans(){
+  const grid=document.getElementById('plansGrid');
+  const plans=storeData.plans||[];
+  if(!plans.length){
+    grid.innerHTML='<div style="color:var(--gray-4);text-align:center;padding:4rem;border:1px solid var(--gray-3);">NO PLANS AVAILABLE</div>';
+    return;
+  }
+  const cats=(storeData.categories||[]).filter(c=>c.enabled!==0);
+  const catNameByKey={};
+  cats.forEach(c=>{ catNameByKey[c.key]=c.name; });
+  const groups={};
+  plans.forEach(p=>{ const key=p.category||'android'; if(!groups[key]) groups[key]=[]; groups[key].push(p); });
+  const orderedKeys=[
+    ...cats.map(c=>c.key).filter(k=>groups[k]),
+    ...Object.keys(groups).filter(k=>!catNameByKey[k]).sort()
   ];
 
   const cardHTML = p => {
-    const available = keyAvailability[p.id] || 0;
-    const disabled = available === 0;
+    const available = keyAvailability[p.id]||0;
+    const disabled = available===0;
     return `
-      <div class="plan-card ${disabled ? 'disabled' : ''}" onclick="${disabled ? '' : `showPurchaseModal('${p.id}')`}">
+      <div class="plan-card ${disabled?'disabled':''}" onclick="${disabled?'':``showPurchaseModal('${p.id}')``}">
         <div class="plan-number">${String(p.days).padStart(2,'0')}</div>
         <div class="plan-label">${esc(p.label)} PLAN</div>
         <div class="plan-price">₱${p.price}</div>
         <div class="plan-price-unit">PHP · ${p.days} DAYS</div>
-        <div class="plan-days-line">${available} key${available===1?'':'s'} in stock</div>
-        <button class="plan-buy-btn" ${disabled ? 'disabled' : ''}>${disabled ? 'SOLD OUT' : 'BUY NOW →'}</button>
+        <div class="plan-stock-line ${disabled?'out-of-stock':'in-stock'}">
+          ${disabled ? '✕ OUT OF STOCK' : `✓ ${available} key${available===1?'':'s'} in stock`}
+        </div>
+        <button class="plan-buy-btn ${disabled?'sold-out':''}" ${disabled?'disabled':''}>${disabled?'SOLD OUT':'BUY NOW →'}</button>
       </div>
     `;
   };
 
-  grid.innerHTML = orderedKeys.map(key => {
-    const name = catNameByKey[key] || key.toUpperCase();
+  grid.innerHTML = orderedKeys.map(key=>{
+    const name = catNameByKey[key]||key.toUpperCase();
     return `
-      <div class="brand-section" data-cat="${esc(key)}" style="grid-column:1/-1;margin-top:1rem;">
-        <div class="section-label" style="display:flex;align-items:center;gap:.6rem;">
-          <span>${esc(name)}</span>
-          <span style="font-size:.6rem;color:var(--gray-4);letter-spacing:.15em;">· ${groups[key].length} PLAN${groups[key].length===1?'':'S'}</span>
-        </div>
-        <div class="plans-grid" style="margin-top:.6rem;">
+      <div class="brand-section" data-cat="${esc(key)}" style="grid-column:1/-1;margin-top:1.2rem;">
+        <div class="category-chip"><i class="fas fa-tag"></i> ${esc(name)}</div>
+        <div class="plans-grid" style="margin-top:.4rem;">
           ${groups[key].map(cardHTML).join('')}
         </div>
       </div>
@@ -1308,27 +1191,22 @@ function renderPlans() {
   }).join('');
 }
 
-
-function renderServices() {
-  const container = document.getElementById('servicesContainer');
-  const shopContainer = document.getElementById('shopServicesContainer');
-  const settings = storeData.shopSettings || {};
-  // Categories are admin-editable. Fall back to legacy hardcoded list if API returns none.
-  const apiCats = (storeData.categories || []).map(c => ({
-    id: c.key, name: c.name, show: c.enabled !== 0, target: c.target || 'shop'
-  }));
-  const allCategories = apiCats.length ? apiCats : [
-    { id: 'android', name: 'ANDROID SERVICES', show: settings.show_android !== 0, target: 'services' },
-    { id: 'boosting', name: 'BOOSTING SERVICES', show: settings.show_boosting !== 0, target: 'shop' },
-    { id: 'jepfx', name: 'JEPFX SERVICE TOOL', show: settings.show_jepfx !== 0, target: 'shop' },
-    { id: 'module', name: 'MODULE FOR ROOTED', show: settings.show_module !== 0, target: 'shop' }
+// ── RENDER SERVICES ───────────────────────────────────────────────────────────
+function renderServices(){
+  const container=document.getElementById('servicesContainer');
+  const shopContainer=document.getElementById('shopServicesContainer');
+  const settings=storeData.shopSettings||{};
+  const apiCats=(storeData.categories||[]).map(c=>({id:c.key,name:c.name,show:c.enabled!==0,target:c.target||'shop'}));
+  const allCategories=apiCats.length?apiCats:[
+    {id:'android',name:'ANDROID SERVICES',show:settings.show_android!==0,target:'services'},
+    {id:'boosting',name:'BOOSTING SERVICES',show:settings.show_boosting!==0,target:'shop'},
+    {id:'jepfx',name:'JEPFX SERVICE TOOL',show:settings.show_jepfx!==0,target:'shop'},
+    {id:'module',name:'MODULE FOR ROOTED',show:settings.show_module!==0,target:'shop'}
   ];
-  const servicesByCat = {};
-  (storeData.services || []).forEach(s => {
-    if (!servicesByCat[s.category]) servicesByCat[s.category] = [];
-    servicesByCat[s.category].push(s);
-  });
-  const renderCat = cat => `
+  const servicesByCat={};
+  (storeData.services||[]).forEach(s=>{ if(!servicesByCat[s.category]) servicesByCat[s.category]=[]; servicesByCat[s.category].push(s); });
+
+  const renderCat = cat=>`
     <div class="service-category">
       <div class="category-header" onclick="toggleCategory(this)">
         <div class="category-title">${cat.name}</div>
@@ -1336,326 +1214,228 @@ function renderServices() {
       </div>
       <div class="category-content">
         <div class="service-items">
-          ${servicesByCat[cat.id].map(s => {
-            const tiers = s.tiers || [];
-            const hasTiers = tiers.length > 0;
-            const minPrice = hasTiers ? Math.min(...tiers.map(t => t.price)) : s.price;
+          ${servicesByCat[cat.id].map(s=>{
+            const tiers=s.tiers||[];
+            const hasTiers=tiers.length>0;
+            const minPrice=hasTiers?Math.min(...tiers.map(t=>t.price)):s.price;
             return `
             <div class="service-item">
               <div class="service-item-title">${esc(s.title)}</div>
-              ${minPrice > 0 ? `<div class="service-item-price">${hasTiers ? 'FROM ' : ''}₱${minPrice}</div>` : ''}
-              <div class="service-item-desc">${esc(s.description).replace(/\n/g, '<br>')}</div>
-              ${hasTiers ? `<div class="tier-list">${tiers.map(t => `<div class="tier-row"><span>${esc(t.label)}${t.quantity>1?` · qty ${t.quantity}`:''}</span><span>₱${t.price}</span></div>`).join('')}</div>` : ''}
-              ${s.link ? `<a href="${s.link}" target="_blank" class="service-item-link">MORE INFO →</a>` : ''}
-              ${(minPrice > 0 || hasTiers) ? `<button class="service-item-link" style="margin-top:.4rem;cursor:pointer;background:var(--green);color:#000;border:none;font-weight:bold;" onclick="showServiceBuy(${s.id})">BUY NOW${hasTiers?'':' · ₱'+s.price}</button>` : ''}
-            </div>
-          `;}).join('')}
+              ${minPrice>0?`<div class="service-item-price">${hasTiers?'FROM ':''}₱${minPrice}</div>`:''}
+              <div class="service-item-desc">${esc(s.description).replace(/\n/g,'<br>')}</div>
+              ${hasTiers?`<div class="tier-list">${tiers.map(t=>`<div class="tier-row"><span>${esc(t.label)}${t.quantity>1?` · qty ${t.quantity}`:''}</span><span>₱${t.price}</span></div>`).join('')}</div>`:''}
+              ${s.link?`<a href="${s.link}" target="_blank" class="service-item-link">MORE INFO →</a>`:''}
+              ${(minPrice>0||hasTiers)?`<button class="service-item-link" style="margin-top:.4rem;cursor:pointer;background:var(--green);color:#000;border:none;font-weight:bold;padding:0.35rem 0.8rem;" onclick="showServiceBuy(${s.id})">BUY NOW${hasTiers?'':' · ₱'+s.price}</button>`:''}
+            </div>`;
+          }).join('')}
         </div>
       </div>
     </div>
   `;
-  const visible = allCategories.filter(cat => cat.show && servicesByCat[cat.id]?.length);
-  container.innerHTML = visible.filter(c => c.target === 'services').map(renderCat).join('');
-  if (shopContainer) shopContainer.innerHTML = visible.filter(c => c.target === 'shop').map(renderCat).join('');
-  if (!container.innerHTML) container.innerHTML = '<div class="empty-msg">NO SERVICES AVAILABLE</div>';
+  const visible=allCategories.filter(cat=>cat.show&&servicesByCat[cat.id]?.length);
+  container.innerHTML=visible.filter(c=>c.target==='services').map(renderCat).join('');
+  if(shopContainer) shopContainer.innerHTML=visible.filter(c=>c.target==='shop').map(renderCat).join('');
+  if(!container.innerHTML) container.innerHTML='<div class="empty-msg">NO SERVICES AVAILABLE</div>';
 }
 
-function toggleCategory(header) {
-  const content = header.nextElementSibling;
-  const icon = header.querySelector('.category-toggle i');
+function toggleCategory(header){
+  const content=header.nextElementSibling;
+  const icon=header.querySelector('.category-toggle i');
   content.classList.toggle('open');
-  icon.className = content.classList.contains('open') ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+  icon.className=content.classList.contains('open')?'fas fa-chevron-up':'fas fa-chevron-down';
 }
 
+// ── PURCHASE FLOW ─────────────────────────────────────────────────────────────
 let pendingPurchasePlan = null;
-let purchasePromoApplied = null; // {code, discount_type, discount_value}
+let purchasePromoApplied = null;
 
-function calcDiscounted(base, promo) {
-  if (!promo) return base;
-  if (promo.discount_type === 'flat') return Math.max(0, base - (promo.discount_value || 0));
-  return Math.max(0, Math.round(base * (1 - (promo.discount_value || 0) / 100)));
+function calcDiscounted(base,promo){
+  if(!promo) return base;
+  if(promo.discount_type==='flat') return Math.max(0,base-(promo.discount_value||0));
+  return Math.max(0,Math.round(base*(1-(promo.discount_value||0)/100)));
 }
 
-function refreshPurchaseTotals() {
-  if (!pendingPurchasePlan) return;
-  const base = pendingPurchasePlan.price;
-  const total = calcDiscounted(base, purchasePromoApplied);
-  document.getElementById('purchasePrice').textContent = '₱' + base;
-  document.getElementById('purchaseDiscount').textContent = purchasePromoApplied ? '-₱' + (base - total) : '—';
-  document.getElementById('purchaseTotal').textContent = '₱' + total;
+function refreshPurchaseTotals(){
+  if(!pendingPurchasePlan) return;
+  const base=pendingPurchasePlan.price;
+  const total=calcDiscounted(base,purchasePromoApplied);
+  document.getElementById('purchasePrice').textContent='₱'+base;
+  document.getElementById('purchaseDiscount').textContent=purchasePromoApplied?'-₱'+(base-total):'—';
+  document.getElementById('purchaseTotal').textContent='₱'+total;
 }
 
-async function showPurchaseModal(planId) {
-  if (!userToken) { openAuthModal(); toast('Login to purchase'); return; }
-  const plan = storeData.plans.find(p => p.id === planId);
-  if (!plan) return;
-  if ((keyAvailability[planId] || 0) === 0) { toast('No keys available for this plan'); return; }
-  if (userBalance < plan.price) { toast('Insufficient balance! Please deposit funds first.'); return; }
-  pendingPurchasePlan = plan;
-  purchasePromoApplied = null;
-  document.getElementById('purchasePlanName').textContent = 'CONFIRM ' + plan.label.toUpperCase();
-  document.getElementById('purchasePlanLabel').textContent = plan.label.toUpperCase();
-  document.getElementById('purchaseBalance').textContent = '₱' + userBalance.toLocaleString();
-  document.getElementById('purchasePromo').value = '';
-  document.getElementById('promoMsg').textContent = '';
+async function showPurchaseModal(planId){
+  if(!userToken){ openAuthModal(); toast('Login to purchase'); return; }
+  const plan=storeData.plans.find(p=>p.id===planId);
+  if(!plan) return;
+  if((keyAvailability[planId]||0)===0){ toast('No keys available for this plan'); return; }
+  if(userBalance<plan.price){ toast('Insufficient balance! Please deposit funds first.'); return; }
+  pendingPurchasePlan=plan; purchasePromoApplied=null;
+  document.getElementById('purchasePlanName').textContent='CONFIRM '+plan.label.toUpperCase();
+  document.getElementById('purchasePlanLabel').textContent=plan.label.toUpperCase();
+  document.getElementById('purchaseBalance').textContent='₱'+userBalance.toLocaleString();
+  document.getElementById('purchasePromo').value='';
+  document.getElementById('promoMsg').textContent='';
   refreshPurchaseTotals();
   document.getElementById('purchaseError').classList.remove('show');
   document.getElementById('purchaseModal').classList.add('open');
 }
 
-async function applyPromo(codeInputId, msgEl, onApplied) {
-  const code = document.getElementById(codeInputId).value.trim();
-  if (!code) { msgEl.textContent = ''; onApplied(null); return; }
-  try {
-    const res = await fetch('/api/promo/validate', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ code })
-    });
-    const d = await res.json();
-    if (d.valid) {
-      msgEl.style.color = 'var(--green)';
-      msgEl.textContent = '✓ Promo applied: ' + (d.discount_type === 'flat' ? '-₱'+d.discount_value : '-'+d.discount_value+'%');
-      onApplied(d);
-    } else {
-      msgEl.style.color = '#f55';
-      msgEl.textContent = d.message || 'Invalid code';
-      onApplied(null);
-    }
-  } catch(e) {
-    msgEl.style.color = '#f55'; msgEl.textContent = 'Error checking code'; onApplied(null);
-  }
+async function applyPromo(codeInputId,msgEl,onApplied){
+  const code=document.getElementById(codeInputId).value.trim();
+  if(!code){ msgEl.textContent=''; onApplied(null); return; }
+  try{
+    const res=await fetch('/api/promo/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+    const d=await res.json();
+    if(d.valid){ msgEl.style.color='var(--green)'; msgEl.textContent='✓ Promo applied: '+(d.discount_type==='flat'?'-₱'+d.discount_value:'-'+d.discount_value+'%'); onApplied(d); }
+    else{ msgEl.style.color='#f55'; msgEl.textContent=d.message||'Invalid code'; onApplied(null); }
+  } catch(e){ msgEl.style.color='#f55'; msgEl.textContent='Error checking code'; onApplied(null); }
 }
 
-document.getElementById('applyPromoBtn').addEventListener('click', () => {
-  applyPromo('purchasePromo', document.getElementById('promoMsg'), p => {
-    purchasePromoApplied = p; refreshPurchaseTotals();
-  });
+document.getElementById('applyPromoBtn').addEventListener('click',()=>{
+  applyPromo('purchasePromo',document.getElementById('promoMsg'),p=>{ purchasePromoApplied=p; refreshPurchaseTotals(); });
 });
 
-document.getElementById('confirmPurchaseBtn').addEventListener('click', async () => {
-  if (!pendingPurchasePlan) return;
-  const btn = document.getElementById('confirmPurchaseBtn');
-  btn.disabled = true;
-  btn.textContent = 'PROCESSING...';
-  try {
-    const res = await fetch('/api/purchase', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + userToken },
-      body: JSON.stringify({ planId: pendingPurchasePlan.id, promoCode: purchasePromoApplied?.code })
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      const errEl = document.getElementById('purchaseError');
-      errEl.textContent = data.message || 'Purchase failed';
-      errEl.classList.add('show');
-      return;
-    }
+document.getElementById('confirmPurchaseBtn').addEventListener('click', async ()=>{
+  if(!pendingPurchasePlan) return;
+  const btn=document.getElementById('confirmPurchaseBtn');
+  btn.disabled=true; btn.textContent='PROCESSING...';
+  try{
+    const res=await fetch('/api/purchase',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+userToken},body:JSON.stringify({planId:pendingPurchasePlan.id,promoCode:purchasePromoApplied?.code})});
+    const data=await res.json();
+    if(!res.ok){ const e=document.getElementById('purchaseError'); e.textContent=data.message||'Purchase failed'; e.classList.add('show'); return; }
     closeModal('purchaseModal');
-    document.getElementById('deliveredKey').textContent = data.key;
+    document.getElementById('deliveredKey').textContent=data.key;
     document.getElementById('keyModal').classList.add('open');
-    userBalance = data.newBalance;
-    document.getElementById('userBalance').textContent = '₱' + userBalance.toLocaleString();
-    await loadKeyAvailability();
-    renderPlans();
-    loadOrders();
-    toast('Purchase successful! Key delivered.');
-  } catch(e) {
-    document.getElementById('purchaseError').textContent = 'Network error';
-    document.getElementById('purchaseError').classList.add('show');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'CONFIRM PURCHASE';
-    pendingPurchasePlan = null;
-  }
+    userBalance=data.newBalance;
+    document.getElementById('userBalance').textContent='₱'+userBalance.toLocaleString();
+    await loadKeyAvailability(); renderPlans(); loadOrders(); toast('Purchase successful! Key delivered.');
+  } catch(e){ document.getElementById('purchaseError').textContent='Network error'; document.getElementById('purchaseError').classList.add('show'); }
+  finally{ btn.disabled=false; btn.textContent='CONFIRM PURCHASE'; pendingPurchasePlan=null; }
 });
 
-// ─── SERVICE BUY FLOW ──────────────────────────────────────────────────────
-let pendingService = null;
-let svcPromoApplied = null;
+// ── SERVICE BUY FLOW ──────────────────────────────────────────────────────────
+let pendingService=null, svcPromoApplied=null, pendingTier=null;
 
-function refreshSvcTotals() {
-  if (!pendingService) return;
-  const base = pendingTier ? pendingTier.price : pendingService.price;
-  const total = calcDiscounted(base, svcPromoApplied);
-  document.getElementById('svcBuyPrice').textContent = '₱' + base;
-  document.getElementById('svcBuyDiscount').textContent = svcPromoApplied ? '-₱' + (base - total) : '—';
-  document.getElementById('svcBuyTotal').textContent = '₱' + total;
+function refreshSvcTotals(){
+  if(!pendingService) return;
+  const base=pendingTier?pendingTier.price:pendingService.price;
+  const total=calcDiscounted(base,svcPromoApplied);
+  document.getElementById('svcBuyPrice').textContent='₱'+base;
+  document.getElementById('svcBuyDiscount').textContent=svcPromoApplied?'-₱'+(base-total):'—';
+  document.getElementById('svcBuyTotal').textContent='₱'+total;
 }
 
-let pendingTier = null;
-window.showServiceBuy = function(serviceId) {
-  if (!userToken) { openAuthModal(); toast('Login to purchase'); return; }
-  const svc = (storeData.services || []).find(s => s.id === serviceId);
-  if (!svc) return;
-  pendingService = svc;
-  pendingTier = null;
-  svcPromoApplied = null;
-  document.getElementById('svcBuyTitle').textContent = 'BUY · ' + svc.title.toUpperCase();
-  document.getElementById('svcBuyName').textContent = svc.title;
-  document.getElementById('svcBuyBalance').textContent = '₱' + userBalance.toLocaleString();
-  ['svcBuyTg','svcBuyFb','svcBuyLink','svcBuyPromo'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('svcPromoMsg').textContent = '';
+window.showServiceBuy = function(serviceId){
+  if(!userToken){ openAuthModal(); toast('Login to purchase'); return; }
+  const svc=(storeData.services||[]).find(s=>s.id===serviceId);
+  if(!svc) return;
+  pendingService=svc; pendingTier=null; svcPromoApplied=null;
+  document.getElementById('svcBuyTitle').textContent='BUY · '+svc.title.toUpperCase();
+  document.getElementById('svcBuyName').textContent=svc.title;
+  document.getElementById('svcBuyBalance').textContent='₱'+userBalance.toLocaleString();
+  ['svcBuyTg','svcBuyFb','svcBuyLink','svcBuyPromo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('svcPromoMsg').textContent='';
   document.getElementById('svcBuyError').classList.remove('show');
-  // Resolve category delivery_type
-  const cat = (storeData.categories || []).find(c => c.key === svc.category);
-  const dt = (cat && cat.delivery_type) || 'admin';
-  // The "your account link" input is mainly useful for admin-approval categories
-  document.getElementById('svcBuyLink').style.display = dt === 'admin' ? '' : 'none';
-  const noteEl = document.getElementById('svcBuyDeliveryNote');
-  if (dt === 'key') {
-    noteEl.innerHTML = '🔑 <strong>Instant key delivery.</strong> Your key will be shown on screen and saved to your orders.';
-  } else if (dt === 'link') {
-    noteEl.innerHTML = '🔗 <strong>Instant link delivery.</strong> Your link will be shown on screen and saved to your orders.';
-  } else {
-    noteEl.innerHTML = '👤 <strong>Admin approval.</strong> We will contact you on the Telegram / Facebook you provide below.';
-  }
-  noteEl.style.display = '';
-  // Tier selector
-  const tiers = svc.tiers || [];
-  const tierWrap = document.getElementById('svcTierWrap');
-  const tierSel = document.getElementById('svcTierSelect');
-  if (tiers.length > 0) {
-    tierWrap.style.display = '';
-    tierSel.innerHTML = tiers.map(t => `<option value="${t.id}" data-price="${t.price}">${esc(t.label)}${t.quantity>1?` · qty ${t.quantity}`:''} — ₱${t.price}</option>`).join('');
-    pendingTier = tiers[0];
-    tierSel.onchange = () => {
-      pendingTier = tiers.find(t => t.id == tierSel.value);
-      refreshSvcTotals();
-    };
-  } else {
-    tierWrap.style.display = 'none';
-    tierSel.innerHTML = '';
-  }
+  const cat=(storeData.categories||[]).find(c=>c.key===svc.category);
+  const dt=(cat&&cat.delivery_type)||'admin';
+  const svcBuyLinkWrap = document.getElementById('svcBuyLinkWrap');
+  if(svcBuyLinkWrap) svcBuyLinkWrap.style.display=dt==='admin'?'':'none';
+  const noteEl=document.getElementById('svcBuyDeliveryNote');
+  if(dt==='key') noteEl.innerHTML='🔑 <strong>Instant key delivery.</strong> Your key will be shown on screen and saved to your orders.';
+  else if(dt==='link') noteEl.innerHTML='🔗 <strong>Instant link delivery.</strong> Your link will be shown on screen and saved to your orders.';
+  else noteEl.innerHTML='👤 <strong>Admin approval.</strong> We will contact you on the Telegram / Facebook you provide below.';
+  noteEl.style.display='';
+  const tiers=svc.tiers||[];
+  const tierWrap=document.getElementById('svcTierWrap');
+  const tierSel=document.getElementById('svcTierSelect');
+  if(tiers.length>0){
+    tierWrap.style.display='';
+    tierSel.innerHTML=tiers.map(t=>`<option value="${t.id}" data-price="${t.price}">${esc(t.label)}${t.quantity>1?` · qty ${t.quantity}`:''} — ₱${t.price}</option>`).join('');
+    pendingTier=tiers[0];
+    tierSel.onchange=()=>{ pendingTier=tiers.find(t=>t.id==tierSel.value); refreshSvcTotals(); };
+  } else { tierWrap.style.display='none'; tierSel.innerHTML=''; }
   refreshSvcTotals();
   document.getElementById('svcBuyModal').classList.add('open');
 };
-function esc(str){return (str==null?'':String(str)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-document.getElementById('svcApplyPromoBtn').addEventListener('click', () => {
-  applyPromo('svcBuyPromo', document.getElementById('svcPromoMsg'), p => {
-    svcPromoApplied = p; refreshSvcTotals();
-  });
+document.getElementById('svcApplyPromoBtn').addEventListener('click',()=>{
+  applyPromo('svcBuyPromo',document.getElementById('svcPromoMsg'),p=>{ svcPromoApplied=p; refreshSvcTotals(); });
 });
 
-document.getElementById('confirmSvcBuyBtn').addEventListener('click', async () => {
-  if (!pendingService) return;
-  const btn = document.getElementById('confirmSvcBuyBtn');
-  const errEl = document.getElementById('svcBuyError');
-  const tg = document.getElementById('svcBuyTg').value.trim();
-  const fb = document.getElementById('svcBuyFb').value.trim();
-  if (!tg && !fb) { errEl.textContent = 'Provide Telegram or Facebook contact'; errEl.classList.add('show'); return; }
-  btn.disabled = true; btn.textContent = 'PROCESSING...';
-  try {
-    const res = await fetch('/api/service/purchase', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+userToken },
-      body: JSON.stringify({
-        serviceId: pendingService.id,
-        tierId: pendingTier ? pendingTier.id : undefined,
-        telegram: tg, facebook: fb,
-        user_link: document.getElementById('svcBuyLink').value.trim(),
-        promoCode: svcPromoApplied?.code
-      })
-    });
-    const data = await res.json();
-    if (!res.ok) { errEl.textContent = data.message || 'Purchase failed'; errEl.classList.add('show'); return; }
+document.getElementById('confirmSvcBuyBtn').addEventListener('click', async ()=>{
+  if(!pendingService) return;
+  const btn=document.getElementById('confirmSvcBuyBtn');
+  const errEl=document.getElementById('svcBuyError');
+  const tg=document.getElementById('svcBuyTg').value.trim();
+  const fb=document.getElementById('svcBuyFb').value.trim();
+  if(!tg&&!fb){ errEl.textContent='Provide Telegram or Facebook contact'; errEl.classList.add('show'); return; }
+  btn.disabled=true; btn.textContent='PROCESSING...';
+  try{
+    const res=await fetch('/api/service/purchase',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+userToken},body:JSON.stringify({serviceId:pendingService.id,tierId:pendingTier?pendingTier.id:undefined,telegram:tg,facebook:fb,user_link:document.getElementById('svcBuyLink').value.trim(),promoCode:svcPromoApplied?.code})});
+    const data=await res.json();
+    if(!res.ok){ errEl.textContent=data.message||'Purchase failed'; errEl.classList.add('show'); return; }
     closeModal('svcBuyModal');
-    userBalance = data.newBalance;
-    document.getElementById('userBalance').textContent = '₱' + userBalance.toLocaleString();
-    // Show result
-    document.getElementById('svcResultTitle').textContent = data.title.toUpperCase();
-    document.getElementById('svcResultValue').textContent = data.delivered || '(no auto-delivery)';
-    let note = '';
-    if (data.delivery_type === 'key') {
-      note = 'Your key — copy it now. Saved to your orders.';
-    } else if (data.delivery_type === 'link') {
-      note = 'Your link — open it now. Saved to your orders.';
-    } else {
-      note = 'Order received! Our team will contact you on the FB/Telegram you provided.';
-      // Hide the value box when there is no auto-delivery
-      if (!data.delivered) document.getElementById('svcResultValue').textContent = 'We will contact you shortly.';
-    }
-    document.getElementById('svcResultNote').textContent = note;
+    userBalance=data.newBalance; document.getElementById('userBalance').textContent='₱'+userBalance.toLocaleString();
+    document.getElementById('svcResultTitle').textContent=data.title.toUpperCase();
+    document.getElementById('svcResultValue').textContent=data.delivered||'(no auto-delivery)';
+    let note='';
+    if(data.delivery_type==='key') note='Your key — copy it now. Saved to your orders.';
+    else if(data.delivery_type==='link') note='Your link — open it now. Saved to your orders.';
+    else{ note='Order received! Our team will contact you on the FB/Telegram you provided.'; if(!data.delivered) document.getElementById('svcResultValue').textContent='We will contact you shortly.'; }
+    document.getElementById('svcResultNote').textContent=note;
     document.getElementById('svcResultModal').classList.add('open');
     toast('Purchase successful!');
-  } catch(e) {
-    errEl.textContent = 'Network error'; errEl.classList.add('show');
-  } finally {
-    btn.disabled = false; btn.textContent = 'CONFIRM PURCHASE';
-    pendingService = null;
-  }
+  } catch(e){ errEl.textContent='Network error'; errEl.classList.add('show'); }
+  finally{ btn.disabled=false; btn.textContent='CONFIRM PURCHASE'; pendingService=null; }
 });
 
-
-document.querySelectorAll('.amount-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.getElementById('depositAmount').value = btn.dataset.amount;
-  });
+// ── DEPOSIT ───────────────────────────────────────────────────────────────────
+document.querySelectorAll('.amount-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{ document.getElementById('depositAmount').value=btn.dataset.amount; });
 });
 
-document.getElementById('submitDepositBtn').addEventListener('click', async () => {
-  if (!userToken) { openAuthModal(); toast('Login to submit deposit'); return; }
-  const amount = document.getElementById('depositAmount').value;
-  const telegram = document.getElementById('depositTelegram').value.trim();
-  const facebook = document.getElementById('depositFacebook').value.trim();
-  const last4 = document.getElementById('depositLast4').value.trim();
-  const notes = document.getElementById('depositNotes').value;
-  const screenshotFile = document.getElementById('depositScreenshot').files[0];
-  if (!amount || amount < 50) { toast('Amount must be at least ₱50'); return; }
-  if (!telegram) { toast('Telegram account is required'); return; }
-  if (!facebook) { toast('Facebook account is required'); return; }
-  if (!last4 || last4.length !== 4 || !/^\d+$/.test(last4)) { toast('Last 4 digits of reference number required'); return; }
-  const formData = new FormData();
-  formData.append('amount', amount);
-  formData.append('telegram', telegram);
-  formData.append('facebook', facebook);
-  formData.append('last4_digits', last4);
-  formData.append('notes', notes);
-  if (screenshotFile) formData.append('screenshot', screenshotFile);
-  const btn = document.getElementById('submitDepositBtn');
-  btn.disabled = true;
-  btn.textContent = 'SUBMITTING...';
-  try {
-    const res = await fetch('/api/deposit', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + userToken },
-      body: formData
-    });
-    const data = await res.json();
-    if (data.success) {
+document.getElementById('submitDepositBtn').addEventListener('click', async ()=>{
+  if(!userToken){ openAuthModal(); toast('Login to submit deposit'); return; }
+  const amount=document.getElementById('depositAmount').value;
+  const telegram=document.getElementById('depositTelegram').value.trim();
+  const facebook=document.getElementById('depositFacebook').value.trim();
+  const last4=document.getElementById('depositLast4').value.trim();
+  const notes=document.getElementById('depositNotes').value;
+  const screenshotFile=document.getElementById('depositScreenshot').files[0];
+  if(!amount||amount<50){ toast('Amount must be at least ₱50'); return; }
+  if(!telegram){ toast('Telegram account is required'); return; }
+  if(!facebook){ toast('Facebook account is required'); return; }
+  if(!last4||last4.length!==4||!/^\d+$/.test(last4)){ toast('Last 4 digits of reference number required'); return; }
+  const formData=new FormData();
+  formData.append('amount',amount); formData.append('telegram',telegram);
+  formData.append('facebook',facebook); formData.append('last4_digits',last4);
+  formData.append('notes',notes);
+  if(screenshotFile) formData.append('screenshot',screenshotFile);
+  const btn=document.getElementById('submitDepositBtn');
+  btn.disabled=true; btn.textContent='SUBMITTING...';
+  try{
+    const res=await fetch('/api/deposit',{method:'POST',headers:{Authorization:'Bearer '+userToken},body:formData});
+    const data=await res.json();
+    if(data.success){
       toast('Deposit request submitted! Admin will review.');
-      document.getElementById('depositAmount').value = '';
-      document.getElementById('depositTelegram').value = '';
-      document.getElementById('depositFacebook').value = '';
-      document.getElementById('depositLast4').value = '';
-      document.getElementById('depositNotes').value = '';
-      document.getElementById('depositScreenshot').value = '';
+      ['depositAmount','depositTelegram','depositFacebook','depositLast4','depositNotes'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('depositScreenshot').value='';
       loadDepositHistory();
-    } else {
-      toast(data.message || 'Submission failed');
-    }
-  } catch(e) { toast('Network error'); }
-  finally {
-    btn.disabled = false;
-    btn.textContent = 'SUBMIT DEPOSIT REQUEST';
-  }
+    } else { toast(data.message||'Submission failed'); }
+  } catch(e){ toast('Network error'); }
+  finally{ btn.disabled=false; btn.textContent='SUBMIT DEPOSIT REQUEST'; }
 });
 
-async function loadDepositHistory() {
-  const container = document.getElementById('depositHistory');
-  if (!container) return;
-  if (!userToken) {
-    container.innerHTML = '<div class="empty-msg">LOGIN TO VIEW DEPOSIT HISTORY</div>';
-    return;
-  }
-  try {
-    const res = await fetch('/api/user/deposits', { headers: { Authorization: 'Bearer ' + userToken } });
-    const data = await res.json();
-    if (!data.success || !data.deposits?.length) {
-      container.innerHTML = '<div class="empty-msg">NO DEPOSIT REQUESTS YET</div>';
-      return;
-    }
-    container.innerHTML = data.deposits.map(d => `
+async function loadDepositHistory(){
+  const container=document.getElementById('depositHistory');
+  if(!container) return;
+  if(!userToken){ container.innerHTML='<div class="empty-msg">LOGIN TO VIEW DEPOSIT HISTORY</div>'; return; }
+  try{
+    const res=await fetch('/api/user/deposits',{headers:{Authorization:'Bearer '+userToken}});
+    const data=await res.json();
+    if(!data.success||!data.deposits?.length){ container.innerHTML='<div class="empty-msg">NO DEPOSIT REQUESTS YET</div>'; return; }
+    container.innerHTML=data.deposits.map(d=>`
       <div class="deposit-card">
         <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
           <span style="font-weight:bold;">₱${d.amount}</span>
@@ -1663,57 +1443,128 @@ async function loadDepositHistory() {
         </div>
         <div style="font-size:0.6rem;color:var(--gray-5);margin-top:0.3rem;">${new Date(d.created_at).toLocaleString()}</div>
         <div style="font-size:0.55rem;color:var(--gray-5);">Ref: ${d.reference_id}</div>
-        ${d.admin_notes ? `<div style="font-size:0.55rem;color:var(--gray-4);margin-top:0.3rem;">Admin: ${esc(d.admin_notes)}</div>` : ''}
+        ${d.admin_notes?`<div style="font-size:0.55rem;color:var(--gray-4);margin-top:0.3rem;">Admin: ${esc(d.admin_notes)}</div>`:''}
       </div>
     `).join('');
-  } catch(e) {
-    console.error('Deposit history error:', e);
-    container.innerHTML = '<div class="empty-msg">FAILED TO LOAD HISTORY</div>';
-  }
+  } catch(e){ container.innerHTML='<div class="empty-msg">FAILED TO LOAD HISTORY</div>'; }
 }
 
-async function loadOrders() {
-  const container = document.getElementById('ordersContainer');
-  if (!container) return;
-  if (!userToken) { container.innerHTML = '<div class="empty-msg">LOGIN TO SEE YOUR ORDERS</div>'; return; }
-  container.innerHTML = '<div class="empty-msg"><div class="spinner"></div></div>';
-  try {
-    const res = await fetch('/api/user/orders', { headers: { Authorization: 'Bearer ' + userToken } });
-    const data = await res.json();
-    if (!data.success || !data.orders?.length) { container.innerHTML = '<div class="empty-msg">NO ORDERS YET</div>'; return; }
-    container.innerHTML = '<div class="orders-wrap">' + data.orders.map(o => `
+// ── ORDERS ────────────────────────────────────────────────────────────────────
+async function loadOrders(){
+  const container=document.getElementById('ordersContainer');
+  if(!container) return;
+  if(!userToken){ container.innerHTML='<div class="empty-msg">LOGIN TO SEE YOUR ORDERS</div>'; return; }
+  container.innerHTML='<div class="empty-msg"><div class="spinner"></div></div>';
+  try{
+    const res=await fetch('/api/user/orders',{headers:{Authorization:'Bearer '+userToken}});
+    const data=await res.json();
+    if(!data.success||!data.orders?.length){ container.innerHTML='<div class="empty-msg">NO ORDERS YET</div>'; return; }
+    container.innerHTML='<div class="orders-wrap">'+data.orders.map(o=>`
       <div class="order-card">
         <div style="flex:1;">
           <div class="order-plan">${esc(o.plan_label.toUpperCase())}</div>
           <div style="font-size:0.6rem;color:var(--gray-5);margin-top:0.2rem;">₱${o.price} · ${new Date(o.created_at).toLocaleString()}</div>
           <div style="font-size:0.55rem;color:var(--gray-5);">Order ID: ${o.id.split('-')[0].toUpperCase()}</div>
-          ${o.key_given ? `<div class="order-key">${esc(o.key_given)}</div>` : ''}
+          ${o.key_given?`<div class="order-key">${esc(o.key_given)}</div>`:''}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem;">
           <span class="order-status-badge badge-${o.status}">${o.status.toUpperCase()}</span>
-          ${o.key_given ? `<button class="btn-copy-key" onclick="copyText('${esc(o.key_given)}')">COPY KEY</button>` : ''}
+          ${o.key_given?`<button class="btn-copy-key" onclick="copyText('${esc(o.key_given)}')">COPY KEY</button>`:''}
         </div>
       </div>
-    `).join('') + '</div>';
-  } catch(e) {
-    console.error('Orders error:', e);
-    container.innerHTML = '<div class="empty-msg">FAILED TO LOAD ORDERS</div>';
+    `).join('')+'</div>';
+  } catch(e){ container.innerHTML='<div class="empty-msg">FAILED TO LOAD ORDERS</div>'; }
+}
+
+// ── BACKUP / LOAD SETUP ───────────────────────────────────────────────────────
+async function gatherSetupData(){
+  // Try the admin backup endpoint first (richer data)
+  if(userToken){
+    try{
+      const res=await fetch('/api/admin/backup',{headers:{Authorization:'Bearer '+userToken}});
+      if(res.ok){ const d=await res.json(); d.note='N4XCO Shop setup backup. Use LOAD SETUP to restore.'; return d; }
+    } catch(_){}
+  }
+  // Fallback: use what we have in storeData
+  return {
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    shopSettings: storeData.shopSettings||{},
+    depositSettings: storeData.depositSettings||{},
+    apkSettings: storeData.apk||{},
+    paymentMethods: (storeData.paymentMethods||[]),
+    note: 'N4XCO Shop setup backup. Import on /admin after fresh deploy to restore settings.'
+  };
+}
+
+async function doBackupSetup(){
+  const statusEl=document.getElementById('backupStatus');
+  statusEl.textContent='Gathering setup data...';
+  try{
+    const data=await gatherSetupData();
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='n4xco-setup-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    statusEl.style.color='var(--green)'; statusEl.textContent='✓ Backup downloaded!';
+    toast('Setup backup downloaded!');
+  } catch(e){ statusEl.style.color='var(--red)'; statusEl.textContent='Error: '+e.message; }
+}
+
+async function doQuickBackup(){
+  const statusEl=document.getElementById('backupStatus');
+  try{
+    const data=await gatherSetupData();
+    await navigator.clipboard.writeText(JSON.stringify(data,null,2));
+    statusEl.style.color='var(--green)'; statusEl.textContent='✓ Backup JSON copied to clipboard!';
+    toast('Backup JSON copied!');
+  } catch(e){
+    statusEl.style.color='var(--red)'; statusEl.textContent='Clipboard copy failed. Try the download button.';
   }
 }
 
-function esc(str) { if (!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function toast(msg) { const el = document.getElementById('toastMsg'); el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 3000); }
-function copyText(text) { navigator.clipboard.writeText(text).then(() => toast('COPIED!')).catch(() => {}); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.classList.add('show'); }
+function doLoadSetup(input){
+  const statusEl=document.getElementById('backupStatus');
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async (e)=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.version){ statusEl.style.color='var(--red)'; statusEl.textContent='Invalid backup file.'; return; }
+      statusEl.textContent='Loading backup... sending to admin API...';
 
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
-});
+      if(!userToken){ statusEl.style.color='var(--red)'; statusEl.textContent='You must be logged in as admin to restore setup.'; return; }
 
+      // Use single restore API
+      let ok=false, msgs=[];
+      try{
+        const r=await fetch('/api/admin/restore',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+userToken},body:JSON.stringify(data)});
+        if(r.ok){
+          const rd=await r.json();
+          ok=rd.success;
+          msgs=Object.entries(rd.results||{}).map(([k,v])=>k.replace(/([A-Z])/g,' $1').trim()+' ✓');
+        } else {
+          const rd=await r.json().catch(()=>({message:'Server error'}));
+          msgs=['Error: '+rd.message]; ok=false;
+        }
+      } catch(fetchErr){ msgs=['Network error']; ok=false; }
+
+      statusEl.style.color=ok?'var(--green)':'var(--yellow)';
+      statusEl.textContent=(ok?'✓ Setup restored! ':'⚠ Partial: ')+msgs.join(' · ');
+      if(ok){ toast('Setup restored! Reloading...'); setTimeout(()=>loadStore(),1000); }
+    } catch(ex){ statusEl.style.color='var(--red)'; statusEl.textContent='Failed to parse backup: '+ex.message; }
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
 updateUserUI();
 loadStore();
-if (userToken) { refreshUserInfo(); loadOrders(); loadDepositHistory(); }
+if(userToken){ refreshUserInfo(); loadOrders(); loadDepositHistory(); }
 </script>
 </body>
 </html>
