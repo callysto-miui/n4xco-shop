@@ -125,6 +125,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
     <button class="navbtn" data-tab="promos">🏷️ Promo codes</button>
     <button class="navbtn" data-tab="users">👥 Users</button>
     <button class="navbtn" data-tab="services">🛠️ Services</button>
+    <button class="navbtn" data-tab="backup">💾 Backup</button>
     <button class="navbtn" data-tab="settings">⚙️ Settings</button>
     <div style="height:14px"></div>
     <button class="ghost" id="logoutBtn" style="width:100%">Sign out</button>
@@ -395,7 +396,65 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
       </div>
     </div>
 
-    <!-- SETTINGS -->
+    <!-- BACKUP & RESTORE -->
+    <section data-view="backup" class="hide">
+      <h2 style="margin:0 0 12px">Backup &amp; Restore</h2>
+
+      <div class="card" style="border-left:2px solid var(--orange)">
+        <h2 style="border-bottom:none;padding-bottom:0">⚠️ Why this matters on Render free tier</h2>
+        <small class="dim">
+          Render's free tier wipes the filesystem (and your SQLite database) on every redeploy, restart, or
+          spin-down after inactivity. That means your <b>plans, prices, services, payment methods, categories,
+          promo codes, and shop/APK settings get reset to whatever ships in the code</b> unless you back them up
+          first and restore them after.<br><br>
+          <b>Not included in this backup</b> (these live in the database and can't survive a Render free-tier reset
+          no matter what — only a paid persistent disk or external DB fixes this): user accounts, balances,
+          orders, deposits, and the keys pool.
+        </small>
+      </div>
+
+      <div class="card">
+        <h2>📤 Backup setup</h2>
+        <small class="dim">Saves everything below as one JSON file/snippet. Do this right before you redeploy or update the code.</small>
+        <ul style="margin:.6rem 0 0 1.1rem;font-size:.78rem;color:var(--gray-6);line-height:1.7">
+          <li>Plans (prices, days, categories)</li>
+          <li>Services &amp; tiers</li>
+          <li>Service categories</li>
+          <li>Payment methods (incl. QR code images)</li>
+          <li>Promo codes</li>
+          <li>Deposit settings (GCash number / QR)</li>
+          <li>Shop section toggles</li>
+          <li>APK app settings</li>
+        </ul>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <button id="backupDownloadBtn">⬇ Download backup file</button>
+          <button id="backupCopyBtn" class="secondary">📋 Copy backup JSON</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📥 Restore setup</h2>
+        <small class="dim">Upload a backup file you saved earlier. Existing items with the same ID/key/code are updated in place; new ones are created. This does not delete anything not present in the backup.</small>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <label class="secondary" style="display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;border:1px solid var(--gray-4);padding:.55rem 1rem;font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:.12em;text-transform:uppercase">
+            📂 Choose backup file
+            <input type="file" id="backupFileInput" accept=".json" style="display:none">
+          </label>
+          <button id="backupPasteBtn" class="secondary">📋 Paste JSON instead</button>
+        </div>
+        <div id="backupPasteWrap" class="hide" style="margin-top:10px">
+          <textarea id="backupPasteArea" placeholder="Paste backup JSON here" style="min-height:140px"></textarea>
+          <div style="margin-top:8px"><button id="backupPasteRestoreBtn">Restore from pasted JSON</button></div>
+        </div>
+        <div id="backupStatus" style="margin-top:12px;font-size:.78rem"></div>
+      </div>
+
+      <div class="card">
+        <h2>🕒 Last backup info</h2>
+        <div id="backupLastInfo" class="dim" style="font-size:.78rem">No backup downloaded yet this session.</div>
+      </div>
+    </section>
+
     <section data-view="settings" class="hide">
       <h2 style="margin:0 0 12px">Settings</h2>
       <div class="card">
@@ -523,7 +582,7 @@ function switchTab(name){
   $$('section[data-view]').forEach(s=>s.classList.toggle('hide', s.dataset.view!==name));
   ({dashboard:loadDashboard, payments:loadPayments, plans:loadPlans, keys:loadKeys,
     orders:loadOrders, deposits:loadDeposits, promos:loadPromos, users:loadUsers,
-    services:loadServices, settings:loadSettings}[name] || (()=>{}))();
+    services:loadServices, backup:loadBackupTab, settings:loadSettings}[name] || (()=>{}))();
 }
 
 // ───── DASHBOARD ─────
@@ -1001,6 +1060,96 @@ function renderRecipients() {
     </div>`).join('');
 }
 window.removeRecipient = (i) => { _tgRecipients.splice(i, 1); renderRecipients(); };
+
+// ───── BACKUP & RESTORE ─────
+function loadBackupTab(){
+  $('#backupStatus').textContent = '';
+  $('#backupPasteWrap').classList.add('hide');
+}
+
+async function fetchBackupData(){
+  const data = await api('/api/admin/backup');
+  data.note = 'N4XCO Shop setup backup. Use Restore setup on /admin to restore after a fresh Render deploy.';
+  return data;
+}
+
+function markLastBackup(data){
+  const n = (data.plans?.length||0) + (data.services?.length||0) + (data.paymentMethods?.length||0)
+          + (data.categories?.length||0) + (data.promoCodes?.length||0);
+  $('#backupLastInfo').innerHTML = `Last backup: <b>${new Date().toLocaleString()}</b> · ${n} items captured (plans, services, payment methods, categories, promo codes)`;
+}
+
+$('#backupDownloadBtn').onclick = async () => {
+  const btn = $('#backupDownloadBtn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Gathering…';
+  try{
+    const data = await fetchBackupData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'n4xco-setup-backup-' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    markLastBackup(data);
+    toast('Backup downloaded!');
+  }catch(e){ toast(e.message || 'Backup failed','bad'); }
+  finally{ btn.disabled = false; btn.textContent = orig; }
+};
+
+$('#backupCopyBtn').onclick = async () => {
+  const btn = $('#backupCopyBtn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Gathering…';
+  try{
+    const data = await fetchBackupData();
+    await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    markLastBackup(data);
+    toast('Backup JSON copied to clipboard!');
+  }catch(e){ toast('Clipboard copy failed — try Download instead','bad'); }
+  finally{ btn.disabled = false; btn.textContent = orig; }
+};
+
+async function runRestore(data){
+  const statusEl = $('#backupStatus');
+  if(!data || !data.version){ statusEl.innerHTML = '<span style="color:var(--bad)">Invalid backup file — missing version field.</span>'; return; }
+  statusEl.textContent = 'Restoring…';
+  try{
+    const r = await api('/api/admin/restore', {method:'POST', body:data});
+    const msgs = Object.entries(r.results||{}).map(([k,v]) => k.replace(/([A-Z])/g,' $1').trim() + ': ' + v);
+    statusEl.innerHTML = '<span style="color:var(--ok)">✓ Setup restored!</span><br>' + msgs.join('<br>');
+    toast('Setup restored! Refreshing…');
+    setTimeout(() => location.reload(), 1200);
+  }catch(e){
+    statusEl.innerHTML = '<span style="color:var(--bad)">✗ ' + esc(e.message || 'Restore failed') + '</span>';
+    toast(e.message || 'Restore failed','bad');
+  }
+}
+
+$('#backupFileInput').onchange = (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    try{
+      const data = JSON.parse(ev.target.result);
+      await runRestore(data);
+    }catch(ex){ $('#backupStatus').innerHTML = '<span style="color:var(--bad)">Failed to parse file: ' + esc(ex.message) + '</span>'; }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+};
+
+$('#backupPasteBtn').onclick = () => { $('#backupPasteWrap').classList.toggle('hide'); };
+
+$('#backupPasteRestoreBtn').onclick = async () => {
+  const raw = $('#backupPasteArea').value.trim();
+  if(!raw){ toast('Paste backup JSON first','bad'); return; }
+  try{
+    const data = JSON.parse(raw);
+    await runRestore(data);
+  }catch(ex){ $('#backupStatus').innerHTML = '<span style="color:var(--bad)">Failed to parse JSON: ' + esc(ex.message) + '</span>'; }
+};
 
 async function loadSettings(){
   const d = await api('/api/admin/data');
