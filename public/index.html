@@ -1165,7 +1165,7 @@ function renderPlans(){
     const available = keyAvailability[p.id]||0;
     const disabled = available===0;
     return `
-      <div class="plan-card ${disabled?'disabled':''}" onclick="${disabled?'':``showPurchaseModal('${p.id}')``}">
+      <div class="plan-card ${disabled?'disabled':''}" onclick="${disabled?'':`showPurchaseModal('${p.id}')`}">
         <div class="plan-number">${String(p.days).padStart(2,'0')}</div>
         <div class="plan-label">${esc(p.label)} PLAN</div>
         <div class="plan-price">₱${p.price}</div>
