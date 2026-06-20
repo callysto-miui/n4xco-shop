@@ -867,7 +867,7 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
 // Export: returns all setup data as JSON
 app.get('/api/admin/backup', requireAdmin, async (req, res) => {
   try {
-    const [apk, shopSettings, depositSettings, paymentMethods, categories, services, tiers] = await Promise.all([
+    const [apk, shopSettings, depositSettings, paymentMethods, categories, services, tiers, plans, promoCodes] = await Promise.all([
       db.getApkSettings(),
       db.getShopSettings(),
       db.getDepositSettings(),
@@ -875,17 +875,21 @@ app.get('/api/admin/backup', requireAdmin, async (req, res) => {
       db.getCategories(),
       db.getAllServices(),
       db.getAllTiers(),
+      db.getPlans(),
+      db.getPromoCodes(),
     ]);
     services.forEach(sv => { sv.tiers = tiers.filter(t => t.service_id === sv.id); });
     res.json({
       exportedAt: new Date().toISOString(),
-      version: 1,
+      version: 2,
       apkSettings: apk,
       shopSettings,
       depositSettings,
       paymentMethods,
       categories,
       services,
+      plans,
+      promoCodes,
     });
   } catch (e) {
     console.error('Backup error:', e);
@@ -898,47 +902,110 @@ app.post('/api/admin/restore', requireAdmin, async (req, res) => {
   try {
     const data = req.body || {};
     const results = {};
+
     if (data.apkSettings) {
       const cur = await db.getApkSettings();
       await db.updateApkSettings({ ...cur, ...data.apkSettings });
       results.apkSettings = 'ok';
     }
+
     if (data.shopSettings) {
       await db.updateShopSettings(data.shopSettings);
       results.shopSettings = 'ok';
     }
+
     if (data.depositSettings) {
       const { gcash_number, qr_code } = data.depositSettings;
       await db.updateDepositSettings({ gcash_number: gcash_number || '', qr_code: qr_code || '' });
       results.depositSettings = 'ok';
     }
+
     if (Array.isArray(data.paymentMethods)) {
       for (const pm of data.paymentMethods) {
         const { id, ...fields } = pm;
-        // Try update first, then create
         try {
-          await db.updatePaymentMethod(id, fields);
+          const existing = id ? await db.getPaymentMethod(id) : null;
+          if (existing) await db.updatePaymentMethod(id, fields);
+          else await db.createPaymentMethod(fields);
         } catch (_) {
-          await db.createPaymentMethod(fields);
+          try { await db.createPaymentMethod(fields); } catch (__) {}
         }
       }
-      results.paymentMethods = 'ok';
+      results.paymentMethods = `ok (${data.paymentMethods.length})`;
     }
+
     if (Array.isArray(data.categories)) {
       for (const cat of data.categories) {
         const { id, ...fields } = cat;
-        try { await db.updateCategory(id, fields); } catch (_) {
+        try {
+          const existing = await db.getCategoryByKey(fields.key);
+          if (existing) await db.updateCategory(existing.id, fields);
+          else await db.createCategory(fields);
+        } catch (_) {
           try { await db.createCategory(fields); } catch (__) {}
         }
       }
-      results.categories = 'ok';
+      results.categories = `ok (${data.categories.length})`;
     }
+
+    if (Array.isArray(data.plans)) {
+      for (const plan of data.plans) {
+        try {
+          const existing = await db.getPlan(plan.id);
+          if (existing) await db.updatePlan(plan.id, plan);
+          else await db.createPlan(plan);
+        } catch (_) {
+          try { await db.createPlan(plan); } catch (__) {}
+        }
+      }
+      results.plans = `ok (${data.plans.length})`;
+    }
+
+    if (Array.isArray(data.services)) {
+      let count = 0;
+      for (const svc of data.services) {
+        const { id, tiers, ...fields } = svc;
+        let serviceId = id;
+        try {
+          const existing = id ? await db.getService(id) : null;
+          if (existing) { await db.updateService(id, fields); }
+          else { const r = await db.createService(fields); serviceId = r.lastID ?? r.id ?? r.insertId; }
+          count++;
+        } catch (_) { continue; }
+        // restore tiers for this service (replace existing)
+        if (Array.isArray(tiers) && serviceId) {
+          try {
+            const existingTiers = await db.getTiersByService(serviceId);
+            for (const t of existingTiers) await db.deleteTier(t.id);
+            for (const t of tiers) await db.createTier({ ...t, service_id: serviceId });
+          } catch (_) {}
+        }
+      }
+      results.services = `ok (${count})`;
+    }
+
+    if (Array.isArray(data.promoCodes)) {
+      let count = 0;
+      for (const promo of data.promoCodes) {
+        const { id, ...fields } = promo;
+        try {
+          if (id) await db.updatePromoCode(id, fields);
+          else await db.createPromoCode(fields);
+          count++;
+        } catch (_) {
+          try { await db.createPromoCode(fields); count++; } catch (__) {}
+        }
+      }
+      results.promoCodes = `ok (${count})`;
+    }
+
     res.json({ success: true, results });
   } catch (e) {
     console.error('Restore error:', e);
     res.status(500).json({ success: false, message: 'Server error during restore: ' + e.message });
   }
 });
+
 
 // ─── Payment Methods (admin) ───────────────────────────────────────────────────
 app.get('/api/admin/payment-methods', requireAdmin, async (req, res) => {
