@@ -863,6 +863,83 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   }
 });
 
+// ─── Backup & Restore (admin) ─────────────────────────────────────────────────
+// Export: returns all setup data as JSON
+app.get('/api/admin/backup', requireAdmin, async (req, res) => {
+  try {
+    const [apk, shopSettings, depositSettings, paymentMethods, categories, services, tiers] = await Promise.all([
+      db.getApkSettings(),
+      db.getShopSettings(),
+      db.getDepositSettings(),
+      db.getPaymentMethods(),
+      db.getCategories(),
+      db.getAllServices(),
+      db.getAllTiers(),
+    ]);
+    services.forEach(sv => { sv.tiers = tiers.filter(t => t.service_id === sv.id); });
+    res.json({
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      apkSettings: apk,
+      shopSettings,
+      depositSettings,
+      paymentMethods,
+      categories,
+      services,
+    });
+  } catch (e) {
+    console.error('Backup error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Import: restore setup from JSON body
+app.post('/api/admin/restore', requireAdmin, async (req, res) => {
+  try {
+    const data = req.body || {};
+    const results = {};
+    if (data.apkSettings) {
+      const cur = await db.getApkSettings();
+      await db.updateApkSettings({ ...cur, ...data.apkSettings });
+      results.apkSettings = 'ok';
+    }
+    if (data.shopSettings) {
+      await db.updateShopSettings(data.shopSettings);
+      results.shopSettings = 'ok';
+    }
+    if (data.depositSettings) {
+      const { gcash_number, qr_code } = data.depositSettings;
+      await db.updateDepositSettings({ gcash_number: gcash_number || '', qr_code: qr_code || '' });
+      results.depositSettings = 'ok';
+    }
+    if (Array.isArray(data.paymentMethods)) {
+      for (const pm of data.paymentMethods) {
+        const { id, ...fields } = pm;
+        // Try update first, then create
+        try {
+          await db.updatePaymentMethod(id, fields);
+        } catch (_) {
+          await db.createPaymentMethod(fields);
+        }
+      }
+      results.paymentMethods = 'ok';
+    }
+    if (Array.isArray(data.categories)) {
+      for (const cat of data.categories) {
+        const { id, ...fields } = cat;
+        try { await db.updateCategory(id, fields); } catch (_) {
+          try { await db.createCategory(fields); } catch (__) {}
+        }
+      }
+      results.categories = 'ok';
+    }
+    res.json({ success: true, results });
+  } catch (e) {
+    console.error('Restore error:', e);
+    res.status(500).json({ success: false, message: 'Server error during restore: ' + e.message });
+  }
+});
+
 // ─── Payment Methods (admin) ───────────────────────────────────────────────────
 app.get('/api/admin/payment-methods', requireAdmin, async (req, res) => {
   try { res.json(await db.getPaymentMethods()); }
