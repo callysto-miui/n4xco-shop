@@ -735,27 +735,6 @@ body::after {
       </div>
     </div>
 
-    <!-- ── BACKUP / LOAD SETUP ── -->
-    <div class="backup-card">
-      <div class="backup-title"><i class="fas fa-database"></i> SETUP BACKUP &amp; RESTORE</div>
-      <div class="backup-desc">
-        Since Render.com free tier resets the filesystem on redeploy, use this to save your current shop settings
-        (payment methods, shop name, GCash number, APK settings) to your browser, then restore them after a fresh deploy.
-      </div>
-      <div class="backup-info">
-        <strong>What gets saved:</strong> Shop name · APK link · GCash number &amp; QR · Payment methods · Deposit settings<br>
-        <strong>What is NOT saved:</strong> User accounts · Keys pool · Orders · Deposits (those are in your DB / external service)
-      </div>
-      <div class="backup-row">
-        <button class="btn-secondary" onclick="doBackupSetup()"><i class="fas fa-download"></i> BACKUP SETUP</button>
-        <label class="btn-secondary" style="cursor:pointer;"><i class="fas fa-upload"></i> LOAD SETUP
-          <input type="file" id="backupFileInput" accept=".json" style="display:none;" onchange="doLoadSetup(this)">
-        </label>
-        <button class="btn-danger" onclick="doQuickBackup()"><i class="fas fa-copy"></i> COPY BACKUP JSON</button>
-      </div>
-      <div id="backupStatus" style="margin-top:0.8rem;font-size:0.65rem;color:var(--gray-5);"></div>
-    </div>
-
     <div class="section-label">REACH US ON TELEGRAM</div>
     <div class="contacts-grid">
       <a class="contact-card" href="https://t.me/JEPFX" target="_blank">
